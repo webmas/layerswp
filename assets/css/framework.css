@@ -2118,7 +2118,7 @@ object{
     }
     .copy ul{
         list-style: disc;
-        margin: 0 0 26px;
+        margin: 0 0 16px;
     }
     .copy ul li{
         list-style: disc;
@@ -2126,7 +2126,7 @@ object{
     }
     .copy ol{
         list-style: decimal;
-        margin: 0 0 26px;
+        margin: 0 0 16px;
     }
     .copy ol li{
         list-style: decimal;
@@ -2140,7 +2140,7 @@ object{
     }
 
     .copy dl{
-        margin: 0 0 26px;
+        margin: 0 0 16px;
     }
     .copy dd{
         margin-left: 36px;
@@ -2152,25 +2152,25 @@ object{
         height: auto;
     }
     .copy h1{
-        margin-bottom: 26px;
+        margin-bottom: 16px;
         color: #323232;
         font-size: 3.2rem;
         font-weight: 700;
     }
     .copy h2{
-        margin-bottom: 26px;
+        margin-bottom: 16px;
         color: #323232;
         font-size: 2.2rem;
         font-weight: 700;
     }
     .copy h3{
-        margin-bottom: 26px;
+        margin-bottom: 16px;
         color: #323232;
         font-size: 1.8rem;
         font-weight: 700;
     }
     .copy h4{
-        margin-bottom: 26px;
+        margin-bottom: 16px;
         color: #323232;
         font-size: 1.5rem;
         font-weight: 700;
@@ -2181,7 +2181,7 @@ object{
         font-size: 1.3rem;
     }
     .copy blockquote{
-        padding-left: 26px;
+        padding-left: 16px;
         margin-bottom: 20px;
         font-size: 2.0rem;
         font-weight: 700;

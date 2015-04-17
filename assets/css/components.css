@@ -248,6 +248,7 @@ License URI: http://www.gnu.org/licenses/gpl-2.0.html
     }
     .avatar .avatar-body .avatar-name{
         display: block;
+        font-weight: 700;
     }
     .avatar.middled{
         margin-left: auto;

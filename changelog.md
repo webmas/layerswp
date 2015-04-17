@@ -16,6 +16,8 @@
 * **Tweak** - Increased the width of sub menus
 * **Tweak** - Nested comments now clear the .copy div in the parent comment
 * **Tweak** - The 'search' button in the Search Widget is now inline with the input field on screens larger than tablets
+* **Tweak** - Improved header spacing in .copy div (now matches p's)
+* **Tweak** - Bolded comment names
 * **Enhancement** - Logo uploader container now has a background canvas that is better suited for seeing a transparent image
 * **Enhancement** - Added styling for WooCommerce Price Filter Widget
 * **Enhancement** - Added 'border' option to the `layers_inline_styles` function
