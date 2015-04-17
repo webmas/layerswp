@@ -8,6 +8,7 @@
 
 * **Fix** - Added better customizer default handling via the `layers_customizer_control_defaults` hook
 * **Fix** - Payment method block alignment no longer has a margin on the left
+* **Fix** - Adding .pull-right to a .column now pulls the column right as opposed to doing nothing
 * **Tweak** - Header cart background color has changed for a hash value to a transparent rgba background color for better handling of different header colors
 * **Tweak** - Improved spacing of the comment form block as well as a font-size decrease for "Leave a Reply"
 * **Tweak** - Gave copyright border-color rgba (same reason as header cart)
@@ -15,6 +16,7 @@
 * **Tweak** - Increased the width of sub menus
 * **Tweak** - Nested comments now clear the .copy div in the parent comment
 * **Tweak** - The 'search' button in the Search Widget is now inline with the input field on screens larger than tablets
+* **Enhancement** - Logo uploader container now has a background canvas that is better suited for seeing a transparent image
 * **Enhancement** - Added styling for WooCommerce Price Filter Widget
 * **Enhancement** - Added 'border' option to the `layers_inline_styles` function
 * **Enhancement** - Builder pages now obey password protection
