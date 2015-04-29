@@ -163,18 +163,23 @@ if( !class_exists( 'Layers_Slider_Widget' ) ) {
 
 			<section class="<?php echo $widget_container_class; ?>" id="<?php echo $widget_id; ?>" style="<?php echo esc_attr( $slider_height_css ); ?>" >
 				<?php if( !empty( $widget[ 'slides' ] ) ) { ?>
+					
 					<?php if( 1 < count( $widget[ 'slides' ] ) && isset( $widget['show_slider_arrows'] ) ) { ?>
 						 <div class="arrows">
 							<a href="" class="l-left-arrow animate"></a>
 							<a href="" class="l-right-arrow animate"></a>
 						</div>
 					<?php } ?>
-					<div class="<?php echo $this->get_field_id( 'pages' ); ?> pages animate">
-						<?php for( $i = 0; $i < count( $widget[ 'slides' ] ); $i++ ) { ?>
-							<a href="" class="page animate <?php if( 0 == $i ) echo 'active'; ?>"></a>
-						<?php } ?>
-					</div>
-			 		<div class="swiper-wrapper">
+					
+					<?php if( 1 < count( $widget[ 'slides' ] ) ) { ?>
+						<div class="<?php echo $this->get_field_id( 'pages' ); ?> pages animate">
+							<?php for( $i = 0; $i < count( $widget[ 'slides' ] ); $i++ ) { ?>
+								<a href="" class="page animate <?php if( 0 == $i ) echo 'active'; ?>"></a>
+							<?php } ?>
+						</div>
+					<?php } ?>
+					
+					<div class="swiper-wrapper">
 						<?php foreach ( wp_parse_id_list( $widget[ 'slide_ids' ] ) as $slide_key ) {
 
 							// Make sure we've got a column going on here
@@ -281,37 +286,38 @@ if( !class_exists( 'Layers_Slider_Widget' ) ) {
 			 		</div>
 				<?php } // if !empty( $widget->slides ) ?>
 		 	</section>
-						<?php if( 1 < count( $widget[ 'slides' ] ) ) { ?>
 	 		<?php $swiper_js_obj = str_replace( '-' , '_' , $this->get_field_id( 'slider' ) ); ?>
 		 	<script>
 				jQuery(function($){
-
+					
 					var <?php echo $swiper_js_obj; ?> = $('#<?php echo $widget_id; ?>').swiper({
-						//Your options here:
 						mode:'horizontal',
+						paginationClickable: true,
+						watchActiveIndex: true,
+						<?php if ( 1 >= count( $widget[ 'slides' ] ) ) { ?>
+							onlyExternal: true, // Stop touch swipe if only 1 slide
+						<?php } ?>
 						<?php if( '' == $slider_height_css ) { ?>
 							calculateHeight: true,
 						<?php } ?>
 						<?php if( isset( $widget['show_slider_dots'] ) && ( !empty( $widget[ 'slides' ] ) && 1 < count( $widget[ 'slides' ] ) ) ) { ?>
 							pagination: '.<?php echo $this->get_field_id( 'pages' ); ?>',
 						<?php } ?>
-						paginationClickable: true,
-						watchActiveIndex: true
 						<?php if( 1 < count( $widget[ 'slides' ] ) ) { ?>
-							,loop: true
+							loop: true,
 						<?php } ?>
 						<?php if( isset( $widget['autoplay_slides'] ) && isset( $widget['slide_time'] ) && is_numeric( $widget['slide_time'] ) ) {?>
-							, autoplay: <?php echo ($widget['slide_time']*1000); ?>
+							autoplay: <?php echo ($widget['slide_time']*1000); ?>,
 						<?php }?>
 						<?php if( isset( $wp_customize ) && $this->check_and_return( $widget, 'focus_slide' ) ) { ?>
-							,initialSlide: <?php echo $this->check_and_return( $widget, 'focus_slide' ); ?>
+							initialSlide: <?php echo $this->check_and_return( $widget, 'focus_slide' ); ?>,
 						<?php } ?>
 					});
 
 					<?php if( 1 < count( $widget[ 'slides' ] ) ) { ?>
 						// Allow keyboard control
 						<?php echo $swiper_js_obj; ?>.enableKeyboardControl();
-					<?php } // if > 1 slide ?>
+					<?php } ?>
 
 					$('#<?php echo $widget_id; ?>').find('.arrows a').on( 'click' , function(e){
 						e.preventDefault();
@@ -334,7 +340,6 @@ if( !class_exists( 'Layers_Slider_Widget' ) ) {
 
 				})
 		 	</script>
-		 	<?php } // if > 1 slide ?>
 		<?php }
 
 		/**
