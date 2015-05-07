@@ -227,21 +227,27 @@ if( !function_exists( 'layers_create_builder_page' ) ) {
 /**
  * Get all builder pages and store in global variable
  *
- * @return  object    $layers_builder_pages wp_query list of builder pages.
+ * @param   array     $args                  wp_query args array
+ * @return  object    $layers_builder_pages  wp_query list of builder pages
 */
 
 if( ! function_exists( 'layers_get_builder_pages' ) ) {
-	function layers_get_builder_pages () {
-		global $layers_builder_pages;
-
-		// Fetch Builder Pages
-		$layers_builder_pages = get_posts(array(
+	function layers_get_builder_pages ( $args = array() ) {
+		
+		// Set default Builder Page query
+		$defaults = array(
 			'post_status' => 'publish,draft,private',
 			'post_type' => 'page',
 			'meta_key' => '_wp_page_template',
 			'meta_value' => LAYERS_BUILDER_TEMPLATE,
 			'posts_per_page' => -1
-		));
+		);
+		
+		// Allow user to add to the args
+		$args = wp_parse_args( $args, $defaults );
+		
+		// Fetch Builder Pages
+		$layers_builder_pages = get_posts( $args );
 
 		return $layers_builder_pages;
 	}
