@@ -8,6 +8,10 @@
  */
 
 class Layers_Customizer {
+	
+	private $customizer_dir = '/core/customizer/';
+	
+	private $controls_dir = '/core/customizer/controls/';
 
 	private static $instance; // stores singleton class
     
@@ -33,48 +37,52 @@ class Layers_Customizer {
     */
     
     public function init() {
-    	
-		global $wp_customize;
 
-		// Setup some folder variables
-		$customizer_dir = '/core/customizer/';
-		$controls_dir = '/core/customizer/controls/';
+		// Initialise Config
+		require_once get_template_directory() . $this->customizer_dir . 'config.php';
+		$config = Layers_Customizer_Config::get_instance();
+		
+		// Initialise Defaults
+		require_once get_template_directory() . $this->customizer_dir . 'defaults.php';
+		$defaults = Layers_Customizer_Defaults::get_instance();
+		
+		// Register Controls (only when in customizer)
+		add_action( 'customize_register', array( $this, 'registration' ), 50 );
+		
+		// Enqueue Scripts
+		add_action( 'customize_controls_print_footer_scripts', array( $this, 'admin_enqueue_scripts' ) );
+		add_action( 'admin_enqueue_scripts', array( $this, 'admin_print_styles' ) , 50 );
+		add_action( 'customize_controls_print_styles' , array( $this, 'admin_print_styles' ) );
+		add_action( 'customize_preview_init', array( $this, 'customizer_preview_enqueue_scripts' ) );
 
-		// Include Config file(s)
-		require_once get_template_directory() . $customizer_dir . 'config.php';
-		// Include The Default Settings Class
-		require_once get_template_directory() . $customizer_dir . 'defaults.php';
+		// Render layers customizer menu
+		add_action( 'customize_controls_print_footer_scripts' , array( $this, 'render_customizer_menu' ) );
+	}
+	
+	public function registration () {
+		
+		// Include Registration class
+		require_once get_template_directory() . $this->customizer_dir . 'registration.php';
 
-		if( isset( $wp_customize ) ) {
-			// Include The Panel and Section Registration Class
-			require_once get_template_directory() . $customizer_dir . 'registration.php';
-
-			// Include control classes
-			require_once get_template_directory() . $controls_dir . 'base.php';
-			require_once get_template_directory() . $controls_dir . 'button.php';
-			require_once get_template_directory() . $controls_dir . 'checkbox.php';
-			require_once get_template_directory() . $controls_dir . 'code.php';
-			require_once get_template_directory() . $controls_dir . 'color.php';
-			require_once get_template_directory() . $controls_dir . 'font.php';
-			require_once get_template_directory() . $controls_dir . 'heading.php';
-			require_once get_template_directory() . $controls_dir . 'number.php';
-			require_once get_template_directory() . $controls_dir . 'range.php';
-			require_once get_template_directory() . $controls_dir . 'select.php';
-			require_once get_template_directory() . $controls_dir . 'select-icons.php';
-			require_once get_template_directory() . $controls_dir . 'select-images.php';
-			require_once get_template_directory() . $controls_dir . 'seperator.php';
-			require_once get_template_directory() . $controls_dir . 'text.php';
-			require_once get_template_directory() . $controls_dir . 'textarea.php';
-
-			// Enqueue Styles
-			add_action( 'customize_controls_print_footer_scripts', array( $this, 'admin_enqueue_scripts' ) );
-			add_action( 'admin_enqueue_scripts', array( $this, 'admin_print_styles' ) , 50 );
-			add_action( 'customize_controls_print_styles' , array( $this, 'admin_print_styles' ) );
-			add_action( 'customize_preview_init', array( $this, 'customizer_preview_enqueue_scripts' ) );
-
-			// Render layers customizer menu
-			add_action( 'customize_controls_print_footer_scripts' , array( $this, 'render_customizer_menu' ) );
-		}
+		// Include control classes
+		require_once get_template_directory() . $this->controls_dir . 'base.php';
+		require_once get_template_directory() . $this->controls_dir . 'button.php';
+		require_once get_template_directory() . $this->controls_dir . 'checkbox.php';
+		require_once get_template_directory() . $this->controls_dir . 'code.php';
+		require_once get_template_directory() . $this->controls_dir . 'color.php';
+		require_once get_template_directory() . $this->controls_dir . 'font.php';
+		require_once get_template_directory() . $this->controls_dir . 'heading.php';
+		require_once get_template_directory() . $this->controls_dir . 'number.php';
+		require_once get_template_directory() . $this->controls_dir . 'range.php';
+		require_once get_template_directory() . $this->controls_dir . 'select.php';
+		require_once get_template_directory() . $this->controls_dir . 'select-icons.php';
+		require_once get_template_directory() . $this->controls_dir . 'select-images.php';
+		require_once get_template_directory() . $this->controls_dir . 'seperator.php';
+		require_once get_template_directory() . $this->controls_dir . 'text.php';
+		require_once get_template_directory() . $this->controls_dir . 'textarea.php';
+		
+		// Init Registration
+		$rigistration = Layers_Customizer_Regsitrar::get_instance();
 	}
 
 	/**
@@ -240,5 +248,4 @@ class Layers_Customizer {
 function layers_customizer_init(){
 	$layers_widget = Layers_Customizer::get_instance();
 }
-add_action( 'customize_register' , 'layers_customizer_init' , 50 );
 add_action( 'init' , 'layers_customizer_init');

@@ -18,7 +18,7 @@ class Layers_Customizer_Regsitrar {
     private static $instance; // stores singleton class
     
     /**
-    *  Get Instance creates a singleton class that's cached to stop duplicate instances
+    * Get Instance creates a singleton class that's cached to stop duplicate instances
     */
     public static function get_instance() {
         if ( ! self::$instance ) {
@@ -39,22 +39,21 @@ class Layers_Customizer_Regsitrar {
     */
     
     public function init() {
-
-		// Register the customizer object
 		global $wp_customize;
 		
+		// Get the wp_customize
 		$this->customizer = $wp_customize;
 
 		// Set Prefix
 		$this->prefix  = LAYERS_THEME_SLUG . '-';
 
-		// Grab the customizer config
+		// Get the customizer config
 		$this->config = Layers_Customizer_Config::get_instance();
 		
-		//Register the panels and sections based on this instance's config
-		
-		// Start registration with the panels & sections
+		// Register Panels
 		$this->register_panels( $this->config->panels );
+		
+		// Register Sections
 		$this->register_sections ( $this->config->sections );
 
 		// Move default sections into Layers Panels
@@ -457,9 +456,3 @@ class Layers_Customizer_Regsitrar {
 	}
 
 }
-
-function layers_register_customizer(){
-	$layers_customizer_reg = Layers_Customizer_Regsitrar::get_instance();
-}
-
-add_action( 'customize_register', 'layers_register_customizer', 99 );
