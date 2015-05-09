@@ -147,7 +147,6 @@ class Layers_Customizer_Config {
 							'title' =>__( 'Colors' , 'layerswp' ),
 							'panel' => 'site-settings',
 							'priority' => 45
-
 						),
 						'content-layout' => array(
 							'title' =>__( 'Layout' , 'layerswp' ),

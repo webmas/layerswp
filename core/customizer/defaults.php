@@ -43,7 +43,6 @@ class Layers_Customizer_Defaults {
 		// Setup prefix to use
 		$this->prefix  = LAYERS_THEME_SLUG . '-';
 		
-		
 		// Grab the customizer config
 		$this->config = Layers_Customizer_Config::get_instance();
 		
