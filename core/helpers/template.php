@@ -760,23 +760,12 @@ if( !function_exists( 'layers_get_theme_mod' ) ) {
 	function layers_get_theme_mod( $name = '', $allow_empty = TRUE ) {
 
 		global $layers_customizer_defaults;
+		
+		// Set theme option default
+		$default = layers_get_default( $name );
 
 		// Add the theme prefix to our layers option
 		$name = LAYERS_THEME_SLUG . '-' . $name;
-
-		// Set theme option default
-		$default = ( isset( $layers_customizer_defaults[ $name ][ 'value' ] ) ? $layers_customizer_defaults[ $name ][ 'value' ] : FALSE );
-
-		// If color control always return a value
-		/*
-		@TODO: Bring this back in at a later date, if necessary
-		if (
-				isset( $layers_customizer_defaults[ $name ][ 'type' ] ) &&
-				'layers-color' == $layers_customizer_defaults[ $name ][ 'type' ]
-			){
-			$default = '';
-		}
- 		*/
 
 		// Get theme option
 		$theme_mod = get_theme_mod( $name, $default );
@@ -789,7 +778,37 @@ if( !function_exists( 'layers_get_theme_mod' ) ) {
 		// Return theme option
 		return $theme_mod;
 	}
-} // layers_get_header_class
+}
+
+/**
+ * Retrieve theme modification default.
+ *
+ * @param string $name Theme modification name.
+ * @return string
+ */
+if( !function_exists( 'layers_get_default' ) ) {
+	function layers_get_default( $name = '' ) {
+		
+		global $layers_customizer_defaults;
+		
+		$name = LAYERS_THEME_SLUG . '-' . $name;
+
+		// Set theme option default
+		$default = ( isset( $layers_customizer_defaults[ $name ][ 'value' ] ) ? $layers_customizer_defaults[ $name ][ 'value' ] : FALSE );
+		
+		// If color control always return a value
+		/*
+		@TODO: Bring this back in at a later date, if necessary
+		
+		
+					$default = '';
+		}
+		 */
+		
+		return $default;
+		
+	}
+}
 
 /**
  * Check customizer and page template settings before allowing a sidebar to display
@@ -1090,11 +1109,11 @@ if( !function_exists( 'layers_inline_styles' ) ) {
 		}
 
 		if( isset( $args['selectors'] ) ) {
-            if ( is_string( $args['selectors'] ) && '' != $args['selectors'] ) {
-            	$inline_css .= $args['selectors'];
-            } else if( is_array( $args['selectors'] ) && !empty( $args['selectors'] ) ){
-            	$inline_css .= implode( ', ' . $inline_css . ' ',  $args['selectors'] );
-            }
+			if ( is_string( $args['selectors'] ) && '' != $args['selectors'] ) {
+				$inline_css .= $args['selectors'];
+			} else if( is_array( $args['selectors'] ) && !empty( $args['selectors'] ) ){
+				$inline_css .= implode( ', ' . $inline_css . ' ',  $args['selectors'] );
+			}
 		}
 
 		// Apply inline CSS
@@ -1265,40 +1284,40 @@ if( !function_exists( 'layers_get_image_sizes' ) ) {
 
 		global $_wp_additional_image_sizes;
 
-        $sizes = array();
-        $get_intermediate_image_sizes = get_intermediate_image_sizes();
+		$sizes = array();
+		$get_intermediate_image_sizes = get_intermediate_image_sizes();
 
-        // Create the full array with sizes and crop info
-        foreach( $get_intermediate_image_sizes as $_size ) {
+		// Create the full array with sizes and crop info
+		foreach( $get_intermediate_image_sizes as $_size ) {
 
-            if ( in_array( $_size, array( 'thumbnail', 'medium', 'large' ) ) ) {
+			if ( in_array( $_size, array( 'thumbnail', 'medium', 'large' ) ) ) {
 
-                    $sizes[ $_size ]['width'] = get_option( $_size . '_size_w' );
-                    $sizes[ $_size ]['height'] = get_option( $_size . '_size_h' );
-                    $sizes[ $_size ]['crop'] = (bool) get_option( $_size . '_crop' );
+					$sizes[ $_size ]['width'] = get_option( $_size . '_size_w' );
+					$sizes[ $_size ]['height'] = get_option( $_size . '_size_h' );
+					$sizes[ $_size ]['crop'] = (bool) get_option( $_size . '_crop' );
 
-            } elseif ( isset( $_wp_additional_image_sizes[ $_size ] ) ) {
+			} elseif ( isset( $_wp_additional_image_sizes[ $_size ] ) ) {
 
-                    $sizes[ $_size ] = array(
-                            'width' => $_wp_additional_image_sizes[ $_size ]['width'],
-                            'height' => $_wp_additional_image_sizes[ $_size ]['height'],
-                            'crop' =>  $_wp_additional_image_sizes[ $_size ]['crop']
-                    );
-            }
-        }
+					$sizes[ $_size ] = array(
+							'width' => $_wp_additional_image_sizes[ $_size ]['width'],
+							'height' => $_wp_additional_image_sizes[ $_size ]['height'],
+							'crop' =>  $_wp_additional_image_sizes[ $_size ]['crop']
+					);
+			}
+		}
 
-        // Get only 1 size if found
-        if ( $size ) {
+		// Get only 1 size if found
+		if ( $size ) {
 
-            if( isset( $sizes[ $size ] ) ) {
+			if( isset( $sizes[ $size ] ) ) {
 				return $sizes[ $size ];
-            } else {
+			} else {
 				return $sizes[ 'large' ];
-            }
+			}
 
-        }
+		}
 
-        return $sizes;
+		return $sizes;
 	}
 } // if layers_get_image_sizes
 
