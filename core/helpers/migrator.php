@@ -609,15 +609,37 @@ class Layers_Widget_Migrator {
 	* This function takes on the Preset Page Data and runs the import() function
 	*/
 
-	public function create_builder_page_from_preset(){
-		global $layers_widgets;
+	public function create_builder_page_from_preset_ajax() {
 
 		if( !check_ajax_referer( 'layers-migrator-preset-layouts', 'nonce', false ) ) die( 'You threw a Nonce exception' ); // Nonce
 
+		die( json_encode( $this->create_builder_page_from_preset( array(
+			'post_title' => ( isset( $_POST[ 'post_title' ] ) ) ? $_POST[ 'post_title' ] : NULL ,
+			'widget_data' => ( isset( $_POST[ 'widget_data' ] ) ) ? $_POST[ 'widget_data' ] : NULL ,
+		) ) ) );
+	}
+	
+	/**
+	* Ajax Create a Builder Page from a preset page
+	*
+	* This function takes on the Preset Page Data and runs the import() function
+	*/
+
+	public function create_builder_page_from_preset( $args = array() ){
+		global $layers_widgets;
+		
+		$defaults = array(
+			'post_id' => '', //@TODO: allow an id to be passed, then have one function that deals with all kind of preset-layout imports
+			'post_title' => '',
+			'widget_data' => '',
+		);
+		
+		$args = wp_parse_args( $args, $defaults );
+
 		$check_builder_pages = layers_get_builder_pages();
 
-		if( isset( $_POST[ 'post_title' ] )  ){
-			$post_title = $_POST[ 'post_title' ];
+		if( isset( $args[ 'post_title' ] ) ) {
+			$post_title = $args[ 'post_title' ];
 		} else {
 			$post_title = __( 'Home Page' , 'layerswp' );
 		}
@@ -630,8 +652,8 @@ class Layers_Widget_Migrator {
 		$layers_widgets->register_builder_sidebar( $import_data[ 'post_id' ] );
 
 		// Add Widget Data to the import array
-		if( isset( $_POST[ 'widget_data' ] ) ) {
-			$import_data[ 'widget_data' ] = $_POST[ 'widget_data' ];
+		if( isset( $args[ 'widget_data' ] ) ) {
+			$import_data[ 'widget_data' ] = $args[ 'widget_data' ];
 		} else {
 			$import_data[ 'widget_data' ] = NULL;
 		}
@@ -645,15 +667,15 @@ class Layers_Widget_Migrator {
 		}
 
 		$results = array(
-				'post_id' => $import_data[ 'post_id' ],
-				'post_title' => $new_page->post_title,
-				'data_report' => $import_progress,
-				'customizer_location' => admin_url() . 'customize.php?url=' . esc_url( get_the_permalink( $import_data[ 'post_id' ] ) )
-			);
+			'post_id' => $import_data[ 'post_id' ],
+			'post_title' => $new_page->post_title,
+			'data_report' => $import_progress,
+			'customizer_location' => admin_url() . 'customize.php?url=' . esc_url( get_the_permalink( $import_data[ 'post_id' ] ) )
+		);
 
-		die( json_encode( $results ) );
+		return $results;
 	}
-
+	
 	/**
 	*  Import
 	*/
@@ -827,7 +849,7 @@ if( !function_exists( 'layers_builder_export_ajax_init' ) ) {
 		$layers_migrator = new Layers_Widget_Migrator();
 
 		add_action( 'wp_ajax_layers_import_widgets', array( $layers_migrator, 'do_ajax_import' ) );
-		add_action( 'wp_ajax_layers_create_builder_page_from_preset', array( $layers_migrator, 'create_builder_page_from_preset' ) );
+		add_action( 'wp_ajax_layers_create_builder_page_from_preset_ajax', array( $layers_migrator, 'create_builder_page_from_preset_ajax' ) );
 		add_action( 'wp_ajax_layers_update_builder_page', array( $layers_migrator, 'update_builder_page' ) );
 		add_action( 'wp_ajax_layers_duplicate_builder_page', array( $layers_migrator, 'do_ajax_duplicate' ) );
 	}

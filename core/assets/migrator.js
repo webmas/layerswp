@@ -77,7 +77,7 @@ jQuery(document).ready(function($){
 		$( '.layers-progress' ).animate( {width: "100%"}, 4500 );
 
 		var $page_data = {
-				action: 'layers_create_builder_page_from_preset',
+				action: 'layers_create_builder_page_from_preset_ajax',
 				post_title: $( '#layers_preset_page_title' ).val(),
 				widget_data: $.parseJSON( $widget_data ),
 				nonce: layers_migrator_params.preset_layout_nonce
