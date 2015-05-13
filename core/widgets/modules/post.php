@@ -206,7 +206,7 @@ if( !class_exists( 'Layers_Post_Widget' ) ) {
 						$section_title_class = implode( ' ', $section_title_class ); ?>
 						<div class="<?php echo $section_title_class; ?>">
 							<?php if( '' != $widget['title'] ) { ?>
-								<h3 class="heading"><?php echo esc_html( $widget['title'] ); ?></h3>
+								<h2 class="heading"><?php echo esc_html( $widget['title'] ); ?></h2>
 							<?php } ?>
 							<?php if( '' != $widget['excerpt'] ) { ?>
 								<p class="excerpt"><?php echo $widget['excerpt']; ?></p>
@@ -250,7 +250,7 @@ if( !class_exists( 'Layers_Post_Widget' ) ) {
 											<div class="overlay">
 												<?php if( isset( $widget['show_titles'] ) ) { ?>
 													<header class="article-title">
-														<h4 class="heading"><a href="<?php the_permalink(); ?>"><?php the_title(); ?></a></h4>
+														<h3 class="heading"><a href="<?php the_permalink(); ?>"><?php the_title(); ?></a></h3>
 													</header>
 												<?php } ?>
 												<?php if( isset( $widget['show_excerpts'] ) ) {

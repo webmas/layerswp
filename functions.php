@@ -205,8 +205,8 @@ if( ! function_exists( 'layers_register_standard_sidebars' ) ) {
 			'name'		=> __( 'Left Sidebar' , 'layerswp' ),
 			'before_widget'	=> '<aside id="%1$s" class="content well push-bottom-large widget %2$s">',
 			'after_widget'	=> '</aside>',
-			'before_title'	=> '<h5 class="section-nav-title">',
-			'after_title'	=> '</h5>',
+			'before_title'	=> '<h4 class="section-nav-title">',
+			'after_title'	=> '</h4>',
 		) );
 
 		register_sidebar( array(
@@ -214,8 +214,8 @@ if( ! function_exists( 'layers_register_standard_sidebars' ) ) {
 			'name'		=> __( 'Right Sidebar' , 'layerswp' ),
 			'before_widget'	=> '<aside id="%1$s" class="content well push-bottom-large widget %2$s">',
 			'after_widget'	=> '</aside>',
-			'before_title'	=> '<h5 class="section-nav-title">',
-			'after_title'	=> '</h5>',
+			'before_title'	=> '<h4 class="section-nav-title">',
+			'after_title'	=> '</h4>',
 		) );
 
 		/**
@@ -225,8 +225,8 @@ if( ! function_exists( 'layers_register_standard_sidebars' ) ) {
 			register_sidebar( array(
 				'id'		=> LAYERS_THEME_SLUG . '-footer-' . $footer,
 				'name'		=> __( 'Footer ', 'layerswp' ) . $footer,
-				'before_widget'	=> '<section id="%1$s" class="widget %2$s">',
-				'after_widget'	=> '</section>',
+				'before_widget'	=> '<aside id="%1$s" class="widget %2$s">',
+				'after_widget'	=> '</aside>',
 				'before_title'	=> '<h5 class="section-nav-title">',
 				'after_title'	=> '</h5>',
 			) );

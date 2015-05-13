@@ -9,8 +9,8 @@
 
     <?php if('blank' != get_theme_mod('header_textcolor') ) { ?>
         <div class="site-description">
-            <h3 class="sitename sitetitle"><a href="<?php echo home_url(); ?>"><?php echo get_bloginfo( 'title' ); ?></a></h3>
-            <p class="tagline"><?php echo get_bloginfo( 'description' ); ?></p>
+            <h1 class="sitename sitetitle"><a href="<?php echo home_url(); ?>"><?php echo get_bloginfo( 'title' ); ?></a></h1>
+            <h2 class="tagline"><?php echo get_bloginfo( 'description' ); ?></h2>
         </div>
     <?php } ?>
 

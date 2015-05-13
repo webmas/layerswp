@@ -724,7 +724,7 @@ object{
         color: #fff;
     }
 
-    section[class*=' off-canvas-']{
+    div[class*=' off-canvas-']{
         padding-top: 20px;
         position: fixed;
         top: 0;

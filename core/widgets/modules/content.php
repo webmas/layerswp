@@ -133,7 +133,7 @@ if( !class_exists( 'Layers_Content_Widget' ) ) {
 						$section_title_class = implode( ' ', $section_title_class ); ?>
 						<div class="<?php echo $section_title_class; ?>">
 							<?php if( '' != $widget['title'] ) { ?>
-								<h3 class="heading"><?php echo esc_html( $widget['title'] ); ?></h3>
+								<h2 class="heading"><?php echo esc_html( $widget['title'] ); ?></h2>
 							<?php } ?>
 							<?php if( '' != $widget['excerpt'] ) { ?>
 								<p class="excerpt"><?php echo $widget['excerpt']; ?></p>
@@ -258,11 +258,11 @@ if( !class_exists( 'Layers_Content_Widget' ) ) {
 									<?php if( $this->check_and_return( $column, 'title' ) || $this->check_and_return( $column, 'excerpt' ) ) { ?>
 										<div class="media-body <?php echo ( isset( $column['design']['fonts'][ 'align' ] ) ) ? $column['design']['fonts'][ 'align' ] : ''; ?>">
 											<?php if( $this->check_and_return( $column, 'title') ) { ?>
-												<h5 class="heading">
+												<h3 class="heading">
 													<?php if( NULL != $link && ! ( isset( $column['link'] ) && $this->check_and_return( $column , 'link_text' ) ) ) { ?><a href="<?php echo $column['link']; ?>"><?php } ?>
 														<?php echo $column['title']; ?>
 													<?php if( NULL != $link && ! ( isset( $column['link'] ) && $this->check_and_return( $column , 'link_text' ) ) ) { ?></a><?php } ?>
-												</h5>
+												</h3>
 											<?php } ?>
 											<?php if( $this->check_and_return( $column, 'excerpt' ) ) { ?>
 												<div class="excerpt"><?php echo apply_filters( 'the_content', $column['excerpt'] ); ?></div>
