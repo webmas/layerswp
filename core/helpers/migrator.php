@@ -46,6 +46,14 @@ class Layers_Widget_Migrator {
 		add_filter( 'layers_preset_layouts' , array( $this , 'add_builder_preset_layouts') );
 
 	}
+	
+	/**
+	*  Make sure $wp_filesystem is ready in the global.
+	*/
+	function init_filesystem(){
+		
+		return WP_Filesystem();
+	}
 
 	/**
 	*  Make sure that the template directory is nice ans clean for JSON
