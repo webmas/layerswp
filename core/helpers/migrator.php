@@ -8,7 +8,14 @@
  */
 
 class Layers_Widget_Migrator {
-
+	
+	/**
+	 * Used to check against to stop duplicate images beaing adeed to the library.
+	 *
+	 * @var array
+	 */
+	public $images_uploaded;
+	
 	/**
 	 * Used to collect images as they are found in the preset-layout to be added to the zip package.
 	 *
@@ -460,38 +467,79 @@ class Layers_Widget_Migrator {
 	*  Check if this image exists in our media library
 	*/
 
-	public function check_for_image_in_media( $image_url = NULL ){
+	public function check_for_image_in_media( $image_url = NULL, $create_new_if_name_exists = FALSE ){
 		global $wpdb;
 
 		if( NULL == $image_url ) return;
 
+		// Get and store the FileName.
 		$image_pieces = explode( '/', $image_url );
+		$file_name = $image_pieces[count($image_pieces)-1];
 
-		$i = $image_pieces[count($image_pieces)-1];
-
-		// Setup the Stylesheet directories to pick up the images from a local directory
-		$theme_image_dir = get_stylesheet_directory() . '/assets/preset-images/' . $i;
-		$theme_image_url = get_stylesheet_directory_uri() . '/assets/preset-images/' . $i;
-
-		$media_library_image = $wpdb->get_var( $wpdb->prepare( "SELECT ID FROM {$wpdb->posts} WHERE guid LIKE %s", "%$i%" ) );
-
-		// If the image we are looking for exists in the media library send it over
-		if( $media_library_image ) return $media_library_image;
-
-		// If the image we are looking for exists in the theme directory, use that instead
-		if( file_exists( $theme_image_dir ) ) {
-			return $this->get_attachment_id_from_url( media_sideload_image( $theme_image_url, 0 ) );
+		// Specify common locations to look for packaged images.
+		$common_locations = array(
+			array(
+				'path' => get_stylesheet_directory() . '/assets/preset-images/', // Child Theme default image location
+				'url' => get_stylesheet_directory_uri() . '/assets/preset-images/',
+			)
+		);
+		
+		// Allow adding of other locations to look for image names in.
+		$check_image_locations = apply_filters( 'layers_check_image_locations', $common_locations );
+		
+		// Check if the image is in the DB.
+		$db_image = $wpdb->get_var( $wpdb->prepare( "SELECT ID FROM {$wpdb->posts} WHERE guid LIKE %s", "%$file_name%" ) );
+		
+		// Check if the image is in any of the disk locations, first check if we have added it to the db in this session too (to stop duplicate images in the Media Library).
+		$disk_image = false;
+		$status = array();
+		if ( $db_image && $create_new_if_name_exists ) {
+			if ( isset( $this->images_uploaded[$file_name] ) ) {
+				$status[] = 'PREVIOUSLY UPLOADED DISK IMAGE';
+				$disk_image = $this->images_uploaded[$file_name];
+			}
+			else {
+				foreach ( $check_image_locations as $location ) {
+					if( file_exists( $location[ 'path' ] . $file_name ) ) {
+						$status[] = 'UPLOADED DISK IMAGE';
+					 	$disk_image = $this->get_attachment_id_from_url( media_sideload_image( $location[ 'url' ] . $file_name, 0 ) );
+					 	$this->images_uploaded[$file_name] = $disk_image;
+					}
+				}
+			}
 		}
-
+		
+		// Find which image to use?
+		$found_image = NULL;
+		if ( $db_image && $disk_image && TRUE == $create_new_if_name_exists ) {
+			$status[] = 'USED DISK IMAGE';
+			$found_image = $disk_image;
+		}
+		elseif ( $db_image && $disk_image ) {
+			$status[] = 'FOUND BOTH, BUT USED DB';
+			$found_image = $db_image;
+		}
+		elseif ( $db_image ) {
+			$status[] = 'USED DB IMAGE';
+			$found_image = $db_image;
+		}
+		elseif ( $disk_image ) {
+			$status[] = 'USED DISK IMAGE';
+			$found_image = $disk_image;
+		}
+		
+		// Debugging purposes.
+		//echo $file_name . ' - ' . implode( ', ', $status ) . '<br>';
+		
 		// If nothing is found, just return NULL
-		return NULL;
+		return $found_image;
 	}
 
 	/**
 	*  Import Images
 	*/
 
-	public function check_for_images( $data ) {
+	public function check_for_images( $data, $create_new_if_name_exists = FALSE ) {
 
 		$validated_data = array();
 
@@ -501,12 +549,12 @@ class Layers_Widget_Migrator {
 
 			if( is_array( $option_data ) ) {
 
-				$validated_data[ $option ] = $this->check_for_images( $option_data );
+				$validated_data[ $option ] = $this->check_for_images( $option_data, $create_new_if_name_exists );
 
 			} elseif( 'image' == $option || 'featuredimage' == $option ) {
 
 				// Check to see if this image exists in our media library already
-				$check_for_image = $this->check_for_image_in_media( $option_data );
+				$check_for_image = $this->check_for_image_in_media( $option_data, $create_new_if_name_exists );
 
 				if( NULL != $check_for_image ) {
 					$get_image_id = $check_for_image;
@@ -648,8 +696,8 @@ class Layers_Widget_Migrator {
 			'post_id' => '', //@TODO: allow an id to be passed, then have one function that deals with all kind of preset-layout imports
 			'post_title' => '',
 			'widget_data' => '',
+			'create_new_if_name_exists' => FALSE,
 		);
-		
 		$args = wp_parse_args( $args, $defaults );
 
 		$check_builder_pages = layers_get_builder_pages();
@@ -675,7 +723,7 @@ class Layers_Widget_Migrator {
 		}
 
 		// Run data import
-		$import_progress = $this->import( $import_data );
+		$import_progress = $this->import( $import_data, array( 'create_new_if_name_exists' => $args['create_new_if_name_exists'] ) );
 
 		if( count( $check_builder_pages ) == 0 ){
 			update_option( 'page_on_front', $import_data[ 'post_id' ] );
@@ -696,11 +744,19 @@ class Layers_Widget_Migrator {
 	*  Import
 	*/
 
-	public function import( $import_data = NULL ) {
+	public function import( $import_data = NULL, $args = array() ) {
 
 		if( NULL == $import_data ) return;
 
 		global $wp_registered_sidebars;
+		
+		/*
+		 * @param array 'check_image_locations' list of image names as key and location to grab the image and sideload it into media.
+		 */
+		$defaults = array(
+			'create_new_if_name_exists' => FALSE,
+		);
+		$args = wp_parse_args( $args, $defaults );
 
 		// Get all available widgets site supports
 		$available_widgets = $this->available_widgets();
@@ -749,7 +805,7 @@ class Layers_Widget_Migrator {
 
 				// Check for and import images
 				foreach ( $widget as $option => $widget_data ){
-					$widget[ $option ] = $this->check_for_images( $widget_data );
+					$widget[ $option ] = $this->check_for_images( $widget_data, $args['create_new_if_name_exists'] );
 				}
 
 				$fail = false;
