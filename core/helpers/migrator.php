@@ -362,7 +362,6 @@ class Layers_Widget_Migrator {
 
 					// Add to array
 					$sidebars_widget_instances[$sidebar_id][$widget_id] = $widget_instances[$widget_id];
-
 				}
 
 			}
@@ -391,14 +390,12 @@ class Layers_Widget_Migrator {
 
 		// Loop through options and look for images @TODO: Add categories to this, could be useful, also add dynamic sidebar widgets
 		foreach( $sidebars_widgets as $option => $data ){
-
 			$sidebars_widgets[ $option ] = $this->validate_data( $data );
 		}
 
 		// Return modified sidebar widgets
 		return $sidebars_widgets;
 	}
-
 
 	/**
 	* Get image urls from their attachment ID
