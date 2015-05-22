@@ -9,6 +9,14 @@
 
 class Layers_Widget_Migrator {
 
+	/**
+	 * Used to collect images as they are found in the preset-layout to be added to the zip package.
+	 *
+	 * @var array
+	 */
+	public $images_collected;
+	
+	
 	private static $instance;
 	/**
 	*  Initiator
@@ -396,6 +404,7 @@ class Layers_Widget_Migrator {
 	*/
 
 	public function validate_data( $data ) {
+		global $wp_filesystem;
 
 		$validated_data = array();
 
@@ -413,7 +422,14 @@ class Layers_Widget_Migrator {
 				} else {
 					$validated_data[ $option ] = stripslashes( $option_data );
 				}
-
+				
+				if( is_object( $wp_filesystem ) && isset( $validated_data[ $option ] ) && '' != $validated_data[ $option ] ) {
+					$this->images_collected[] = array(
+						'url' => $validated_data[ $option ],
+						'path'  => str_replace( trailingslashit( WP_CONTENT_URL ), $wp_filesystem->wp_content_dir(), $validated_data[ $option ] ),
+					);
+				}
+				
 			} else {
 				$validated_data[ $option ] = stripslashes( $option_data );
 			}
