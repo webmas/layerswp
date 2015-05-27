@@ -631,6 +631,17 @@ div[id*='layers-widget'] .spinner{
     margin-bottom: 60px !important;
 }
 
+.layers-no-indent{
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+.layers-no-indent-left{
+    padding-left: 0 !important;
+}
+.layers-no-indent-right{
+    padding-right: 0 !important;
+}
+
 .layers-t-left{
     text-align: left;
 }
