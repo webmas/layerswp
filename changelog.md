@@ -1,13 +1,33 @@
 # Layers Changelog
 
 =======
+## 1.1.5
+### ??  May 2015
+
+Hotfix
+layers_before_blog_template
+* **Fix** - Layers page imports are fixed for imports with a lot of JSON involved
+* **Fix** - Post widget pagination now works when you're using the Post Widget in a non-front page page
+* **Tweak** - Moved to MailChimp from Campaign Monitor for the newsletter signup form in the Layers Dash
+* **Enhancement** - Added bit.ly links to the dashboard marketplace buttons
+* **Enhancement** - Added `layers_before_blog_template` and `layers_after_blog_template` hooks to the `template-blog.php` page template
+
+=======
 ## 1.1.4
-### ?? May 2015
+### 15  May 2015
 
 Hotfix
 
+* **Fix** - Leaving the `elements` argument for custom Design Bar items would throw an error, we've created a fallback for it
 * **Fix** - Quotations in text fields are now properly escaped
 * **Fix** - Fixed the post widget which was broken between 1.1.2 and 1.1.3
+* **Fix** - Removed query strings from Layers custom font includes, this fixes the 404 issue some users experienced when loading the customizer
+* **Fix** - WooCommerce column shortcodes no longer break
+* **Enhancement** - Setting content widget to 12 columns no longer forces 745px max width on the excerpt container
+* **Enhancement** - Added a filter to the `layers_inline_styles()` function, developers can now use the `layers_inline_' . $type . '_css` filter to add custom CSS  to the inline style generator
+* **Enhancement** - Improved the instantiation of customizer defaults and color controls
+* **Enhancement** - Added filter on the `layers_post_featured_media();` function to control the output of the HTML
+* **Enhancement** - Better handling of animations in Safari
 
 =======
 ## 1.1.3
