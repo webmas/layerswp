@@ -631,14 +631,14 @@ div[id*='layers-widget'] .spinner{
     margin-bottom: 60px !important;
 }
 
-.layers-no-indent{
+.layers-no-inset{
     padding-left: 0 !important;
     padding-right: 0 !important;
 }
-.layers-no-indent-left{
+.layers-no-inset-left{
     padding-left: 0 !important;
 }
-.layers-no-indent-right{
+.layers-no-inset-right{
     padding-right: 0 !important;
 }
 
