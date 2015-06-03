@@ -2548,7 +2548,7 @@ input[type=radio]:checked + .layers-settings-icon span{
     /*---------------------------*/
     /*- LAYERS ONBOARDING -------*/
     .layers-onboard-wrapper{
-        max-width: 1000px;
+        width: 1000px;
         margin: auto;
         padding: 40px 35px 0;
         overflow: hidden;
