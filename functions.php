@@ -95,6 +95,8 @@ if( is_admin() ){
 	//Load Options Panel
 	require_once get_template_directory() . '/core/options-panel/init.php';
 
+	//Load StyleKit Manager
+	require_once get_template_directory() . '/core/options-panel/partials/stylekit.php';
 }
 
 if( ! function_exists( 'layers_setup' ) ) {
