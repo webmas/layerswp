@@ -54,7 +54,7 @@ class Layers_StyleKit_Exporter {
 		add_action( 'wp_ajax_your-plugin-upload-action', array( $this, 'se179618_ajax_action' ) );
 		
 		// Ajax for Export Child Theme
-		add_action( 'wp_ajax_layers_stylekit_exporter_ajax', array( $this, 'layers_stylekit_exporter_ajax' ) );
+		add_action( 'wp_ajax_layers_stylekit_export_ajax', array( $this, 'layers_stylekit_export_ajax' ) );
 		
 		
 		add_action( 'wp_ajax_layers_stylekit_unpack_ajax', array( $this, 'layers_stylekit_unpack_ajax' ) );
@@ -441,7 +441,7 @@ class Layers_StyleKit_Exporter {
 								
 								<form class="layers-stylekit-form layers-stylekit-form-export" action=""  method="post">
 									
-									<input type="hidden" name="action" value="layers_stylekit_exporter_ajax">
+									<input type="hidden" name="action" value="layers_stylekit_export_ajax">
 									
 									<div class="layers-row layers-push-top ">
 											
@@ -610,6 +610,7 @@ class Layers_StyleKit_Exporter {
 										<div class="layers-column layers-span-4 layers-content">
 											<h3 class="layers-heading">Custom CSS</h3>
 											<p class="layers-excerpt">Choose whether to export your custom CSS with your StyleKit.</p>
+											<?php $this->check_all_ui(); ?>
 										</div>
 										
 										<div class="layers-column layers-span-8 layers-content">
@@ -1146,78 +1147,77 @@ class Layers_StyleKit_Exporter {
 			<div class="layers-stylekit-import-choices">
 			
 				<div class="layers-stylekit-import-choices-holder">
+				
+					<?php if ( isset( $stylekit_array['settings'] ) ) { ?>
 					
-					<div class="layers-row layers-push-top">
-						
-						<div class="layers-column layers-span-4 layers-content">
-							<h3 class="layers-heading">Settings</h3>
-							<p class="layers-excerpt">Be aware that unchecking these may chnange the intended look from this StyleKit</p>
-							<?php $this->check_all_ui(); ?>
-						</div>
-						
-						<div class="layers-column layers-span-8 layers-content">
+						<div class="layers-row layers-push-top">
 							
-							<div class="layers-panel layers-no-push-bottom layers-stylekit-select-group">
+							<div class="layers-column layers-span-4 layers-content">
+								<h3 class="layers-heading">Settings</h3>
+								<p class="layers-excerpt">Be aware that unchecking these may chnange the intended look from this StyleKit</p>
+								<?php $this->check_all_ui(); ?>
+							</div>
+							
+							<div class="layers-column layers-span-8 layers-content">
 								
-								<ul class="layers-list layers-list-complex layers-list-stylekit-settings" data-layers-link="tick-settings" >
+								<div class="layers-panel layers-no-push-bottom layers-stylekit-select-group">
 									
-									<?php
-									foreach ( $this->exporter_groups as $exporter_group_key => $exporter_group ) {
-										
-										$controls = $this->get_controls( array(
-											'sections' => $exporter_group['contains'],
-											'exclude_types' => $this->exclude_types_on_save,
-										) );
-										
-										$settings_collection = array();
-										
-										foreach ( $controls as $control_key => $control ) {
-											
-											// @TODO: write a get field data function that does all this
-											// @TODO: perhaps also a get_field_name that looks at type and gets either the lable or subtitle as a result
-											
-											$name = '';
-											if ( isset( $control['subtitle'] ) ) $name = $control['subtitle'];
-											if ( '' == $name && isset(  $control['label'] ) ) $name = $control['label'];
-											
-											//if ( NULL != get_theme_mod( LAYERS_THEME_SLUG . '-' . $control_key, NULL ) ){
-											
-												$settings_collection[ $exporter_group_key ][ $control_key ] = array(
-													'title'    => $name,
-													'type'     => $control['type'],
-													'settings' => layers_get_theme_mod( $control_key, FALSE ),
-													'default'  => layers_get_default( $control_key ),
-												);
-											//}
-										}
-										?>
-										
-										<li>
-											<label>
-												<input id="<?php echo $exporter_group_key; ?>" type="checkbox" checked="checked" name="layers_settings_groups[]" <?php if( isset( $_POST[ 'layers_settings_groups' ] ) ) checked( in_array( $exporter_group_key, $_POST[ 'layers_settings_groups' ] ), TRUE ); ?> value="<?php echo $exporter_group_key; ?>" >
-												<?php echo $exporter_group['title']; ?>
-											</label>
-										</li>
+									<ul class="layers-list layers-list-complex layers-list-stylekit-settings" data-layers-link="tick-settings" >
 										
 										<?php
-									}
-									?>
-								
-								</ul>
-								
+										foreach ( $this->exporter_groups as $exporter_group_key => $exporter_group ) {
+											
+											$controls = $this->get_controls( array(
+												'sections' => $exporter_group['contains'],
+												'exclude_types' => $this->exclude_types_on_save,
+											) );
+											
+											$settings_collection = array();
+											
+											foreach ( $controls as $control_key => $control ) {
+												
+												// @TODO: write a get field data function that does all this
+												// @TODO: perhaps also a get_field_name that looks at type and gets either the lable or subtitle as a result
+												
+												$name = '';
+												if ( isset( $control['subtitle'] ) ) $name = $control['subtitle'];
+												if ( '' == $name && isset(  $control['label'] ) ) $name = $control['label'];
+												
+												//if ( NULL != get_theme_mod( LAYERS_THEME_SLUG . '-' . $control_key, NULL ) ){
+												
+													$settings_collection[ $exporter_group_key ][ $control_key ] = array(
+														'title'    => $name,
+														'type'     => $control['type'],
+														'settings' => layers_get_theme_mod( $control_key, FALSE ),
+														'default'  => layers_get_default( $control_key ),
+													);
+												//}
+											}
+											?>
+											
+											<li>
+												<label>
+													<input id="<?php echo $exporter_group_key; ?>" type="checkbox" checked="checked" name="layers_settings_groups[]" <?php if( isset( $_POST[ 'layers_settings_groups' ] ) ) checked( in_array( $exporter_group_key, $_POST[ 'layers_settings_groups' ] ), TRUE ); ?> value="<?php echo $exporter_group_key; ?>" >
+													<?php echo $exporter_group['title']; ?>
+												</label>
+											</li>
+											
+											<?php
+										}
+										?>
+									
+									</ul>
+									
+								</div>
 							</div>
 						</div>
-					</div>
 					
-					
+					<?php } ?>
 					
 					<?php
-					//Get builder pages.
-					
-					$layers_pages = isset( $stylekit_array['preset-layouts'] ) ? $stylekit_array['preset-layouts'] : FALSE ;
 					
 					// Create builder pages dropdown.
-					if ( $layers_pages ) {
+					if ( isset( $stylekit_array['pages'] ) ) {
 						?>
 						
 						<div class="layers-row layers-push-top">
@@ -1233,7 +1233,7 @@ class Layers_StyleKit_Exporter {
 								
 									<ul class="layers-list layers-list-complex layers-list-stylekit-pages"  data-layers-link="tick-pages">
 										
-										<?php foreach( $layers_pages as $page_id => $page ) { ?>
+										<?php foreach( $stylekit_array['pages'] as $page_id => $page ) { ?>
 										
 											<?php
 											$page_id = $page_id;
@@ -1256,37 +1256,40 @@ class Layers_StyleKit_Exporter {
 							
 						</div>
 						
-						
-						
 						<?php
 					}
 					?>
 					
-					<div class="layers-row layers-push-top">
-						
-						<div class="layers-column layers-span-4 layers-content">
-							<h3 class="layers-heading">CSS</h3>
-							<p class="layers-excerpt">This will add your CSS in a commented block of it's own dedicated to StyleKits, and will be overwritten by any other StyleKit you import. So your you hand coded initial CSS is protected at all time.</p>
-						</div>
-						
-						<div class="layers-column layers-span-8 layers-content">
-							<div class="layers-panel layers-no-push-bottom layers-stylekit-select-group">
+					<?php if ( isset( $stylekit_array['css'] ) ) { ?>
+					
+						<div class="layers-row layers-push-top">
 							
-								<ul class="layers-list layers-list-complex layers-list-stylekit-css" data-layers-link="tick-css" >
-									
-									<li>
-										<label>
-											<input id="css-check" type="checkbox" checked="checked" name="layers_css" value="yes">
-											CSS
-										</label>
-									</li>
-								
-								</ul>
-								
+							<div class="layers-column layers-span-4 layers-content">
+								<h3 class="layers-heading">CSS</h3>
+								<p class="layers-excerpt">This will add your CSS in a commented block of it's own dedicated to StyleKits, and will be overwritten by any other StyleKit you import. So your you hand coded initial CSS is protected at all time.</p>
+								<?php $this->check_all_ui(); ?>
 							</div>
+							
+							<div class="layers-column layers-span-8 layers-content">
+								<div class="layers-panel layers-no-push-bottom layers-stylekit-select-group">
+								
+									<ul class="layers-list layers-list-complex layers-list-stylekit-css" data-layers-link="tick-css" >
+										
+										<li>
+											<label>
+												<input id="css-check" type="checkbox" checked="checked" name="layers_css" value="yes">
+												CSS
+											</label>
+										</li>
+									
+									</ul>
+									
+								</div>
+							</div>
+							
 						</div>
 						
-					</div>
+					<?php } ?>
 					
 					<?php if ( FALSE ) { ?>
 						<div class="layers-row layers-push-top">
@@ -1294,6 +1297,7 @@ class Layers_StyleKit_Exporter {
 							<div class="layers-column layers-span-4 layers-content">
 								<h3 class="layers-heading">Preview StyleKit</h3>
 								<p class="layers-excerpt">This is primarily for dev purposes.</p>
+								<?php $this->check_all_ui(); ?>
 							</div>
 							
 							<div class="layers-column layers-span-8 layers-content">
@@ -1355,45 +1359,84 @@ class Layers_StyleKit_Exporter {
 		$stylekit_array = json_decode( $stylekit_json, TRUE );
 		?>
 		
-		<div class="layers-row layers-stylekit-import-main-graphic">
+		<?php if ( isset( $stylekit_array['settings'] ) || isset( $stylekit_array['pages'] ) || isset( $stylekit_array['css'] ) ) { ?>
 		
-			<div class="layers-column layers-span-4 layers-content">
+			<div class="layers-row layers-stylekit-import-main-graphic">
+			
+				<div class="layers-column layers-span-4 layers-content">
+					
+					<div class="stylekit-statement-holder">
+						<i class="layers-button-icon-dashboard"></i>
+					</div>
+					
+				</div>
+				<div class="layers-column layers-span-8 layers-content">
+					
+					<div class="stylekit-statement">
+						
+						<div class="layers-section-title layers-small">
+							<h3 class="layers-heading">StyleKit <em>Three.zip</em></h3>
+						</div>
+						
+						<div class="layers-panel layers-push-bottom">
+							<ul class="layers-list">
+								
+								<?php if ( isset( $stylekit_array['settings'] ) ) { ?>
+									<li class="tick ticked-all" id="tick-settings">Settings</li>
+								<?php } ?>
+								
+								<?php if ( isset( $stylekit_array['pages'] ) ) { ?>
+									<li class="tick ticked-all" id="tick-pages"><?php echo count( $stylekit_array['pages'] ); ?> Pages</li>
+								<?php } ?>
+								
+								<?php if ( isset( $stylekit_array['css'] ) ) { ?>
+									<li class="tick ticked-all" id="tick-css">Custom CSS</li>
+								<?php } ?>
+								
+							</ul>
+						</div>
+						
+						<p class="layers-excerpt">
+							<label>
+								<input type="checkbox" name="layers-stylekit-import-all" value="yes" <?php checked( true, true ); ?> >
+								Confirm import all <span class="hidden-choice">or untick to customize</span>
+							</label>
+						</p>
+						
+						<input type="hidden" name="layers-stylekit-temp-directory" value="<?php echo $source; ?>">
+						
+					</div>
 				
-				<div class="stylekit-statement-holder">
-					<i class="layers-button-icon-dashboard"></i>
 				</div>
 				
 			</div>
-			<div class="layers-column layers-span-8 layers-content">
-				
-				<div class="stylekit-statement">
+			
+		<?php } else { ?>
+		
+			<div class="layers-row layers-stylekit-import-main-graphic">
+			
+				<div class="layers-column layers-span-4 layers-content">
 					
-					<div class="layers-section-title layers-small">
-						<h3 class="layers-heading">StyleKit <em>Three.zip</em></h3>
+					<div class="stylekit-statement-holder">
+						<i class="layers-button-icon-dashboard"></i>
 					</div>
-					
-					<div class="layers-panel layers-push-bottom">
-						<ul class="layers-list">
-							<li class="tick ticked-all" id="tick-settings">Settings</li>
-							<li class="tick ticked-all" id="tick-pages"><?php echo count( $layers_pages ); ?> Pages</li>
-							<li class="tick ticked-all" id="tick-css">Custom CSS</li>
-						</ul>
-					</div>
-					
-					<p class="layers-excerpt">
-						<label>
-							<input type="checkbox" name="layers-stylekit-import-all" value="yes" <?php checked( true, true ); ?> >
-							Confirm import all <span class="hidden-choice">or untick to customize</span>
-						</label>
-					</p>
-					
-					<input type="hidden" name="layers-stylekit-temp-directory" value="<?php echo $source; ?>">
 					
 				</div>
-			
+				<div class="layers-column layers-span-8 layers-content">
+					
+					<div class="stylekit-statement">
+						
+						<div class="layers-section-title layers-small">
+							<h3 class="layers-heading"><?php _e( 'This StyleKit is empty :(', 'layerswp' ) ?></h3>
+						</div>
+						
+					</div>
+				
+				</div>
+				
 			</div>
-			
-		</div>
+		
+		<?php } ?>
 		
 		<?php
 		$ui2 = ob_get_clean();
@@ -1574,7 +1617,7 @@ class Layers_StyleKit_Exporter {
 							 */
 							
 							// If there are pages in the StyleKit and user has chosen to import some.
-							if ( isset( $stylekit_array[ 'preset-layouts' ] ) && ( isset( $_POST['layers_pages'] ) || isset( $_POST['layers-stylekit-import-all'] ) ) ) {
+							if ( isset( $stylekit_array[ 'pages' ] ) && ( isset( $_POST['layers_pages'] ) || isset( $_POST['layers-stylekit-import-all'] ) ) ) {
 								
 								// Debug
 								/*
@@ -1594,7 +1637,7 @@ class Layers_StyleKit_Exporter {
 								
 								<?php
 								// Add the pages
-								$preset_layouts = $stylekit_array[ 'preset-layouts' ];
+								$preset_layouts = $stylekit_array[ 'pages' ];
 								foreach ( $preset_layouts as $preset_layout_slug => $preset_layout_data ) {
 									if ( isset( $_POST['layers-stylekit-import-all'] ) || in_array( $preset_layout_slug, $_POST['layers_pages'] ) ) {
 										
@@ -1694,7 +1737,7 @@ class Layers_StyleKit_Exporter {
 	/**
 	 * Ajax for Export Child Theme
 	 */
-	public function layers_stylekit_exporter_ajax(){
+	public function layers_stylekit_export_ajax(){
 		
 		$this->init_vars();
 		
@@ -1706,7 +1749,7 @@ class Layers_StyleKit_Exporter {
 		
 		$data = "";
 		
-		$stylekit_collection = array();
+		$stylekit_json = array();
 		
 		ob_start();
 		?>
@@ -1746,7 +1789,7 @@ class Layers_StyleKit_Exporter {
 									$sections_to_get = array_merge( $this->exporter_groups[ $chosen_settings_group ][ 'contains' ], $sections_to_get );
 								}
 								
-								$stylekit_collection['settings'] = array();
+								$stylekit_json['settings'] = array();
 								
 								$controls = $this->get_controls( array(
 									'sections' => $sections_to_get,
@@ -1762,7 +1805,7 @@ class Layers_StyleKit_Exporter {
 									if ( isset( $control['subtitle'] ) ) $name = $control['subtitle'];
 									if ( '' == $name && isset(  $control['label'] ) ) $name = $control['label'];
 									
-									$stylekit_collection['settings'][ LAYERS_THEME_SLUG . '-' . $control_key ] = array(
+									$stylekit_json['settings'][ LAYERS_THEME_SLUG . '-' . $control_key ] = array(
 										'title'   => $name,
 										'type'    => $control['type'],
 										'value'   => layers_get_theme_mod( $control_key, FALSE ),
@@ -1811,7 +1854,7 @@ class Layers_StyleKit_Exporter {
 								<li class="tick"><?php count( $page_presets ) ?> <?php echo esc_html( __( 'Pages', 'layerswp' ) ); ?></li>
 								<?php
 								
-								$stylekit_collection[ 'preset-layouts' ] = $page_presets;
+								$stylekit_json[ 'pages' ] = $page_presets;
 							}
 							
 							if ( isset( $_POST['layers_css'] ) ) {
@@ -1824,7 +1867,7 @@ class Layers_StyleKit_Exporter {
 									$sections_to_get = array_merge( $this->exporter_groups[ $chosen_settings_group ][ 'contains' ], $sections_to_get );
 								}
 								
-								$stylekit_collection['css'] = layers_get_theme_mod( 'custom-css' );
+								$stylekit_json['css'] = layers_get_theme_mod( 'custom-css' );
 								
 								?>
 								<li class="tick"><?php _e( 'Custom CSS', 'layerswp' ); ?></li>
@@ -1877,8 +1920,17 @@ class Layers_StyleKit_Exporter {
 								$wp_filesystem->mkdir( $export_path );
 							}
 							
+							// Add Extra Info to the JSON
+							global $wp_version;
+							$stylekit_json[ 'info' ] = array();
+							$stylekit_json[ 'info' ][ 'layers-version' ] = LAYERS_VERSION;
+							$stylekit_json[ 'info' ][ 'php-version' ] = phpversion();
+							$stylekit_json[ 'info' ][ 'wp-version' ] = $wp_version;
+							
+							// Prettyfy the JSON
+							$stylekit_json = $this->prettyPrint( json_encode( $stylekit_json ) );
+							
 							// Compile stylekit.json, put it, then add it to the zip collection.
-							$stylekit_json = $this->prettyPrint( json_encode( $stylekit_collection ) );
 							$wp_filesystem->put_contents( $export_path . 'stylekit.json', $stylekit_json ); // Finally, store the file :)
 							$files_to_zip["$zip_sanitized_name/stylekit.json"] = $export_path . 'stylekit.json';
 							
@@ -1914,14 +1966,6 @@ class Layers_StyleKit_Exporter {
 							$result = $this->create_zip( $files_to_zip, $export_path . $zip_sanitized_name . '.zip' );
 							
 							$wp_filesystem->delete( $export_path . 'stylekit.json' );
-							
-							/*
-							ob_start();
-							?>
-							
-							<?php
-							$ui = ob_get_clean();
-							*/
 							
 							$download_uri = $download_path . $zip_sanitized_name . '.zip';
 							?>
@@ -1970,8 +2014,8 @@ class Layers_StyleKit_Exporter {
 					<div class="json-code">
 <textarea>
 <?php
-if ( !empty( $stylekit_collection ) ) {
-echo esc_attr( json_encode( $stylekit_collection ) );
+if ( !empty( $stylekit_json ) ) {
+echo esc_attr( json_encode( $stylekit_json ) );
 }
 ?></textarea>
 					</div>
