@@ -14,7 +14,14 @@ class Layers_Widget_Migrator {
 	 *
 	 * @var array
 	 */
-	public $images_uploaded;
+	public $images_downloaded;
+	
+	/**
+	 * Collect a report of what happned during the image import process for debugging purposes.
+	 *
+	 * @var array
+	 */
+	public $images_report = array();
 	
 	/**
 	 * Used to collect images as they are found in the preset-layout to be added to the zip package.
@@ -472,10 +479,16 @@ class Layers_Widget_Migrator {
 	*  Check if this image exists in our media library
 	*/
 
-	public function check_for_image_in_media( $image_url = NULL, $create_new_if_name_exists = FALSE ){
+	public function check_for_image_in_media( $image_url = NULL, $args = array() ){
 		global $wpdb;
 
 		if( NULL == $image_url ) return;
+		
+		$defaults = array(
+			'download_images' => TRUE,
+			'create_new_image_if_name_exists' => FALSE,
+		);
+		$args = wp_parse_args( $args, $defaults );
 
 		// Get and store the FileName.
 		$image_pieces = explode( '/', $image_url );
@@ -497,18 +510,27 @@ class Layers_Widget_Migrator {
 		
 		// Check if the image is in any of the disk locations, first check if we have added it to the db in this session too (to stop duplicate images in the Media Library).
 		$disk_image = false;
-		$status = array();
-		if ( $db_image && $create_new_if_name_exists ) {
-			if ( isset( $this->images_uploaded[$file_name] ) ) {
-				$status[] = 'PREVIOUSLY UPLOADED DISK IMAGE';
-				$disk_image = $this->images_uploaded[$file_name];
+		
+		$status = array( $file_name );
+		
+		if ( $db_image && $args['create_new_image_if_name_exists'] ) {
+			if ( isset( $this->images_downloaded[$file_name] ) ) {
+				$status[] = 'Have previously uploaded image from disk';
+				$disk_image = $this->images_downloaded[$file_name];
 			}
 			else {
 				foreach ( $check_image_locations as $location ) {
 					if( file_exists( $location[ 'path' ] . $file_name ) ) {
-						$status[] = 'UPLOADED DISK IMAGE';
-					 	$disk_image = $this->get_attachment_id_from_url( media_sideload_image( $location[ 'url' ] . $file_name, 0 ) );
-					 	$this->images_uploaded[$file_name] = $disk_image;
+						$status[] = 'Uploaded image from disk';
+						if( TRUE == $args['download_images'] ) {
+							// If set to FALSE then this can be used for test purposes to see how many image would have been downloaded
+					 		$disk_image = $this->get_attachment_id_from_url( media_sideload_image( $location[ 'url' ] . $file_name, 0 ) );
+					 	}
+					 	else{
+					 		// Otherwise just leave the value as it is.
+					 		$disk_image = $image_url;
+					 	}
+					 	$this->images_downloaded[$file_name] = $disk_image;
 					}
 				}
 			}
@@ -516,25 +538,26 @@ class Layers_Widget_Migrator {
 		
 		// Find which image to use?
 		$found_image = NULL;
-		if ( $db_image && $disk_image && TRUE == $create_new_if_name_exists ) {
-			$status[] = 'USED DISK IMAGE';
+		if ( $db_image && $disk_image && TRUE == $args['create_new_image_if_name_exists'] ) {
+			$status[] = 'Used the disk image';
 			$found_image = $disk_image;
 		}
 		elseif ( $db_image && $disk_image ) {
-			$status[] = 'FOUND BOTH, BUT USED DB';
+			$status[] = 'Found both disk & DB images, used DB';
 			$found_image = $db_image;
 		}
 		elseif ( $db_image ) {
-			$status[] = 'USED DB IMAGE';
+			$status[] = 'Used DB image';
 			$found_image = $db_image;
 		}
 		elseif ( $disk_image ) {
-			$status[] = 'USED DISK IMAGE';
+			$status[] = 'Used disk image';
 			$found_image = $disk_image;
 		}
 		
 		// Debugging purposes.
-		//echo $file_name . ' - ' . implode( ', ', $status ) . '<br>';
+		echo implode( ' -> ', $status ) . '<br>';
+		$this->images_report[] = implode( ' -> ', $status );
 		
 		// If nothing is found, just return NULL
 		return $found_image;
@@ -544,22 +567,28 @@ class Layers_Widget_Migrator {
 	*  Import Images
 	*/
 
-	public function check_for_images( $data, $create_new_if_name_exists = FALSE ) {
-
-		$validated_data = array();
+	public function check_for_images( $data, $args = array() ) {
 
 		if( !is_array( $data ) ) return stripslashes( $data );
-
+		
+		$defaults = array(
+			'download_images' => TRUE,
+			'create_new_image_if_name_exists' => FALSE,
+		);
+		$args = wp_parse_args( $args, $defaults );
+		
+		$validated_data = array();
+		
 		foreach( $data as $option => $option_data ){
 
 			if( is_array( $option_data ) ) {
 
-				$validated_data[ $option ] = $this->check_for_images( $option_data, $create_new_if_name_exists );
+				$validated_data[ $option ] = $this->check_for_images( $option_data, $args );
 
 			} elseif( 'image' == $option || 'featuredimage' == $option ) {
 
 				// Check to see if this image exists in our media library already
-				$check_for_image = $this->check_for_image_in_media( $option_data, $create_new_if_name_exists );
+				$check_for_image = $this->check_for_image_in_media( $option_data, $args );
 
 				if( NULL != $check_for_image ) {
 					$get_image_id = $check_for_image;
@@ -701,7 +730,7 @@ class Layers_Widget_Migrator {
 			'post_id' => '', //@TODO: allow an id to be passed, then have one function that deals with all kind of preset-layout imports
 			'post_title' => '',
 			'widget_data' => '',
-			'create_new_if_name_exists' => FALSE,
+			'create_new_image_if_name_exists' => FALSE,
 		);
 		$args = wp_parse_args( $args, $defaults );
 
@@ -728,7 +757,7 @@ class Layers_Widget_Migrator {
 		}
 
 		// Run data import
-		$import_progress = $this->import( $import_data, array( 'create_new_if_name_exists' => $args['create_new_if_name_exists'] ) );
+		$import_progress = $this->import( $import_data, array( 'create_new_image_if_name_exists' => $args['create_new_image_if_name_exists'] ) );
 
 		if( count( $check_builder_pages ) == 0 ){
 			update_option( 'page_on_front', $import_data[ 'post_id' ] );
@@ -759,7 +788,7 @@ class Layers_Widget_Migrator {
 		 * @param array 'check_image_locations' list of image names as key and location to grab the image and sideload it into media.
 		 */
 		$defaults = array(
-			'create_new_if_name_exists' => FALSE,
+			'create_new_image_if_name_exists' => FALSE,
 		);
 		$args = wp_parse_args( $args, $defaults );
 
@@ -804,13 +833,10 @@ class Layers_Widget_Migrator {
 
 			// Loop widgets
 			foreach ( $sidebar_data as $widget_instance_id => $widget ) {
-				/*
-				* Debug
-				*/
-
+				
 				// Check for and import images
 				foreach ( $widget as $option => $widget_data ){
-					$widget[ $option ] = $this->check_for_images( $widget_data, $args['create_new_if_name_exists'] );
+					$widget[ $option ] = $this->check_for_images( $widget_data, $args );
 				}
 
 				$fail = false;
@@ -901,6 +927,99 @@ class Layers_Widget_Migrator {
 		}
 
 		return $results;
+	}
+	
+	/**
+	*  Get Images
+	*/
+
+	public function modify_widgets( $page_ids = array() ) {
+		
+		global $wp_registered_sidebars, $wp_registered_widgets;
+		
+		foreach ( $page_ids as $page_id ) {
+			
+			$sidebar_id = 'obox-layers-builder-' . $page_id;
+	
+			// Holds the final data to return
+			$output = array();
+			
+			// Loop over all of the registered sidebars looking for the one with the same name as $sidebar_id
+			$sibebar_id = false;
+			foreach( $wp_registered_sidebars as $sidebar ) {
+				if( $sidebar['name'] == $sidebar_id ) {
+					// We now have the Sidebar ID, we can stop our loop and continue.
+					$sidebar_id = $sidebar['id'];
+					break;
+				}
+			}
+			
+			if( !$sidebar_id ) {
+				// There is no sidebar registered with the name provided.
+				return $output;
+			}
+			
+			// A nested array in the format $sidebar_id => array( 'widget_id-1', 'widget_id-2' ... );
+			$sidebars_widgets = wp_get_sidebars_widgets();
+			$widget_ids = $sidebars_widgets[$sidebar_id];
+			
+			if( !$widget_ids ) {
+				// Without proper widget_ids we can't continue.
+				return array();
+			}
+			
+			// Loop over each widget_id so we can fetch the data out of the wp_options table.
+			foreach( $widget_ids as $id ) {
+				
+				// The name of the option in the database is the name of the widget class.
+				$option_name = $wp_registered_widgets[$id]['callback'][0]->option_name;
+				
+				// Widget data is stored as an associative array. To get the right data we need to get the right key which is stored in $wp_registered_widgets
+				$key = $wp_registered_widgets[$id]['params'][0]['number'];
+				
+				$widget_data = get_option( $option_name );
+				
+				// Add the widget data on to the end of the output array.
+				//$widgys[] = (object) $widget_data[$key];
+				
+				$widget_data = $widget_data[$key];
+				
+				$widget_data = array_merge( array(
+					'option_name' => $option_name,
+					'key' => $key,
+					'id' => $id,
+				), $widget_data );
+				
+				$widgys[] = $widget_data;
+			}
+			
+			// if ( FALSE && isset( $widgys[0]['slides'][488]['title'] ) ) {
+			// 	$widgys[0]['slides'][488]['title'] = "Business development and acquisition specialist yeah!";
+			// }
+			
+			$widgys_modified = apply_filters( 'layers_filter_widgets', $widgys, $page_id );
+			
+			// Nothing has been modified in the widgets so just continue
+			if ( $widgys_modified === $widgys ) continue;
+			
+			// Loop through the widgets and put them back into their own individual option fields
+			foreach ( $widgys_modified as $widget ) {
+				
+				$option_name = $widget['option_name'];
+				$key = $widget['key'];
+				$id = $widget['id'];
+				
+				unset( $widget['option_name'] );
+				unset( $widget['key'] );
+				unset( $widget['id'] );
+				
+				$widget_option = get_option( $option_name );
+				
+				$widget_option[$key] = $widget;
+				
+				update_option( $option_name, $widget_option );
+			}
+		}
 	}
 }
 

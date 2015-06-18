@@ -8,15 +8,17 @@ class Layers_StyleKit_Exporter {
 	
 	private $config;
 	
-	private $exporter;
+	private $migrator;
 	
-	private $exporter_groups;
+	private $migrator_groups;
 	
 	private $exclude_types_on_save;
 	
 	public $check_image_locations;
 	
 	public $stored_images;
+	
+	public $count_images;
 
 	private static $instance; // stores singleton class
 	
@@ -71,9 +73,9 @@ class Layers_StyleKit_Exporter {
 		
 		$this->config = Layers_Customizer_Config::get_instance();
 		
-		$this->exporter = new Layers_Widget_Migrator();
+		$this->migrator = new Layers_Widget_Migrator();
 		
-		$this->exporter_groups = array(
+		$this->migrator_groups = array(
 			'header' => array(
 								'title'    => 'Header Settings',
 								'desc'     => 'Settings from the header etc',
@@ -146,28 +148,67 @@ class Layers_StyleKit_Exporter {
 
 		$current_tab = ( isset( $_GET['tab'] ) ) ? $_GET['tab'] : 'layers-stylekit-import' ;
 		
-		$current_step = ( isset( $_GET['step'] ) ) ? $_GET['step'] : 'layers-stylekit-import-step-1' ;
+		$current_step = ( isset( $_GET['step'] ) ) ? $_GET['step'] : false ;
 		?>
 		
 		<div class="layers-area-wrapper">
 			<div class="layers-onboard-wrapper layers-stylekit-onboard-wrapper">
 				
 				<header class="layers-page-title layers-section-title layers-large layers-content-large layers-no-push-bottom layers-no-inset">
+					
 					<a href="http://layerswp.com" class="layers-logo"><?php _e( 'Layers' , 'layerswp' ); ?></a>
 					<h2 class="layers-heading" id="layers-options-header"><?php _e( 'StyleKit Manager' , 'layerswp' ); ?></h2>
-					<nav class="layers-nav-horizontal layers-dashboard-nav">
-						<ul>
-							<?php foreach( $tabs as $tab_key => $tab_label ) { ?>
-								<li class="<?php if ( $tab_key == $current_tab ) echo 'active'; ?>">
-									<a href="<?php echo add_query_arg( array( 'page' => 'layers_stylekit_export', 'tab' => $tab_key, 'step' => $tab_key . '-step-1' ), get_admin_url() . 'admin.php' ); ?>"><?php echo $tab_label; ?></a>
-								</li>
-							<?php } ?>
-						</ul>
-					</nav>
+					
+					<?php if ( FALSE !== $current_step ): ?>
+						<nav class="layers-nav-horizontal layers-dashboard-nav">
+							<ul>
+								<?php foreach( $tabs as $tab_key => $tab_label ) { ?>
+									<li class="<?php if ( $tab_key == $current_tab ) echo 'active'; ?>">
+										<a href="<?php echo add_query_arg( array( 'page' => 'layers_stylekit_export', 'tab' => $tab_key, 'step' => $tab_key . '-step-1' ), get_admin_url() . 'admin.php' ); ?>"><?php echo $tab_label; ?></a>
+									</li>
+								<?php } ?>
+							</ul>
+						</nav>
+					<?php endif; ?>
+					
 				</header>
 				
-				<?php if ( 'layers-stylekit-import-step-1' == $current_step ): ?>
+				<?php if ( FALSE == $current_step ): ?>
+					
+					<!-- ------------------------------------
+					
+					
+					        	     SPLASH
+					        	
+					        	
+					------------------------------------- -->
+					
+					<div></div>
+					
+					<div class="layers-row">
+						<div class="layers-column layers-span-6">
+						
+							<a class="layers-button layers-stylekit-button" href="<?php echo add_query_arg( array( 'page' => 'layers_stylekit_export', 'tab' => 'layers-stylekit-import', 'step' => 'layers-stylekit-import-step-1' ), get_admin_url() . 'admin.php' ); ?>" >Import StyleKit</a>
+							
+						</div>
+						<div class="layers-column layers-span-6">
+						
+							<a class="layers-button layers-stylekit-button" href="<?php echo add_query_arg( array( 'page' => 'layers_stylekit_export', 'tab' => 'layers-stylekit-export', 'step' => 'layers-stylekit-export-step-1' ), get_admin_url() . 'admin.php' ); ?>" >Export StyleKit</a>
+							
+						</div>
+					</div>
+					
 				
+				<?php elseif ( 'layers-stylekit-import-step-1' == $current_step ): ?>
+					
+					<?php
+					
+					add_filter( 'layers_filter_widgets', array( $this, 'handle_images' ), 10, 2 );
+					
+					$this->migrator->modify_widgets( array( 4 ) );
+					
+					?>
+					
 					<!-- ------------------------------------
 					
 					
@@ -295,7 +336,7 @@ class Layers_StyleKit_Exporter {
 											StyleKits are an easy way of transferring the look of your site or selling it as a theme for others to use.
 										</li>
 										<li class="pro-tip">
-											For more information and documentation, <a href="#">click here</a>. 
+											For more information and documentation, <a href="#">click here</a>.
 										</li>
 									</ul>
 								</div>
@@ -413,8 +454,6 @@ class Layers_StyleKit_Exporter {
 					
 					</div>
 				
-					</div>
-				
 				<?php elseif ( 'layers-stylekit-export-step-1' == $current_step ): ?>
 					
 					<!-- ------------------------------------
@@ -437,236 +476,236 @@ class Layers_StyleKit_Exporter {
 								
 								<div class="layers-row">
 									
-							<div class="layers-column layers-span-8 layers-panel">
-								
-								<form class="layers-stylekit-form layers-stylekit-form-export" action=""  method="post">
-									
-									<input type="hidden" name="action" value="layers_stylekit_export_ajax">
-									
-									<div class="layers-row layers-push-top ">
+									<div class="layers-column layers-span-8 layers-panel">
+										
+										<form class="layers-stylekit-form layers-stylekit-form-export" action=""  method="post">
 											
-										<div class="layers-column layers-span-12 layers-content">
-											<div class="layers-section-title layers-small">
-												<h3 class="layers-heading">StyleKit Export</h3>
-												<p class="layers-excerpt">
-													<?php _e( 'Choose what will be exported in your StyleKit below.', 'layerswp' ); ?>
-												</p>
-											</div>
+											<input type="hidden" name="action" value="layers_stylekit_export_ajax">
 											
-										</div>
-												
-									</div>
-									
-									<hr class="layers-push-bottom">
-									
-									<div class="layers-row">
-										
-										<div class="layers-column layers-span-4 layers-content">
-											<h3 class="layers-heading">Name</h3>
-											<p class="layers-excerpt">name your Stylit. You can leave it as you SiteName, or name it something like 'Happy Store'.</p>
-										</div>
-										
-										<div class="layers-column layers-span-8 layers-content">
-											<div class="layers-no-push-bottom layers-stylekit-select-group">
-												<?php
-												$theme_name = str_replace( ' ' , '-' , get_bloginfo( 'name' ) );
-												?>
-												<input type="text" name="layers-stylekit-name" value="<?php echo esc_attr( $theme_name ); ?>" placeholder="<?php echo esc_attr( $theme_name ); ?>">
-											</div>
-										</div>
-									</div>
-								
-									<div class="layers-row">
-										
-										<div class="layers-column layers-span-4 layers-content">
-											<h3 class="layers-heading">Settings</h3>
-											<p class="layers-excerpt">Select which Layers settings you'd like export with your StyleKit. These are set in the Customizer.</p>
-											<?php $this->check_all_ui(); ?>
-										</div>
-										
-										<div class="layers-column layers-span-8 layers-content">
-											<div class="layers-panel layers-no-push-bottom layers-stylekit-select-group">
-												
-												<ul class="layers-list layers-list-stylekit-settings layers-list-complex">
+											<div class="layers-row layers-push-top ">
 													
-													<?php
-													foreach ( $this->exporter_groups as $exporter_group_key => $exporter_group ) {
+												<div class="layers-column layers-span-12 layers-content">
+													<div class="layers-section-title layers-small">
+														<h3 class="layers-heading">StyleKit Export</h3>
+														<p class="layers-excerpt">
+															<?php _e( 'Choose what will be exported in your StyleKit below.', 'layerswp' ); ?>
+														</p>
+													</div>
+													
+												</div>
 														
-														$controls = $this->get_controls( array(
-															'sections' => $exporter_group['contains'],
-															'exclude_types' => $this->exclude_types_on_save,
-														) );
-														
-														$settings_collection = array();
-														
-														foreach ( $controls as $control_key => $control ) {
-															
-															// @TODO: write a get field data function that does all this
-															// @TODO: perhaps also a get_field_name that looks at type and gets either the lable or subtitle as a result
-															
-															$name = '';
-															if ( isset( $control['subtitle'] ) ) $name = $control['subtitle'];
-															if ( '' == $name && isset(  $control['label'] ) ) $name = $control['label'];
-															
-															//if ( NULL != get_theme_mod( LAYERS_THEME_SLUG . '-' . $control_key, NULL ) ){
-															
-																$settings_collection[ $exporter_group_key ][ $control_key ] = array(
-																	'title'    => $name,
-																	'type'     => $control['type'],
-																	'settings' => layers_get_theme_mod( $control_key, FALSE ),
-																	'default'  => layers_get_default( $control_key ),
-																);
-															//}
-														}
-														
-														$collect_titles = array();
-														foreach ( $settings_collection[ $exporter_group_key ] as $setting_key => $setting ) {
-															$collect_titles[] = $setting['title'];
-															/*
-															?>
-															<span class="setting-group">
-																<span class="setting-title"><?php echo $setting['title'] ?></span>
-																<!-- <div class="setting-value">Value: <?php echo $setting['settings'] ?></div>
-																<div class="setting-default">Default: <?php echo $setting['default'] ?></div>
-																<div class="setting-type">Type: <?php echo $setting['type'] ?></div> -->
-															</span>
-															<?php
-															*/
-														}
-														//echo implode( ', ', $collect_titles );
-														?>
-														
-														<li title="<?php echo esc_attr( implode( ', ', $collect_titles ) ); ?>">
-															<label for="<?php echo $exporter_group_key ?>" class="group-title">
-																<input id="<?php echo $exporter_group_key ?>" type="checkbox" checked="checked" name="layers_settings_groups[]" <?php if( isset( $_POST[ 'layers_settings_groups' ] ) ) checked( in_array( $exporter_group_key, $_POST[ 'layers_settings_groups' ] ), TRUE ); ?> value="<?php echo $exporter_group_key; ?>" >
-																<?php echo $exporter_group['title']; ?>
-															</label>
-														</li>
-														
+											</div>
+											
+											<hr class="layers-push-bottom">
+											
+											<div class="layers-row">
+												
+												<div class="layers-column layers-span-4 layers-content">
+													<h3 class="layers-heading">Name</h3>
+													<p class="layers-excerpt">name your Stylit. You can leave it as you SiteName, or name it something like 'Happy Store'.</p>
+												</div>
+												
+												<div class="layers-column layers-span-8 layers-content">
+													<div class="layers-no-push-bottom layers-stylekit-select-group">
 														<?php
-													}
-													?>
-													
-												</ul>
-												
+														$theme_name = str_replace( ' ' , '-' , get_bloginfo( 'name' ) );
+														?>
+														<input type="text" name="layers-stylekit-name" value="<?php echo esc_attr( $theme_name ); ?>" placeholder="<?php echo esc_attr( $theme_name ); ?>">
+													</div>
+												</div>
 											</div>
-										</div>
-									</div>
-									
-									
-									<?php
-									//Get builder pages.
-									$layers_pages = layers_get_builder_pages();
-									
-									// Create builder pages dropdown.
-									if( $layers_pages ){
-										?>
 										
-										<div class="layers-row">
-											
-											<div class="layers-column layers-span-4 layers-content">
-												<h3 class="layers-heading">Pages</h3>
-												<p class="layers-excerpt">Choose which Layers pages you'd like to export in your StyleKit.</p>
-												<?php $this->check_all_ui(); ?>
-											</div>
-											
-											<div class="layers-column layers-span-8 layers-content">
-												<div class="layers-panel layers-no-push-bottom layers-stylekit-select-group">
-													
-													<ul class="layers-list layers-list-complex layers-list-stylekit-pages">
-														<?php foreach( $layers_pages as $page ) { ?>
+											<div class="layers-row">
+												
+												<div class="layers-column layers-span-4 layers-content">
+													<h3 class="layers-heading">Settings</h3>
+													<p class="layers-excerpt">Select which Layers settings you'd like export with your StyleKit. These are set in the Customizer.</p>
+													<?php $this->check_all_ui(); ?>
+												</div>
+												
+												<div class="layers-column layers-span-8 layers-content">
+													<div class="layers-panel layers-no-push-bottom layers-stylekit-select-group">
 														
+														<ul class="layers-list layers-list-stylekit-settings layers-list-complex">
+															
 															<?php
-															$page_id = $page->ID;
-															$page_title = $page->post_title;
-															$page_url = get_permalink( $page->ID );
+															foreach ( $this->migrator_groups as $migrator_group_key => $migrator_group ) {
+																
+																$controls = $this->get_controls( array(
+																	'sections' => $migrator_group['contains'],
+																	'exclude_types' => $this->exclude_types_on_save,
+																) );
+																
+																$settings_collection = array();
+																
+																foreach ( $controls as $control_key => $control ) {
+																	
+																	// @TODO: write a get field data function that does all this
+																	// @TODO: perhaps also a get_field_name that looks at type and gets either the lable or subtitle as a result
+																	
+																	$name = '';
+																	if ( isset( $control['subtitle'] ) ) $name = $control['subtitle'];
+																	if ( '' == $name && isset(  $control['label'] ) ) $name = $control['label'];
+																	
+																	//if ( NULL != get_theme_mod( LAYERS_THEME_SLUG . '-' . $control_key, NULL ) ){
+																	
+																		$settings_collection[ $migrator_group_key ][ $control_key ] = array(
+																			'title'    => $name,
+																			'type'     => $control['type'],
+																			'settings' => layers_get_theme_mod( $control_key, FALSE ),
+																			'default'  => layers_get_default( $control_key ),
+																		);
+																	//}
+																}
+																
+																$collect_titles = array();
+																foreach ( $settings_collection[ $migrator_group_key ] as $setting_key => $setting ) {
+																	$collect_titles[] = $setting['title'];
+																	/*
+																	?>
+																	<span class="setting-group">
+																		<span class="setting-title"><?php echo $setting['title'] ?></span>
+																		<!-- <div class="setting-value">Value: <?php echo $setting['settings'] ?></div>
+																		<div class="setting-default">Default: <?php echo $setting['default'] ?></div>
+																		<div class="setting-type">Type: <?php echo $setting['type'] ?></div> -->
+																	</span>
+																	<?php
+																	*/
+																}
+																//echo implode( ', ', $collect_titles );
+																?>
+																
+																<li title="<?php echo esc_attr( implode( ', ', $collect_titles ) ); ?>">
+																	<label for="<?php echo $migrator_group_key ?>" class="group-title">
+																		<input id="<?php echo $migrator_group_key ?>" type="checkbox" checked="checked" name="layers_settings_groups[]" <?php if( isset( $_POST[ 'layers_settings_groups' ] ) ) checked( in_array( $migrator_group_key, $_POST[ 'layers_settings_groups' ] ), TRUE ); ?> value="<?php echo $migrator_group_key; ?>" >
+																		<?php echo $migrator_group['title']; ?>
+																	</label>
+																</li>
+																
+																<?php
+															}
 															?>
 															
-															<li>
-																<label for="page-<?php echo $page_id ?>">
-																	<input id="page-<?php echo $page_id ?>" type="checkbox" checked="checked" name="layers_pages[]" <?php if( isset( $_POST[ 'layers_pages' ] ) ) checked( in_array( $page_id, $_POST[ 'layers_pages' ] ), TRUE ); ?> value="<?php echo $page_id ?>" >
-																	<?php echo $page_title ?>
-																</label>
-																
-																<a class="layers-complex-action preview-page" target="blank" href="<?php echo $page_url; ?>">
-																	<span>Preview</span> <i class=" icon-display"></i>
-																</a>
-															</li>
-															
-														<?php } ?>
-													</ul>
-												
+														</ul>
+														
+													</div>
 												</div>
 											</div>
 											
-										</div>
-										
-										<?php
-									}
-									?>
-									
-											<div class="layers-row">
-										
-										<div class="layers-column layers-span-4 layers-content">
-											<h3 class="layers-heading">Custom CSS</h3>
-											<p class="layers-excerpt">Choose whether to export your custom CSS with your StyleKit.</p>
-											<?php $this->check_all_ui(); ?>
-										</div>
-										
-										<div class="layers-column layers-span-8 layers-content">
-											<div class="layers-panel layers-no-push-bottom layers-stylekit-select-group">
 											
+											<?php
+											//Get builder pages.
+											$layers_pages = layers_get_builder_pages();
+											
+											// Create builder pages dropdown.
+											if( $layers_pages ){
+												?>
 												
-												<ul class="layers-list layers-list-complex layers-list-stylekit-css">
-													<li>
-														<label for="css-check" class="group-title">
-															<input id="css-check" type="checkbox" checked="checked" name="layers_css" <?php if( isset( $_POST[ 'layers_css' ] ) ) checked( 'yes', $_POST[ 'layers_css' ], TRUE ); ?> value="yes">
-															CSS
-														</label>
-													</li>
-												</ul>
-												
-											</div>
-										</div>
-										
-									</div>
-									
-											<div class="layers-alert">
-														
-												<span class="layers-stylekit-confrim">
-													<label>
-														<input type="checkbox" name="layers-stylekit-export-confirm-permission" />
-														Please confirm you have permission to distribute images enclosed in your StyleKit
-													</label>
-													<a class="more-info" href="#" target="blank">(more info)</a>
-												</span>
+												<div class="layers-row">
 													
+													<div class="layers-column layers-span-4 layers-content">
+														<h3 class="layers-heading">Pages</h3>
+														<p class="layers-excerpt">Choose which Layers pages you'd like to export in your StyleKit.</p>
+														<?php $this->check_all_ui(); ?>
+													</div>
+													
+													<div class="layers-column layers-span-8 layers-content">
+														<div class="layers-panel layers-no-push-bottom layers-stylekit-select-group">
+															
+															<ul class="layers-list layers-list-complex layers-list-stylekit-pages">
+																<?php foreach( $layers_pages as $page ) { ?>
+																
+																	<?php
+																	$page_id = $page->ID;
+																	$page_title = $page->post_title;
+																	$page_url = get_permalink( $page->ID );
+																	?>
+																	
+																	<li>
+																		<label for="page-<?php echo $page_id ?>">
+																			<input id="page-<?php echo $page_id ?>" type="checkbox" checked="checked" name="layers_pages[]" <?php if( isset( $_POST[ 'layers_pages' ] ) ) checked( in_array( $page_id, $_POST[ 'layers_pages' ] ), TRUE ); ?> value="<?php echo $page_id ?>" >
+																			<?php echo $page_title ?>
+																		</label>
+																		
+																		<a class="layers-complex-action preview-page" target="blank" href="<?php echo $page_url; ?>">
+																			<span>Preview</span> <i class=" icon-display"></i>
+																		</a>
+																	</li>
+																	
+																<?php } ?>
+															</ul>
+														
+														</div>
+													</div>
+													
+												</div>
+												
+												<?php
+											}
+											?>
+											
+													<div class="layers-row">
+												
+												<div class="layers-column layers-span-4 layers-content">
+													<h3 class="layers-heading">Custom CSS</h3>
+													<p class="layers-excerpt">Choose whether to export your custom CSS with your StyleKit.</p>
+													<?php $this->check_all_ui(); ?>
+												</div>
+												
+												<div class="layers-column layers-span-8 layers-content">
+													<div class="layers-panel layers-no-push-bottom layers-stylekit-select-group">
+													
+														
+														<ul class="layers-list layers-list-complex layers-list-stylekit-css">
+															<li>
+																<label for="css-check" class="group-title">
+																	<input id="css-check" type="checkbox" checked="checked" name="layers_css" <?php if( isset( $_POST[ 'layers_css' ] ) ) checked( 'yes', $_POST[ 'layers_css' ], TRUE ); ?> value="yes">
+																	CSS
+																</label>
+															</li>
+														</ul>
+														
+													</div>
+												</div>
+												
 											</div>
 											
-											<div id="layers-stylekit-export-action-row" class="layers-button-well layers-button-well-content-NOT">
-										<input type="submit" id="layers-stylekit-export-action" class="layers-button btn-large btn-primary layers-pull-right" value="Export StyleKit" >
+													<div class="layers-alert">
+																
+														<span class="layers-stylekit-confrim">
+															<label>
+																<input type="checkbox" name="layers-stylekit-export-confirm-permission" />
+																Please confirm you have permission to distribute images enclosed in your StyleKit
+															</label>
+															<a class="more-info" href="#" target="blank">(more info)</a>
+														</span>
+															
+													</div>
+													
+													<div id="layers-stylekit-export-action-row" class="layers-button-well layers-button-well-content-NOT">
+												<input type="submit" id="layers-stylekit-export-action" class="layers-button btn-large btn-primary layers-pull-right" value="Export StyleKit" >
+											</div>
+											
+										</form>
+										
 									</div>
-									
-								</form>
-								
-							</div>
-							<div class="layers-column layers-span-4 no-gutter">
-								<div class="layers-content">
-									<!-- Your helpful tips go here -->
-									<ul class="layers-help-list">
-										<li>
-											If you ever need help with your Layers site please visit our <a href="http://docs.layerswp.com" rel="nofollow">helpful documentation.</a>
-										</li>
-										<!--<li class="pro-tip">-->
-										<!--	For the Pros: Layers will automatically assign the tagline to Settings → General.-->
-										<!--</li>-->
-									</ul>
-								</div>
-							</div>
+									<div class="layers-column layers-span-4 no-gutter">
+										<div class="layers-content">
+											<!-- Your helpful tips go here -->
+											<ul class="layers-help-list">
+												<li>
+													If you ever need help with your Layers site please visit our <a href="http://docs.layerswp.com" rel="nofollow">helpful documentation.</a>
+												</li>
+												<!--<li class="pro-tip">-->
+												<!--	For the Pros: Layers will automatically assign the tagline to Settings → General.-->
+												<!--</li>-->
+											</ul>
+										</div>
+									</div>
 							
-						</div>
+								</div>
 					
-					</div>
+							</div>
 							<div class="layers-animate layers-stylekit-slide layers-stylekit-slide-2 layers-stylekit-slide-inactive">
 								
 								<!-- ------------------------------------
@@ -723,6 +762,26 @@ class Layers_StyleKit_Exporter {
 		</div>
 		
 		<?php
+	}
+	
+	public function handle_images( $widgets, $page_id ) {
+		
+		// Loop through the widgets modify them.
+		foreach ( $widgets as $widget ) {
+			
+			// Setting 'download_images' to false will result in a list called 'images_downloaded' being generated, which we'll use at a later stage.
+			$this->migrator->check_for_images( $widget, array(
+				'download_images' => FALSE,
+				'create_new_image_if_name_exists' => TRUE,
+			));
+			
+			//s( $widget );
+		}
+		
+		//s( $this->migrator->images_downloaded );
+		//s( $this->migrator->images_report );
+		
+		return $widgets;
 	}
 	
 	public function check_image_locations( $locations ) {
@@ -848,9 +907,6 @@ class Layers_StyleKit_Exporter {
 				
 				$zip->addFile( $file_source, $file_destination );
 			}
-			
-			//debug
-			//echo 'The zip archive contains ',$zip->numFiles,' files with a status of ',$zip->status;
 			
 			//close the zip -- done!
 			$zip->close();
@@ -1139,16 +1195,14 @@ class Layers_StyleKit_Exporter {
 			
 			// Get StyleKit Json
 			$stylekit_content = file_get_contents( $temp_directory_path . 'stylekit.json' );
-			//$stylekit_json = json_decode( $stylekit_content, TRUE );
-			$stylekit_json = $stylekit_content;
-			$stylekit_array = json_decode( $stylekit_json, TRUE );
+			$stylekit_json = json_decode( $stylekit_content, TRUE );
 			?>
 			
 			<div class="layers-stylekit-import-choices">
 			
 				<div class="layers-stylekit-import-choices-holder">
 				
-					<?php if ( isset( $stylekit_array['settings'] ) ) { ?>
+					<?php if ( isset( $stylekit_json['settings'] ) ) { ?>
 					
 						<div class="layers-row layers-push-top">
 							
@@ -1165,43 +1219,14 @@ class Layers_StyleKit_Exporter {
 									<ul class="layers-list layers-list-complex layers-list-stylekit-settings" data-layers-link="tick-settings" >
 										
 										<?php
-										foreach ( $this->exporter_groups as $exporter_group_key => $exporter_group ) {
-											
-											$controls = $this->get_controls( array(
-												'sections' => $exporter_group['contains'],
-												'exclude_types' => $this->exclude_types_on_save,
-											) );
-											
-											$settings_collection = array();
-											
-											foreach ( $controls as $control_key => $control ) {
-												
-												// @TODO: write a get field data function that does all this
-												// @TODO: perhaps also a get_field_name that looks at type and gets either the lable or subtitle as a result
-												
-												$name = '';
-												if ( isset( $control['subtitle'] ) ) $name = $control['subtitle'];
-												if ( '' == $name && isset(  $control['label'] ) ) $name = $control['label'];
-												
-												//if ( NULL != get_theme_mod( LAYERS_THEME_SLUG . '-' . $control_key, NULL ) ){
-												
-													$settings_collection[ $exporter_group_key ][ $control_key ] = array(
-														'title'    => $name,
-														'type'     => $control['type'],
-														'settings' => layers_get_theme_mod( $control_key, FALSE ),
-														'default'  => layers_get_default( $control_key ),
-													);
-												//}
-											}
+										foreach ( $this->migrator_groups as $migrator_group_key => $migrator_group ) {
 											?>
-											
 											<li>
 												<label>
-													<input id="<?php echo $exporter_group_key; ?>" type="checkbox" checked="checked" name="layers_settings_groups[]" <?php if( isset( $_POST[ 'layers_settings_groups' ] ) ) checked( in_array( $exporter_group_key, $_POST[ 'layers_settings_groups' ] ), TRUE ); ?> value="<?php echo $exporter_group_key; ?>" >
-													<?php echo $exporter_group['title']; ?>
+													<input id="<?php echo $migrator_group_key; ?>" type="checkbox" checked="checked" name="layers_settings_groups[]" <?php if( isset( $_POST[ 'layers_settings_groups' ] ) ) checked( in_array( $migrator_group_key, $_POST[ 'layers_settings_groups' ] ), TRUE ); ?> value="<?php echo $migrator_group_key; ?>" >
+													<?php echo $migrator_group['title']; ?>
 												</label>
 											</li>
-											
 											<?php
 										}
 										?>
@@ -1215,9 +1240,8 @@ class Layers_StyleKit_Exporter {
 					<?php } ?>
 					
 					<?php
-					
 					// Create builder pages dropdown.
-					if ( isset( $stylekit_array['pages'] ) ) {
+					if ( isset( $stylekit_json['pages'] ) ) {
 						?>
 						
 						<div class="layers-row layers-push-top">
@@ -1233,7 +1257,7 @@ class Layers_StyleKit_Exporter {
 								
 									<ul class="layers-list layers-list-complex layers-list-stylekit-pages"  data-layers-link="tick-pages">
 										
-										<?php foreach( $stylekit_array['pages'] as $page_id => $page ) { ?>
+										<?php foreach( $stylekit_json['pages'] as $page_id => $page ) { ?>
 										
 											<?php
 											$page_id = $page_id;
@@ -1256,17 +1280,15 @@ class Layers_StyleKit_Exporter {
 							
 						</div>
 						
-						<?php
-					}
-					?>
+					<?php }	?>
 					
-					<?php if ( isset( $stylekit_array['css'] ) ) { ?>
+					<?php if ( isset( $stylekit_json['css'] ) ) { ?>
 					
 						<div class="layers-row layers-push-top">
 							
 							<div class="layers-column layers-span-4 layers-content">
-								<h3 class="layers-heading">CSS</h3>
-								<p class="layers-excerpt">This will add your CSS in a commented block of it's own dedicated to StyleKits, and will be overwritten by any other StyleKit you import. So your you hand coded initial CSS is protected at all time.</p>
+								<h3 class="layers-heading"><?php _e( 'CSS', 'layerswp' ) ?></h3>
+								<p class="layers-excerpt"><?php _e( "This will add your CSS in a commented block of it's own dedicated to StyleKits, and will be overwritten by any other StyleKit you import. So your you hand coded initial CSS is protected at all time.", 'layerswp' ) ?></p>
 								<?php $this->check_all_ui(); ?>
 							</div>
 							
@@ -1278,7 +1300,7 @@ class Layers_StyleKit_Exporter {
 										<li>
 											<label>
 												<input id="css-check" type="checkbox" checked="checked" name="layers_css" value="yes">
-												CSS
+												<?php _e( 'CSS', 'layerswp' ) ?>
 											</label>
 										</li>
 									
@@ -1295,8 +1317,8 @@ class Layers_StyleKit_Exporter {
 						<div class="layers-row layers-push-top">
 							
 							<div class="layers-column layers-span-4 layers-content">
-								<h3 class="layers-heading">Preview StyleKit</h3>
-								<p class="layers-excerpt">This is primarily for dev purposes.</p>
+								<h3 class="layers-heading"><?php _e( 'Preview StyleKit', 'layerswp' ) ?></h3>
+								<p class="layers-excerpt"><?php _e( 'This is primarily for dev purposes.', 'layerswp' ) ?></p>
 								<?php $this->check_all_ui(); ?>
 							</div>
 							
@@ -1354,12 +1376,11 @@ class Layers_StyleKit_Exporter {
 		
 		// Get StyleKit Json
 		$stylekit_content = file_get_contents( $temp_directory_path . 'stylekit.json' );
-		//$stylekit_json = json_decode( $stylekit_content, TRUE );
-		$stylekit_json = $stylekit_content;
-		$stylekit_array = json_decode( $stylekit_json, TRUE );
+		$stylekit_json = json_decode( $stylekit_content, TRUE );
+		
 		?>
 		
-		<?php if ( isset( $stylekit_array['settings'] ) || isset( $stylekit_array['pages'] ) || isset( $stylekit_array['css'] ) ) { ?>
+		<?php if ( isset( $stylekit_json['settings'] ) || isset( $stylekit_json['pages'] ) || isset( $stylekit_json['css'] ) ) { ?>
 		
 			<div class="layers-row layers-stylekit-import-main-graphic">
 			
@@ -1381,15 +1402,15 @@ class Layers_StyleKit_Exporter {
 						<div class="layers-panel layers-push-bottom">
 							<ul class="layers-list">
 								
-								<?php if ( isset( $stylekit_array['settings'] ) ) { ?>
+								<?php if ( isset( $stylekit_json['settings'] ) ) { ?>
 									<li class="tick ticked-all" id="tick-settings">Settings</li>
 								<?php } ?>
 								
-								<?php if ( isset( $stylekit_array['pages'] ) ) { ?>
-									<li class="tick ticked-all" id="tick-pages"><?php echo count( $stylekit_array['pages'] ); ?> Pages</li>
+								<?php if ( isset( $stylekit_json['pages'] ) ) { ?>
+									<li class="tick ticked-all" id="tick-pages"><?php echo count( $stylekit_json['pages'] ); ?> Pages</li>
 								<?php } ?>
 								
-								<?php if ( isset( $stylekit_array['css'] ) ) { ?>
+								<?php if ( isset( $stylekit_json['css'] ) ) { ?>
 									<li class="tick ticked-all" id="tick-css">Custom CSS</li>
 								<?php } ?>
 								
@@ -1486,15 +1507,96 @@ class Layers_StyleKit_Exporter {
 		
 		// Get StyleKit Json
 		$stylekit_content = file_get_contents( $temp_directory_path . 'stylekit.json' );
-		//$stylekit_json = json_decode( $stylekit_content, TRUE );
-		$stylekit_json = $stylekit_content;
-		$stylekit_array = json_decode( $stylekit_json, TRUE );
+		$stylekit_json = json_decode( $stylekit_content, TRUE );
 		
 		/**
-		 * Execute StyleKit.
+		 * Settings
 		 */
 		
+		$filtered_settings = array();
+		
+		// filter the settings json so only the chosen previal.
+		if ( isset( $stylekit_json['settings'] ) && ( isset( $_POST['layers_settings_groups'] ) || isset( $_POST['layers-stylekit-import-all'] ) ) ) {
+			
+			foreach ( $stylekit_json['settings'] as $setting_key => $setting ) {
+				if ( isset( $_POST['layers-stylekit-import-all'] ) || in_array( $setting_key, $_POST['layers_settings_groups'] ) ) {
+					$filtered_settings[ $setting_key ] = $setting;
+				}
+			}
+		}
+		
+		// Unset the settings if none are chosen
+		if ( empty( $filtered_settings ) ){
+			unset( $stylekit_json['settings'] );
+		}
+		else {
+			$stylekit_json['settings'] = $filtered_settings;
+		}
+		
+		/**
+		 * Pages
+		 */
+		
+		$filtered_pages = array();
+		
+		// filter the pages json so only the chosen previal.
+		if ( isset( $stylekit_json[ 'pages' ] ) && ( isset( $_POST['layers_pages'] ) || isset( $_POST['layers-stylekit-import-all'] ) ) ) {
+			
+			foreach ( $stylekit_json[ 'pages' ] as $page_slug => $page_data ) {
+				if ( isset( $_POST['layers-stylekit-import-all'] ) || in_array( $page_slug, $_POST['layers_pages'] ) ) {
+					
+					$filtered_pages[ $page_slug ] = $page_data;
+				}
+			}
+		}
+		
+		// Unset the pages if none are chosen
+		if ( empty( $filtered_pages ) ){
+			unset( $stylekit_json['pages'] );
+		}
+		else {
+			$stylekit_json['pages'] = $filtered_pages;
+		}
+		
+		/**
+		 * Custom CSS
+		 */
+		
+		// Filter the CSS and unset if there is none.
+		if ( isset( $stylekit_json['css'] ) && ( isset( $_POST['layers-stylekit-import-all'] ) || isset( $_POST['layers_css'] ) ) ) {
+		}
+		else {
+			unset( $stylekit_json['css'] );
+		}
+		
+		/**
+		 * Images
+		 */
+		
+		$filtered_images = array();
+		
+		// filter the pages json so only the chosen previal.
+		if ( isset( $stylekit_json['images'] ) && ( isset( $_POST['layers_pages'] ) || isset( $_POST['layers-stylekit-import-all'] ) ) ) {
+			
+			foreach ( $stylekit_json['images'] as $page_slug => $page_data ) {
+				if ( isset( $_POST['layers-stylekit-import-all'] ) || in_array( $page_slug, $_POST['layers_pages'] ) ) {
+					
+					$filtered_images[ $page_slug ] = $page_data;
+				}
+			}
+		}
+		
+		// Unset the pages if none are chosen
+		if ( empty( $filtered_images ) ){
+			unset( $stylekit_json['images'] );
+		}
+		else {
+			$stylekit_json['images'] = $filtered_images;
+		}
+		
 		ob_start();
+		
+		echo $this->layers_import_stylekit( $stylekit_json );
 		?>
 		
 		<div class="layers-row">
@@ -1519,9 +1621,6 @@ class Layers_StyleKit_Exporter {
 					
 							<?php
 							
-							// Prep Migrator
-							$migrator = new Layers_Widget_Migrator();
-							
 							$collect_results = array(
 								'settings' => array(),
 								'pages' => array(),
@@ -1530,57 +1629,32 @@ class Layers_StyleKit_Exporter {
 							);
 							
 							/**
-							 * Global Settings
+							 * Settings
 							 */
 							
 							// If user has chosen some settings groups, and there are some settings in the StyleKit
-							if ( isset( $stylekit_array['settings'] ) && ( isset( $_POST['layers_settings_groups'] ) || isset( $_POST['layers-stylekit-import-all'] ) ) ) {
+							if ( isset( $stylekit_json['settings'] ) && ( isset( $_POST['layers_settings_groups'] ) || isset( $_POST['layers-stylekit-import-all'] ) ) ) {
 								
-								// Debug
-								/*
-								echo 'settings groups to get:';
-								echo "<pre>";
-								print_r( $_POST['layers_settings_groups'] );
-								echo "</pre>";
-								*/
-							
 								// Get all the sections in the groups that the user chose.
 								$collect_sections_to_get = array();
-								foreach ( $this->exporter_groups as $exporter_group_key => $exporter_group ) {
+								foreach ( $this->migrator_groups as $migrator_group_key => $migrator_group ) {
 									if (
-											isset( $exporter_group['contains'] )
+											isset( $migrator_group['contains'] )
 											&&
-											( isset( $_POST['layers-stylekit-import-all'] ) || in_array( $exporter_group_key, $_POST['layers_settings_groups'] ) )
+											( isset( $_POST['layers-stylekit-import-all'] ) || in_array( $migrator_group_key, $_POST['layers_settings_groups'] ) )
 										) {
-										$collect_sections_to_get = array_merge( $exporter_group['contains'], $collect_sections_to_get );
+										$collect_sections_to_get = array_merge( $migrator_group['contains'], $collect_sections_to_get );
 									}
 								}
-								
-								// Debug
-								/*
-								echo 'collections to get:';
-								echo "<pre>";
-								print_r( $collect_sections_to_get );
-								echo "</pre>";
-								*/
 								
 								// Get all the controls in the required sections.
 								$controls = $this->get_controls( array(
 									'sections' => $collect_sections_to_get,
 									'exclude_types' => $this->exclude_types_on_save,
 								) );
-								
-								// Debug
-								/*
-								echo 'controls to get:';
-								echo "<pre>";
-								print_r( $controls );
-								echo "</pre>";
-								*/
-							
 								?>
 								
-								<li class="tick">
+								<li class="tick ticked-all">
 								
 									Settings
 									
@@ -1588,19 +1662,16 @@ class Layers_StyleKit_Exporter {
 									
 									// Loop through required controls and save value if it exists in StyleKit settings json.
 									foreach ( $controls as $control_key => $control ) {
-										if( isset( $stylekit_array['settings']['layers-' . $control_key]['value'] ) ){
+										if( isset( $stylekit_json['settings']['layers-' . $control_key]['value'] ) ){
 											
-											$title = $stylekit_array['settings']['layers-' . $control_key]['title'];
-											$value = $stylekit_array['settings']['layers-' . $control_key]['value'];
+											$title = $stylekit_json['settings']['layers-' . $control_key]['title'];
+											$value = $stylekit_json['settings']['layers-' . $control_key]['value'];
 											
 											// Set theme mod
 											set_theme_mod( $control_key, $value );
 											
 											// Collect result so we can display in report
 											$collect_results['settings'][] = '<span title="' . esc_attr( $value ) . '">' . $title . '</span>';
-											
-											// Debug
-											//echo 'saved setting: ' . $control_key . $stylekit_array['settings']['layers-' . $control_key]['value'] . '<br />';
 										}
 									}
 									
@@ -1617,15 +1688,7 @@ class Layers_StyleKit_Exporter {
 							 */
 							
 							// If there are pages in the StyleKit and user has chosen to import some.
-							if ( isset( $stylekit_array[ 'pages' ] ) && ( isset( $_POST['layers_pages'] ) || isset( $_POST['layers-stylekit-import-all'] ) ) ) {
-								
-								// Debug
-								/*
-								echo 'pages to create:';
-								echo "<pre>";
-								print_r( $_POST['layers_pages'] );
-								echo "</pre>";
-								*/
+							if ( isset( $stylekit_json[ 'pages' ] ) && ( isset( $_POST['layers_pages'] ) || isset( $_POST['layers-stylekit-import-all'] ) ) ) {
 								
 								// Set locations to search for images during 'create_builder_page_from_preset'
 								$this->check_image_locations = array(
@@ -1637,18 +1700,18 @@ class Layers_StyleKit_Exporter {
 								
 								<?php
 								// Add the pages
-								$preset_layouts = $stylekit_array[ 'pages' ];
-								foreach ( $preset_layouts as $preset_layout_slug => $preset_layout_data ) {
-									if ( isset( $_POST['layers-stylekit-import-all'] ) || in_array( $preset_layout_slug, $_POST['layers_pages'] ) ) {
+								$pages = $stylekit_json[ 'pages' ];
+								foreach ( $pages as $page_slug => $page_data ) {
+									if ( isset( $_POST['layers-stylekit-import-all'] ) || in_array( $page_slug, $_POST['layers_pages'] ) ) {
 										
-										$title = ( isset( $preset_layout_data[ 'post_title' ] ) ) ? $preset_layout_data[ 'post_title' ] : NULL ;
-										$widget_data = ( isset( $preset_layout_data[ 'widget_data' ] ) ) ? json_decode( $preset_layout_data[ 'widget_data' ], TRUE ) : NULL ;
+										$title = ( isset( $page_data[ 'post_title' ] ) ) ? $page_data[ 'post_title' ] : NULL ;
+										$widget_data = ( isset( $page_data[ 'widget_data' ] ) ) ? json_decode( $page_data[ 'widget_data' ], TRUE ) : NULL ;
 										
 										// Import the page
-										$result = $migrator->create_builder_page_from_preset( array(
+										$result = $this->migrator->create_builder_page_from_preset( array(
 											'post_title'                => $title,
 											'widget_data'               => $widget_data,
-											'create_new_if_name_exists' => TRUE,
+											'create_new_image_if_name_exists' => TRUE,
 										) );
 										
 										$post_id = $result['post_id'];
@@ -1656,9 +1719,6 @@ class Layers_StyleKit_Exporter {
 										
 										// Collect result so we can display in report
 										$collect_results['pages'][] = '<li class="tick layers-stylekit-link">' . __( 'Page:' , 'layerwp' ) . ' <em>' . $title . '</em><a href="' . esc_url( $permalink ) . '" target="blank"><i class=" icon-display"></i></a></li>';
-										
-										// Debug
-										//echo 'page created: ' . $preset_layout_slug . '<br />';
 									}
 								}
 								echo implode( '', $collect_results['pages'] );
@@ -1667,24 +1727,22 @@ class Layers_StyleKit_Exporter {
 							
 							/**
 							 * Custom CSS
-							 *
-							 * @TODO
 							 */
 							
 							// If there are pages in the StyleKit and user has chosen to import some.
-							if ( isset( $stylekit_array['css'] ) && ( isset( $_POST['layers-stylekit-import-all'] ) || isset( $_POST['layers_css'] ) ) ) {
+							if ( isset( $stylekit_json['css'] ) && ( isset( $_POST['layers-stylekit-import-all'] ) || isset( $_POST['layers_css'] ) ) ) {
 								
 								?>
 								
-								<li class="tick">
+								<li class="tick ticked-all">
 									<?php _e( 'Custom CSS', 'layerswp' ) ?>
 									<?php
 									
 									// Set theme mod
-									set_theme_mod( 'layers-custom-css', $stylekit_array['css'] );
+									set_theme_mod( 'layers-custom-css', $stylekit_json['css'] );
 									
 									// Collect result so we can display in report
-									$collect_results['css'] = $stylekit_array['css'];
+									$collect_results['css'] = $stylekit_json['css'];
 									
 									//echo $collect_results['css'] . '<br /><br />';
 									?>
@@ -1735,6 +1793,114 @@ class Layers_StyleKit_Exporter {
 	}
 	
 	/**
+	 * Import StyleKit JSON
+	 */
+	public function layers_import_stylekit ( $stylekit_json ) {
+		
+		global $wp_filesystem;
+		
+		$this->init_vars();
+		
+		/**
+		 * Prep File System
+		 */
+			
+		/*
+		// Initialize the WP filesystem if not yet
+		if ( empty( $wp_filesystem ) ) {
+			require_once ( ABSPATH . '/wp-admin/includes/file.php' );
+			WP_Filesystem();
+		}
+		
+		// Get the Path and URL of the Temp directory
+		$temp_directory_path = str_replace( $wp_filesystem->wp_content_dir(), trailingslashit( WP_CONTENT_DIR ), $source );
+		$temp_directory_url = str_replace( $wp_filesystem->wp_content_dir(), trailingslashit( WP_CONTENT_URL ), $source );
+		
+		// Check if the above str_replace works.
+		if ( ! is_dir( $temp_directory_path ) ) {
+			return $temp_directory_path;
+		}
+		*/
+		
+		$collect_results = array(
+			'settings' => array(),
+			'pages' => array(),
+			'css' => array(),
+		);
+		
+		/**
+		 * Settings
+		 */
+		
+		// If user has chosen some settings groups, and there are some settings in the StyleKit
+		if ( isset( $stylekit_json['settings'] ) ) {
+			
+			foreach ( $stylekit_json['settings'] as $setting_key => $setting ) {
+					
+				// Set theme mod
+				set_theme_mod( $setting_key, $setting['value'] );
+			}
+		}
+		
+		/**
+		 * Pages
+		 */
+		
+		// If there are pages in the StyleKit and user has chosen to import some.
+		if ( isset( $stylekit_json[ 'pages' ] ) ) {
+			
+			// Set locations to search for images during 'create_builder_page_from_preset'
+			$this->check_image_locations = array(
+				'path' => $temp_directory_path . 'assets/images/',
+				'url'  => $temp_directory_url . 'assets/images/',
+			);
+			add_filter( 'layers_check_image_locations', array( $this, 'check_image_locations' ) );
+			
+			// Add the pages
+			foreach ( $stylekit_json[ 'pages' ] as $page_slug => $page_data ) {
+					
+				$title = ( isset( $page_data[ 'post_title' ] ) ) ? $page_data[ 'post_title' ] : NULL ;
+				$widget_data = ( isset( $page_data[ 'widget_data' ] ) ) ? json_decode( $page_data[ 'widget_data' ], TRUE ) : NULL ;
+				
+				// Import the page
+				$result = $this->migrator->create_builder_page_from_preset( array(
+					'post_title'                      => $title,
+					'widget_data'                     => $widget_data,
+					'create_new_image_if_name_exists' => TRUE,
+					'download_images'                 => FALSE,
+				));
+				
+				s( $this->migrator->images_downloaded );
+				
+				s( $this->migrator->images_report );
+				
+				// add_filter( 'layers_filter_widgets', array( $this, 'handle_images' ), 10, 2 );
+				// $this->migrator->modify_widgets( array( 4 ) );
+				
+				$post_id = $result['post_id'];
+				
+				// Collect result so we can return a report.
+				$collect_results['pages'][] = $post_id;
+			}
+		}
+		
+		/**
+		 * Custom CSS
+		 */
+		
+		// If there are pages in the StyleKit and user has chosen to import some.
+		if ( isset( $stylekit_json['css'] ) ) {
+			
+			// Set theme mod
+			set_theme_mod( 'layers-custom-css', $stylekit_json['css'] );
+			
+			// Collect result so we can display in report
+			$collect_results['css'] = $stylekit_json['css'];
+		}
+		
+	}
+	
+	/**
 	 * Ajax for Export Child Theme
 	 */
 	public function layers_stylekit_export_ajax(){
@@ -1745,7 +1911,7 @@ class Layers_StyleKit_Exporter {
 		//if( ! isset( $_POST[ 'pageid' ] ) ) wp_die( __( 'You shall not pass' , 'layerswp' ) );
 		
 		// Ready for us to be able to access filestytem and grab the images.
-		$this->exporter->init_filesystem();
+		$this->migrator->init_filesystem();
 		
 		$data = "";
 		
@@ -1786,7 +1952,7 @@ class Layers_StyleKit_Exporter {
 								$sections_to_get = array();
 								
 								foreach ( $chosen_settings_groups as $chosen_settings_group ) {
-									$sections_to_get = array_merge( $this->exporter_groups[ $chosen_settings_group ][ 'contains' ], $sections_to_get );
+									$sections_to_get = array_merge( $this->migrator_groups[ $chosen_settings_group ][ 'contains' ], $sections_to_get );
 								}
 								
 								$stylekit_json['settings'] = array();
@@ -1813,7 +1979,7 @@ class Layers_StyleKit_Exporter {
 									);
 								}
 								?>
-								<li class="tick"><?php _e( 'Settings', 'layerswp' ) ?></li>
+								<li class="tick ticked-all"><?php _e( 'Settings', 'layerswp' ) ?></li>
 								<?php
 							}
 							
@@ -1840,18 +2006,18 @@ class Layers_StyleKit_Exporter {
 										'post_title' => $post_title,
 										'screenshot' => 'http://s.wordpress.com/mshots/v1/' . urlencode( get_permalink( $page->ID ) ) . '?w=' . 320 . '&h=' . 480,
 										'screenshot_type' => 'png',
-										'widget_data' => json_encode( $this->exporter->export_data( $page ) ),
+										'widget_data' => json_encode( $this->migrator->export_data( $page ) ),
 									);
 									
 									/*
 									?>
-									<li class="tick"><?php echo esc_html( __( $post_title ) ) ?></li>
+									<li class="tick ticked-all"><?php echo esc_html( __( $post_title ) ) ?></li>
 									<?php
 									*/
 								}
 								
 								?>
-								<li class="tick"><?php count( $page_presets ) ?> <?php echo esc_html( __( 'Pages', 'layerswp' ) ); ?></li>
+								<li class="tick ticked-all"><?php count( $page_presets ) ?> <?php echo esc_html( __( 'Pages', 'layerswp' ) ); ?></li>
 								<?php
 								
 								$stylekit_json[ 'pages' ] = $page_presets;
@@ -1864,13 +2030,13 @@ class Layers_StyleKit_Exporter {
 								$sections_to_get = array();
 								
 								foreach ( $chosen_settings_groups as $chosen_settings_group ) {
-									$sections_to_get = array_merge( $this->exporter_groups[ $chosen_settings_group ][ 'contains' ], $sections_to_get );
+									$sections_to_get = array_merge( $this->migrator_groups[ $chosen_settings_group ][ 'contains' ], $sections_to_get );
 								}
 								
 								$stylekit_json['css'] = layers_get_theme_mod( 'custom-css' );
 								
 								?>
-								<li class="tick"><?php _e( 'Custom CSS', 'layerswp' ); ?></li>
+								<li class="tick ticked-all"><?php _e( 'Custom CSS', 'layerswp' ); ?></li>
 								<?php
 							}
 							
@@ -1935,7 +2101,7 @@ class Layers_StyleKit_Exporter {
 							$files_to_zip["$zip_sanitized_name/stylekit.json"] = $export_path . 'stylekit.json';
 							
 							// Create image assets
-							if ( isset( $this->exporter->images_collected ) ) {
+							if ( isset( $this->migrator->images_collected ) ) {
 								
 								// if( ! $wp_filesystem->is_dir( $export_path . 'assets/' ) ) {
 								// 	$wp_filesystem->mkdir( $export_path . 'assets/' );
@@ -1945,7 +2111,7 @@ class Layers_StyleKit_Exporter {
 								// 	$wp_filesystem->mkdir( $export_path . 'assets/images/' );
 								// }
 								
-								foreach ( $this->exporter->images_collected as $image_collected ) {
+								foreach ( $this->migrator->images_collected as $image_collected ) {
 									
 									// Get and store the FileName.
 									$image_pieces = explode( '/', $image_collected['url'] );

@@ -81,6 +81,14 @@ p.layers-excerpt{
 	color: #949494;
 }
 
+.layers-stylekit-button{
+	background: #DDD;
+	width: 100%;
+	line-height: 400px;
+	height: auto;
+	margin: 0 0 20px 0;
+}
+
 .layers-button-well-content {
     padding: 20px;
 		
@@ -245,6 +253,19 @@ p.layers-excerpt{
 	background: #FFF;
 	border: 1px solid #DDD;
 	box-shadow: 0px 1px 1px rgba(0, 0, 0, 0.04);
+}
+
+.layers-stylekit-back{
+	position: absolute;
+	color: grey;
+	text-decoration: none;
+	margin: 10px 10px;
+}
+.layers-stylekit-back .dashicons{
+	font-size: 16px;
+	position: relative;
+	top: 1px;
+	margin-right: -1px;
 }
 
 .layers-stylekit-export-top-nav {
@@ -564,7 +585,7 @@ a.preview-page:hover span {
 	/* background: rgba(255, 0, 0, 0.05); */
 	/* min-height: 356px; */
 	/* float: left; */
-	padding: 35px 0 0;
+	padding: 35px 0 20px;
 	/* width: 394px; */
 	box-sizing: border-box;
 }
