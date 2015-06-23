@@ -182,6 +182,15 @@
 				$( '.customize-control-widget_form.expanded' ).find( '.widget-inside' ).hide();
 				$( '.customize-control-widget_form.expanded' ).find( '.widget-control-close' ).click();
 			});
+			
+			// FadeOut 'loading' feedback
+			setTimeout(function() {
+				$( '.layers-customizer-loading-holder' ).addClass('hide-loading');
+				setTimeout(function() {
+					$( '.layers-customizer-loading-holder' ).remove();
+				}, 1000 );
+			}, 2000 );
+			
 		}
 	};
 
@@ -200,6 +209,11 @@
 
 	// On document ready
 	$( function() {
+		
+		// $( '.layers-customizer-loading-holder' ).addClass('show-loading');
+		// setTimeout(function() {
+		// 	$( 'body' ).addClass('show-overlay');
+		// }, 1000 );
 
 		// Initialize Layers Previewer
 		api.LayersCustomizerPreviewer.init();

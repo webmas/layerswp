@@ -75,6 +75,9 @@ class Layers_Customizer {
 
 			// Render layers customizer menu
 			add_action( 'customize_controls_print_footer_scripts' , array( $this, 'render_customizer_menu' ) );
+			
+			// Render layers customizer loading feedback
+			add_action( 'admin_enqueue_scripts' , array( $this, 'render_loading_ui' ) );
 		}
 	}
 
@@ -229,6 +232,55 @@ class Layers_Customizer {
 			</ul>
 
 		</div>
+		<?php
+	}
+	
+	function render_loading_ui() {
+		?>
+		<script id="layers-customizer-loading-template" type="text/template">
+			
+			<div id="layers-customizer-loading-holder-template" class="layers-customizer-loading-holder">
+				<div class="layers-loading-inner">
+					<?php _e( 'Loading. Hang in there.', 'layerswp' ); ?>
+				</div>
+			</div>
+			
+		</script>
+		<script>
+			
+			layers_body_search = setInterval( function() {
+				
+				// Using this method ensures the loading elements will get into customizer as soon as possible.
+				if( document.body ){
+					var loading_el = createElement( document.getElementById( "layers-customizer-loading-template" ).innerHTML );
+					document.body.appendChild( loading_el );
+					
+					loading_el = document.getElementById( "layers-customizer-loading-holder-template" );
+					
+					setTimeout(function() {
+						loading_el.className = loading_el.className + ' show-loading';
+						
+						setTimeout(function() {
+							document.body.className = document.body.className + ' show-overlay';
+						}, 500 );
+					}, 500 );
+					
+					clearInterval( layers_body_search );
+				}
+				
+			}, 10 );
+			
+			function createElement( str ) {
+			    var frag = document.createDocumentFragment();
+			    var elem = document.createElement('div');
+			    elem.innerHTML = str;
+			    while (elem.childNodes[0]) {
+			        frag.appendChild(elem.childNodes[0]);
+		   		}
+		    	return frag;
+			}
+			
+		</script>
 		<?php
 	}
 

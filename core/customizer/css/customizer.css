@@ -217,3 +217,44 @@ a.customize-controls-layers-button-preview .icon{
 .layers-tooltip.layers-tooltip-left .layers-tooltip-text:before{
 	left: 20px;
 }
+
+/*--------------------------------*/
+/*- CUSTOMIZER LOADING FEEDBACK --*/
+
+.wp-full-overlay {
+	opacity: 0;
+	pointer-events: none;
+}
+.layers-customizer-loading-holder {
+	position: fixed;
+	z-index: 600000;
+	left: 0;
+	top: 0;
+	width: 100%;
+	height: 100%;
+	background: #F1F1F1;
+	opacity: 0;
+	transition: .1s;
+}
+.layers-customizer-loading-holder.show-loading {
+	opacity: 1;
+}
+.layers-customizer-loading-holder.hide-loading{
+ 	opacity: 0;
+}
+body.show-overlay .wp-full-overlay{
+	opacity: 1;
+	pointer-events: auto;
+}
+.layers-loading-inner{
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	width: 200px;
+	text-align: center;
+	margin: -60px 0 0 -100px;
+	text-transform: none;
+	font-size: 13px;
+	font-weight: normal;
+	color: #848484;
+}
