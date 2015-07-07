@@ -8,7 +8,7 @@
  */
 
 class Layers_Customizer {
-	
+
 	private $customizer_dir = '/core/customizer/';
 	
 	private $controls_dir = '/core/customizer/controls/';
@@ -37,27 +37,27 @@ class Layers_Customizer {
     */
     
     public function init() {
-
+    	
 		// Initialise Config
 		require_once get_template_directory() . $this->customizer_dir . 'config.php';
 		$config = Layers_Customizer_Config::get_instance();
-		
+
 		// Initialise Defaults
 		require_once get_template_directory() . $this->customizer_dir . 'defaults.php';
 		$defaults = Layers_Customizer_Defaults::get_instance();
-		
+
 		// Register Controls (only when in customizer)
 		add_action( 'customize_register', array( $this, 'registration' ), 50 );
-		
-		// Enqueue Scripts
-		add_action( 'customize_controls_print_footer_scripts', array( $this, 'admin_enqueue_scripts' ) );
-		add_action( 'admin_enqueue_scripts', array( $this, 'admin_print_styles' ) , 50 );
-		add_action( 'customize_controls_print_styles' , array( $this, 'admin_print_styles' ) );
-		add_action( 'customize_preview_init', array( $this, 'customizer_preview_enqueue_scripts' ) );
 
-		// Render layers customizer menu
-		add_action( 'customize_controls_print_footer_scripts' , array( $this, 'render_customizer_menu' ) );
-	}
+		// Enqueue Scripts
+			add_action( 'customize_controls_print_footer_scripts', array( $this, 'admin_enqueue_scripts' ) );
+			add_action( 'admin_enqueue_scripts', array( $this, 'admin_print_styles' ) , 50 );
+			add_action( 'customize_controls_print_styles' , array( $this, 'admin_print_styles' ) );
+			add_action( 'customize_preview_init', array( $this, 'customizer_preview_enqueue_scripts' ) );
+
+			// Render layers customizer menu
+			add_action( 'customize_controls_print_footer_scripts' , array( $this, 'render_customizer_menu' ) );
+		}
 	
 	public function registration () {
 		

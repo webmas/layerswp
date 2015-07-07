@@ -18,7 +18,7 @@ class Layers_Customizer_Regsitrar {
     private static $instance; // stores singleton class
     
     /**
-    * Get Instance creates a singleton class that's cached to stop duplicate instances
+    *  Get Instance creates a singleton class that's cached to stop duplicate instances
     */
     public static function get_instance() {
         if ( ! self::$instance ) {
@@ -254,6 +254,16 @@ class Layers_Customizer_Regsitrar {
 						$control_data
 					)
 				);
+			} else if( 'layers-rte' == $control_data['type'] ) {
+
+				// Add Control
+				$this->customizer->add_control(
+					new Layers_Customize_RTE_Control(
+						$this->customizer,
+						$setting_key,
+						$control_data
+					)
+				);
 
 			} else if( 'layers-font' == $control_data['type'] ) {
 
@@ -446,6 +456,9 @@ class Layers_Customizer_Regsitrar {
 				$callback = 'esc_textarea';
 				break;
 			case 'layers-code' :
+				$callback = false;
+				break;
+			case 'layers-rte' :
 				$callback = false;
 				break;
 			default :
