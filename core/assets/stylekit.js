@@ -424,6 +424,9 @@
 			// }
 			
 			
+			var process_collection = array();
+			
+			
 			// User Feedback
 			layers.loader.add_to_queue( function(){
 				layers.slider.go_to_slide( 3, $importer_slides );
@@ -448,6 +451,8 @@
 				$( 'form.layers-stylekit-form-import' ).serialize() + '&action=layers_stylekit_import_ajax_step_1',
 				function( response ){
 					
+					response.status;
+					
 					layers.loader.add_to_queue( function(){
 						layers.loader.loader_progress( 100 );
 						layers.loader.add_loader_text( '' );
@@ -464,11 +469,16 @@
 						
 					});
 					
+					
+					response.action = 'layers_stylekit_import_ajax_step_2';
+					
 					// Start next ajax operation
 					$.post(
 						ajaxurl,
-						response.stylekit,
+						response,
 						function( response ){
+							
+							response.status;
 							
 							layers.loader.add_to_queue( function(){
 								layers.loader.loader_progress( 100 );
@@ -486,8 +496,35 @@
 								
 							});
 							
-							
-							
+							response.action = 'layers_stylekit_import_ajax_step_3';
+					
+							// Start next ajax operation
+							$.post(
+								ajaxurl,
+								response,
+								function( response ){
+									
+									response.status;
+									
+									layers.loader.add_to_queue( function(){
+										layers.loader.loader_progress( 100 );
+										layers.loader.add_loader_text( '' );
+									});
+									layers.loader.add_to_queue( 1000 );
+									layers.loader.add_to_queue( function(){
+										layers.loader.hide_loader();
+									});
+									layers.loader.add_to_queue( 500 );
+									layers.loader.add_to_queue( function(){
+										
+										// $( '.layers-stylekit-import-step-2 .layers-stylekit-slide-4' ).append( response.result );
+										// layers.slider.go_to_slide( 4, $importer_slides );
+										
+									});
+									
+								},
+								'json'
+							);
 							
 						},
 						'json'
