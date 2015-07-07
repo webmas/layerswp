@@ -61,7 +61,9 @@ class Layers_StyleKit_Exporter {
 		
 		add_action( 'wp_ajax_layers_stylekit_unpack_ajax', array( $this, 'layers_stylekit_unpack_ajax' ) );
 		
-		add_action( 'wp_ajax_layers_stylekit_import_ajax', array( $this, 'layers_stylekit_import_ajax' ) );
+		add_action( 'wp_ajax_layers_stylekit_import_ajax_step_1', array( $this, 'layers_stylekit_import_ajax_step_1' ) );
+		
+		add_action( 'wp_ajax_layers_stylekit_import_ajax_step_2', array( $this, 'layers_stylekit_import_ajax_step_2' ) );
 		
 	}
 	
@@ -205,7 +207,17 @@ class Layers_StyleKit_Exporter {
 					
 					add_filter( 'layers_filter_widgets', array( $this, 'handle_images' ), 10, 2 );
 					
-					$this->migrator->modify_widgets( array( 4 ) );
+					//$this->migrator->process_widgets_in_page( array( 169 ) );
+					
+					$widget_data = json_decode( "{\"obox-layers-builder-169\":{\"layers-widget-slide-19\":{\"show_slider_arrows\":\"on\",\"show_slider_dots\":\"on\",\"slide_time\":\"\",\"slide_height\":\"550\",\"design\":{\"advanced\":{\"customclass\":\"\",\"customcss\":\"\",\"padding\":{\"top\":\"\",\"right\":\"\",\"bottom\":\"\",\"left\":\"\"},\"margin\":{\"top\":\"\",\"right\":\"\",\"bottom\":\"\",\"left\":\"\"}}},\"slide_ids\":\"575\",\"slides\":{\"575\":{\"design\":{\"background\":{\"image\":\"http:\\\/\\\/localhost\\\/layers\\\/layers10\\\/wp-content\\\/uploads\\\/sites\\\/10\\\/2015\\\/06\\\/tile.png\",\"color\":\"#efefef\",\"repeat\":\"repeat\",\"position\":\"center\"},\"featuredimage\":\"\",\"featuredvideo\":\"\",\"imagealign\":\"image-top\",\"fonts\":{\"align\":\"text-center\",\"size\":\"large\",\"color\":\"\"}},\"title\":\"Incredible Application\",\"excerpt\":\"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse vitae massa velit, eu laoreet massa.\",\"link\":\"#\",\"link_text\":\"Purchase Now\"}}},\"layers-widget-column-24\":{\"design\":{\"layout\":\"layout-boxed\",\"gutter\":\"on\",\"fonts\":{\"align\":\"text-center\",\"size\":\"medium\",\"color\":\"\"},\"background\":{\"image\":\"\",\"color\":\"\",\"repeat\":\"no-repeat\",\"position\":\"center\"},\"advanced\":{\"customclass\":\"\",\"customcss\":\"\",\"padding\":{\"top\":\"\",\"right\":\"\",\"bottom\":\"\",\"left\":\"\"},\"margin\":{\"top\":\"\",\"right\":\"\",\"bottom\":\"\",\"left\":\"\"}}},\"title\":\"Unbelievable Features\",\"excerpt\":\"Our services run deep and are backed by over ten years of experience.\",\"column_ids\":\"347,191\",\"columns\":{\"191\":{\"design\":{\"background\":{\"image\":\"\",\"color\":\"\",\"repeat\":\"no-repeat\",\"position\":\"center\"},\"featuredimage\":\"http:\\\/\\\/localhost\\\/layers\\\/layers10\\\/wp-content\\\/uploads\\\/sites\\\/10\\\/2015\\\/06\\\/demo-image.png\",\"featuredvideo\":\"\",\"imagealign\":\"image-top\",\"fonts\":{\"align\":\"text-center\",\"size\":\"medium\",\"color\":\"\"}},\"width\":\"6\",\"title\":\"Your feature title\",\"excerpt\":\"Give us a brief description of the feature that you are promoting. Try keep it short so that it is easy for people to scan your page.\",\"link\":\"\",\"link_text\":\"\"},\"347\":{\"design\":{\"background\":{\"image\":\"\",\"color\":\"\",\"repeat\":\"no-repeat\",\"position\":\"center\"},\"featuredimage\":\"http:\\\/\\\/localhost\\\/layers\\\/layers10\\\/wp-content\\\/uploads\\\/sites\\\/10\\\/2015\\\/06\\\/demo-image.png\",\"featuredvideo\":\"\",\"imageratios\":\"image-no-crop\",\"imagealign\":\"image-top\",\"fonts\":{\"align\":\"text-center\",\"size\":\"medium\",\"color\":\"\"}},\"width\":\"6\",\"title\":\"Your feature title\",\"excerpt\":\"Give us a brief description of the feature that you are promoting. Try keep it short so that it is easy for people to scan your page.\",\"link\":\"\",\"link_text\":\"\"}}},\"layers-widget-slide-20\":{\"show_slider_arrows\":\"on\",\"show_slider_dots\":\"on\",\"slide_time\":\"\",\"slide_height\":\"350\",\"design\":{\"advanced\":{\"customclass\":\"\",\"customcss\":\"\",\"padding\":{\"top\":\"\",\"right\":\"\",\"bottom\":\"\",\"left\":\"\"},\"margin\":{\"top\":\"\",\"right\":\"\",\"bottom\":\"\",\"left\":\"\"}}},\"slide_ids\":\"701\",\"slides\":{\"701\":{\"design\":{\"background\":{\"image\":\"http:\\\/\\\/localhost\\\/layers\\\/layers10\\\/wp-content\\\/uploads\\\/sites\\\/10\\\/2015\\\/06\\\/tile.png\",\"color\":\"#efefef\",\"repeat\":\"repeat\",\"position\":\"center\"},\"featuredimage\":\"\",\"featuredvideo\":\"\",\"imagealign\":\"image-top\",\"fonts\":{\"align\":\"text-center\",\"size\":\"medium\",\"color\":\"\"}},\"title\":\"Purchase for $0.99\",\"excerpt\":\"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse vitae massa velit, eu laoreet massa.\",\"link\":\"#\",\"link_text\":\"Purchase Now\"}}}}}", TRUE );
+					
+					//s($widget_data);
+					
+					$this->migrator->process_widgets_in_data( $widget_data );
+					
+					
+					s( $this->migrator->images_downloaded );
+					s( $this->migrator->images_report );
 					
 					?>
 					
@@ -213,8 +225,8 @@ class Layers_StyleKit_Exporter {
 					
 					
 					        	IMPORT : STEP-1
-					        	
-					        	
+					
+					       	
 					------------------------------------- -->
 				
 					<div class="layers-onboard-slider">
@@ -767,19 +779,14 @@ class Layers_StyleKit_Exporter {
 	public function handle_images( $widgets, $page_id ) {
 		
 		// Loop through the widgets modify them.
-		foreach ( $widgets as $widget ) {
+		//foreach ( $widgets as $widget ) {
 			
 			// Setting 'download_images' to false will result in a list called 'images_downloaded' being generated, which we'll use at a later stage.
-			$this->migrator->check_for_images( $widget, array(
+			$this->migrator->check_for_images( $widgets, array(
 				'download_images' => FALSE,
 				'create_new_image_if_name_exists' => TRUE,
 			));
-			
-			//s( $widget );
-		}
-		
-		//s( $this->migrator->images_downloaded );
-		//s( $this->migrator->images_report );
+		//}
 		
 		return $widgets;
 	}
@@ -1166,8 +1173,6 @@ class Layers_StyleKit_Exporter {
 		
 		<form class="layers-stylekit-form layers-stylekit-form-import" method="post" action="<?php echo add_query_arg( array( 'page' => 'layers_stylekit_export', 'step' => 'layers-stylekit-import-step-3' ), get_admin_url() . 'admin.php' ) ?>">
 			
-			<input type="hidden" name="action" value="layers_stylekit_import_ajax">
-			
 			<?php
 			/**
 			 * Checks - to see we're good to proceed.
@@ -1469,7 +1474,7 @@ class Layers_StyleKit_Exporter {
 		
 	}
 	
-	function layers_stylekit_import_ajax() {
+	function layers_stylekit_import_ajax_step_1() {
 		
 		global $wp_filesystem;
 		
@@ -1573,30 +1578,151 @@ class Layers_StyleKit_Exporter {
 		 * Images
 		 */
 		
-		$filtered_images = array();
+		$stylekit_json['image_locations'] = array();
 		
-		// filter the pages json so only the chosen previal.
-		if ( isset( $stylekit_json['images'] ) && ( isset( $_POST['layers_pages'] ) || isset( $_POST['layers-stylekit-import-all'] ) ) ) {
+		$stylekit_json['image_locations'][] = array(
+			'path' => $temp_directory_path . 'assets/images/',
+			'url'  => $temp_directory_url . 'assets/images/',
+		);
+		
+		echo json_encode( array( 'result' => $result ) );
+		
+		die();
+	}
+	
+	
+	
+	public function layers_stylekit_import_ajax_step_1 ( $stylekit_json ) {
+		
+		$result = $this->layers_import_stylekit( $stylekit_json );
+		
+		echo json_encode( array( 'result' => $result ) );
+		
+		die();
+	}
+	
+	
+	
+	/**
+	 * Import StyleKit JSON
+	 */
+	public function layers_import_stylekit ( $stylekit_json ) {
+		
+		$this->init_vars();
+		
+		$collect_results = array(
+			'settings' => array(),
+			'pages' => array(),
+			'css' => array(),
+		);
+		
+		/**
+		 * Settings
+		 */
+		
+		// If user has chosen some settings groups, and there are some settings in the StyleKit
+		if ( isset( $stylekit_json['settings'] ) ) {
 			
-			foreach ( $stylekit_json['images'] as $page_slug => $page_data ) {
-				if ( isset( $_POST['layers-stylekit-import-all'] ) || in_array( $page_slug, $_POST['layers_pages'] ) ) {
+			foreach ( $stylekit_json['settings'] as $setting_key => $setting ) {
 					
-					$filtered_images[ $page_slug ] = $page_data;
-				}
+				// Set theme mod
+				set_theme_mod( $setting_key, $setting['value'] );
 			}
 		}
 		
-		// Unset the pages if none are chosen
-		if ( empty( $filtered_images ) ){
-			unset( $stylekit_json['images'] );
+		/**
+		 * Custom CSS
+		 */
+		
+		// If there are pages in the StyleKit and user has chosen to import some.
+		if ( isset( $stylekit_json['css'] ) ) {
+			
+			// Set theme mod
+			set_theme_mod( 'layers-custom-css', $stylekit_json['css'] );
+			
+			// Collect result so we can display in report
+			$collect_results['css'] = $stylekit_json['css'];
 		}
-		else {
-			$stylekit_json['images'] = $filtered_images;
+		
+	}
+	
+	
+	public function layers_stylekit_import_ajax_step_2 ( $stylekit_json ) {
+		
+		$result = $this->layers_import_pages( $stylekit_json );
+		
+		echo json_encode( array( 'result' => $result ) );
+		
+		die();
+	}
+	
+	
+	public function layers_import_pages ( $stylekit_json ) {
+		
+		/**
+		 * Pages
+		 */
+		
+		// If there are pages in the StyleKit and user has chosen to import some.
+		if ( isset( $stylekit_json[ 'pages' ] ) ) {
+			
+			// Set locations to search for images during 'create_builder_page_from_preset'
+			if ( isset( $stylekit_json[ 'image_locations' ] ) ){
+				foreach ( $stylekit_json[ 'image_locations' ] as $image_location ) {
+					
+					$this->check_image_locations = $image_location;
+					add_filter( 'layers_check_image_locations', array( $this, 'check_image_locations' ) );
+				}
+			}
+			
+			// Add the pages
+			foreach ( $stylekit_json[ 'pages' ] as $page_slug => $page_data ) {
+					
+				$title = ( isset( $page_data[ 'post_title' ] ) ) ? $page_data[ 'post_title' ] : NULL ;
+				$widget_data = ( isset( $page_data[ 'widget_data' ] ) ) ? json_decode( $page_data[ 'widget_data' ], TRUE ) : NULL ;
+				
+				// Import the page
+				$result = $this->migrator->create_builder_page_from_preset( array(
+					'post_title'                      => $title,
+					'widget_data'                     => $widget_data,
+					'create_new_image_if_name_exists' => TRUE,
+					'download_images'                 => FALSE,
+				));
+				
+				s( 'Images Downloaded!! :', $this->migrator->images_downloaded );
+				
+				s( $this->migrator->images_report );
+					
+				/*
+				add_filter( 'layers_filter_widgets', array( $this, 'handle_images' ), 10, 2 );
+				
+				//$this->migrator->process_widgets_in_page( array( 169 ) );
+				
+				$widget_data = json_decode( "{\"obox-layers-builder-169\":{\"layers-widget-slide-19\":{\"show_slider_arrows\":\"on\",\"show_slider_dots\":\"on\",\"slide_time\":\"\",\"slide_height\":\"550\",\"design\":{\"advanced\":{\"customclass\":\"\",\"customcss\":\"\",\"padding\":{\"top\":\"\",\"right\":\"\",\"bottom\":\"\",\"left\":\"\"},\"margin\":{\"top\":\"\",\"right\":\"\",\"bottom\":\"\",\"left\":\"\"}}},\"slide_ids\":\"575\",\"slides\":{\"575\":{\"design\":{\"background\":{\"image\":\"http:\\\/\\\/localhost\\\/layers\\\/layers10\\\/wp-content\\\/uploads\\\/sites\\\/10\\\/2015\\\/06\\\/tile.png\",\"color\":\"#efefef\",\"repeat\":\"repeat\",\"position\":\"center\"},\"featuredimage\":\"\",\"featuredvideo\":\"\",\"imagealign\":\"image-top\",\"fonts\":{\"align\":\"text-center\",\"size\":\"large\",\"color\":\"\"}},\"title\":\"Incredible Application\",\"excerpt\":\"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse vitae massa velit, eu laoreet massa.\",\"link\":\"#\",\"link_text\":\"Purchase Now\"}}},\"layers-widget-column-24\":{\"design\":{\"layout\":\"layout-boxed\",\"gutter\":\"on\",\"fonts\":{\"align\":\"text-center\",\"size\":\"medium\",\"color\":\"\"},\"background\":{\"image\":\"\",\"color\":\"\",\"repeat\":\"no-repeat\",\"position\":\"center\"},\"advanced\":{\"customclass\":\"\",\"customcss\":\"\",\"padding\":{\"top\":\"\",\"right\":\"\",\"bottom\":\"\",\"left\":\"\"},\"margin\":{\"top\":\"\",\"right\":\"\",\"bottom\":\"\",\"left\":\"\"}}},\"title\":\"Unbelievable Features\",\"excerpt\":\"Our services run deep and are backed by over ten years of experience.\",\"column_ids\":\"347,191\",\"columns\":{\"191\":{\"design\":{\"background\":{\"image\":\"\",\"color\":\"\",\"repeat\":\"no-repeat\",\"position\":\"center\"},\"featuredimage\":\"http:\\\/\\\/localhost\\\/layers\\\/layers10\\\/wp-content\\\/uploads\\\/sites\\\/10\\\/2015\\\/06\\\/demo-image.png\",\"featuredvideo\":\"\",\"imagealign\":\"image-top\",\"fonts\":{\"align\":\"text-center\",\"size\":\"medium\",\"color\":\"\"}},\"width\":\"6\",\"title\":\"Your feature title\",\"excerpt\":\"Give us a brief description of the feature that you are promoting. Try keep it short so that it is easy for people to scan your page.\",\"link\":\"\",\"link_text\":\"\"},\"347\":{\"design\":{\"background\":{\"image\":\"\",\"color\":\"\",\"repeat\":\"no-repeat\",\"position\":\"center\"},\"featuredimage\":\"http:\\\/\\\/localhost\\\/layers\\\/layers10\\\/wp-content\\\/uploads\\\/sites\\\/10\\\/2015\\\/06\\\/demo-image.png\",\"featuredvideo\":\"\",\"imageratios\":\"image-no-crop\",\"imagealign\":\"image-top\",\"fonts\":{\"align\":\"text-center\",\"size\":\"medium\",\"color\":\"\"}},\"width\":\"6\",\"title\":\"Your feature title\",\"excerpt\":\"Give us a brief description of the feature that you are promoting. Try keep it short so that it is easy for people to scan your page.\",\"link\":\"\",\"link_text\":\"\"}}},\"layers-widget-slide-20\":{\"show_slider_arrows\":\"on\",\"show_slider_dots\":\"on\",\"slide_time\":\"\",\"slide_height\":\"350\",\"design\":{\"advanced\":{\"customclass\":\"\",\"customcss\":\"\",\"padding\":{\"top\":\"\",\"right\":\"\",\"bottom\":\"\",\"left\":\"\"},\"margin\":{\"top\":\"\",\"right\":\"\",\"bottom\":\"\",\"left\":\"\"}}},\"slide_ids\":\"701\",\"slides\":{\"701\":{\"design\":{\"background\":{\"image\":\"http:\\\/\\\/localhost\\\/layers\\\/layers10\\\/wp-content\\\/uploads\\\/sites\\\/10\\\/2015\\\/06\\\/tile.png\",\"color\":\"#efefef\",\"repeat\":\"repeat\",\"position\":\"center\"},\"featuredimage\":\"\",\"featuredvideo\":\"\",\"imagealign\":\"image-top\",\"fonts\":{\"align\":\"text-center\",\"size\":\"medium\",\"color\":\"\"}},\"title\":\"Purchase for $0.99\",\"excerpt\":\"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse vitae massa velit, eu laoreet massa.\",\"link\":\"#\",\"link_text\":\"Purchase Now\"}}}}}", TRUE );
+				
+				//s($widget_data);
+				
+				$this->migrator->process_widgets_in_data( $widget_data );
+				
+				
+				s( $this->migrator->images_downloaded );
+				s( $this->migrator->images_report );
+				*/
+					
+				
+				$post_id = $result['post_id'];
+				
+				// Collect result so we can return a report.
+				$collect_results['pages'][] = $post_id;
+			}
 		}
+		
+	}
+	
+	
+	public function layers_stylekit_import_ajax_step_3 ( $stylekit_json ) {
 		
 		ob_start();
-		
-		echo $this->layers_import_stylekit( $stylekit_json );
 		?>
 		
 		<div class="layers-row">
@@ -1773,132 +1899,13 @@ class Layers_StyleKit_Exporter {
 		
 		<?php
 		
-		/*
-		if ( count( $collect_results['settings'] ) || count( $collect_results['pages'] ) || count( $collect_results['css'] ) ) {
-			
-			s( $collect_results );
-		}
-		*/
-		
-		//s( $collect_results );
-		
-		// if ( $result || is_wp_error($result) ){
-		// 	// $file_upload->cleanup();
-		
 		$ui = ob_get_clean();
 		
 		echo json_encode( array( 'ui' => $ui ) );
-		
-		die();
 	}
 	
-	/**
-	 * Import StyleKit JSON
-	 */
-	public function layers_import_stylekit ( $stylekit_json ) {
-		
-		global $wp_filesystem;
-		
-		$this->init_vars();
-		
-		/**
-		 * Prep File System
-		 */
-			
-		/*
-		// Initialize the WP filesystem if not yet
-		if ( empty( $wp_filesystem ) ) {
-			require_once ( ABSPATH . '/wp-admin/includes/file.php' );
-			WP_Filesystem();
-		}
-		
-		// Get the Path and URL of the Temp directory
-		$temp_directory_path = str_replace( $wp_filesystem->wp_content_dir(), trailingslashit( WP_CONTENT_DIR ), $source );
-		$temp_directory_url = str_replace( $wp_filesystem->wp_content_dir(), trailingslashit( WP_CONTENT_URL ), $source );
-		
-		// Check if the above str_replace works.
-		if ( ! is_dir( $temp_directory_path ) ) {
-			return $temp_directory_path;
-		}
-		*/
-		
-		$collect_results = array(
-			'settings' => array(),
-			'pages' => array(),
-			'css' => array(),
-		);
-		
-		/**
-		 * Settings
-		 */
-		
-		// If user has chosen some settings groups, and there are some settings in the StyleKit
-		if ( isset( $stylekit_json['settings'] ) ) {
-			
-			foreach ( $stylekit_json['settings'] as $setting_key => $setting ) {
-					
-				// Set theme mod
-				set_theme_mod( $setting_key, $setting['value'] );
-			}
-		}
-		
-		/**
-		 * Pages
-		 */
-		
-		// If there are pages in the StyleKit and user has chosen to import some.
-		if ( isset( $stylekit_json[ 'pages' ] ) ) {
-			
-			// Set locations to search for images during 'create_builder_page_from_preset'
-			$this->check_image_locations = array(
-				'path' => $temp_directory_path . 'assets/images/',
-				'url'  => $temp_directory_url . 'assets/images/',
-			);
-			add_filter( 'layers_check_image_locations', array( $this, 'check_image_locations' ) );
-			
-			// Add the pages
-			foreach ( $stylekit_json[ 'pages' ] as $page_slug => $page_data ) {
-					
-				$title = ( isset( $page_data[ 'post_title' ] ) ) ? $page_data[ 'post_title' ] : NULL ;
-				$widget_data = ( isset( $page_data[ 'widget_data' ] ) ) ? json_decode( $page_data[ 'widget_data' ], TRUE ) : NULL ;
-				
-				// Import the page
-				$result = $this->migrator->create_builder_page_from_preset( array(
-					'post_title'                      => $title,
-					'widget_data'                     => $widget_data,
-					'create_new_image_if_name_exists' => TRUE,
-					'download_images'                 => FALSE,
-				));
-				
-				s( $this->migrator->images_downloaded );
-				
-				s( $this->migrator->images_report );
-				
-				// add_filter( 'layers_filter_widgets', array( $this, 'handle_images' ), 10, 2 );
-				// $this->migrator->modify_widgets( array( 4 ) );
-				
-				$post_id = $result['post_id'];
-				
-				// Collect result so we can return a report.
-				$collect_results['pages'][] = $post_id;
-			}
-		}
-		
-		/**
-		 * Custom CSS
-		 */
-		
-		// If there are pages in the StyleKit and user has chosen to import some.
-		if ( isset( $stylekit_json['css'] ) ) {
-			
-			// Set theme mod
-			set_theme_mod( 'layers-custom-css', $stylekit_json['css'] );
-			
-			// Collect result so we can display in report
-			$collect_results['css'] = $stylekit_json['css'];
-		}
-		
-	}
+	
+	
 	
 	/**
 	 * Ajax for Export Child Theme

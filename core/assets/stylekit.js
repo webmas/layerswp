@@ -417,10 +417,14 @@
 		// Handle final click of confirm import
 		$( document ).on( 'click', '.layers-stylekit-import-step-2-submit', function(){
 			
-			if ( !window.confirm("This StyleKit Import will:\n\n- Change your settings.\n\n- Add 3 pages.\n\n- Add Custom CSS.") ) {
-				return false;
-			}
 			
+			// Get the user to Confirm this operation.
+			// if ( !window.confirm("This StyleKit Import will:\n\n- Change your settings.\n\n- Add 3 pages.\n\n- Add Custom CSS.") ) {
+			// 	return false;
+			// }
+			
+			
+			// User Feedback
 			layers.loader.add_to_queue( function(){
 				layers.slider.go_to_slide( 3, $importer_slides );
 				layers.loader.add_loader_text('');
@@ -435,30 +439,63 @@
 				layers.loader.loader_progress( 50 );
 				layers.loader.add_loader_text( 'Importing StyleKit. Please wait...' );
 				
-				$.post(
-					ajaxurl,
-					$( 'form.layers-stylekit-form-import' ).serialize(),
-					function( response ){
-						
-						layers.loader.add_to_queue( function(){
-							layers.loader.loader_progress( 100 );
-							layers.loader.add_loader_text( '' );
-						});
-						layers.loader.add_to_queue( 1000 );
-						layers.loader.add_to_queue( function(){
-							layers.loader.hide_loader();
-						});
-						layers.loader.add_to_queue( 500 );
-						layers.loader.add_to_queue( function(){
-							$( '.layers-stylekit-import-step-2 .layers-stylekit-slide-4' ).append( response.ui );
-							layers.slider.go_to_slide( 4, $importer_slides );
-						});
-						
-					},
-					'json'
-				);
-				
 			});
+			
+			
+			// Get the operations started.
+			$.post(
+				ajaxurl,
+				$( 'form.layers-stylekit-form-import' ).serialize() + '&action=layers_stylekit_import_ajax_step_1',
+				function( response ){
+					
+					layers.loader.add_to_queue( function(){
+						layers.loader.loader_progress( 100 );
+						layers.loader.add_loader_text( '' );
+					});
+					layers.loader.add_to_queue( 1000 );
+					layers.loader.add_to_queue( function(){
+						layers.loader.hide_loader();
+					});
+					layers.loader.add_to_queue( 500 );
+					layers.loader.add_to_queue( function(){
+						
+						// $( '.layers-stylekit-import-step-2 .layers-stylekit-slide-4' ).append( response.result );
+						// layers.slider.go_to_slide( 4, $importer_slides );
+						
+					});
+					
+					// Start next ajax operation
+					$.post(
+						ajaxurl,
+						response.stylekit,
+						function( response ){
+							
+							layers.loader.add_to_queue( function(){
+								layers.loader.loader_progress( 100 );
+								layers.loader.add_loader_text( '' );
+							});
+							layers.loader.add_to_queue( 1000 );
+							layers.loader.add_to_queue( function(){
+								layers.loader.hide_loader();
+							});
+							layers.loader.add_to_queue( 500 );
+							layers.loader.add_to_queue( function(){
+								
+								// $( '.layers-stylekit-import-step-2 .layers-stylekit-slide-4' ).append( response.result );
+								// layers.slider.go_to_slide( 4, $importer_slides );
+								
+							});
+							
+							
+							
+							
+						},
+						'json'
+					);
+					
+				},
+				'json'
+			);
 			
 			return false;
 		});

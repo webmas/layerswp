@@ -615,7 +615,169 @@ class Layers_Widget_Migrator {
 		}
 
 		return $validated_data;
+	}
+	
+	/**
+	* Search & Replace Widgets in a specific page
+	*/
 
+	public function process_widgets_in_page( $page_ids = array() ) {
+		
+		global $wp_registered_sidebars, $wp_registered_widgets;
+		
+		foreach ( $page_ids as $page_id ) {
+			
+			$sidebar_id = 'obox-layers-builder-' . $page_id;
+	
+			// Holds the final data to return
+			$output = array();
+			
+			// Loop over all of the registered sidebars looking for the one with the same name as $sidebar_id
+			$sibebar_id = false;
+			foreach( $wp_registered_sidebars as $sidebar ) {
+				if( $sidebar['name'] == $sidebar_id ) {
+					// We now have the Sidebar ID, we can stop our loop and continue.
+					$sidebar_id = $sidebar['id'];
+					break;
+				}
+			}
+			
+			if( !$sidebar_id ) {
+				// There is no sidebar registered with the name provided.
+				return $output;
+			}
+			
+			// A nested array in the format $sidebar_id => array( 'widget_id-1', 'widget_id-2' ... );
+			$sidebars_widgets = wp_get_sidebars_widgets();
+			$widget_ids = $sidebars_widgets[$sidebar_id];
+			
+			if( !$widget_ids ) {
+				// Without proper widget_ids we can't continue.
+				return array();
+			}
+			
+			// Loop over each widget_id so we can fetch the data out of the wp_options table.
+			foreach( $widget_ids as $id ) {
+				
+				// The name of the option in the database is the name of the widget class.
+				$option_name = $wp_registered_widgets[$id]['callback'][0]->option_name;
+				
+				// Widget data is stored as an associative array. To get the right data we need to get the right key which is stored in $wp_registered_widgets
+				$key = $wp_registered_widgets[$id]['params'][0]['number'];
+				
+				$widget_data = get_option( $option_name );
+				
+				// Add the widget data on to the end of the output array.
+				//$widgys[] = (object) $widget_data[$key];
+				
+				$widget_data = $widget_data[$key];
+				
+				$widget_data = array_merge( array(
+					'option_name' => $option_name,
+					'key' => $key,
+					'id' => $id,
+				), $widget_data );
+				
+				$widgys[] = $widget_data;
+			}
+			
+			// if ( FALSE && isset( $widgys[0]['slides'][488]['title'] ) ) {
+			// 	$widgys[0]['slides'][488]['title'] = "Business development and acquisition specialist yeah!";
+			// }
+			
+			$widgys_modified = apply_filters( 'layers_filter_widgets', $widgys, $page_id );
+			
+			// Nothing has been modified in the widgets so just continue
+			if ( $widgys_modified === $widgys ) continue;
+			
+			// Loop through the widgets and put them back into their own individual option fields
+			foreach ( $widgys_modified as $widget ) {
+				
+				$option_name = $widget['option_name'];
+				$key = $widget['key'];
+				$id = $widget['id'];
+				
+				unset( $widget['option_name'] );
+				unset( $widget['key'] );
+				unset( $widget['id'] );
+				
+				$widget_option = get_option( $option_name );
+				
+				$widget_option[$key] = $widget;
+				
+				update_option( $option_name, $widget_option );
+			}
+		}
+	}
+	
+	/**
+	* Search & Replace Widgets in a data group of Widgets
+	*/
+
+	public function process_widgets_in_data( $widget_data = array() ) {
+		
+		global $wp_registered_sidebars, $wp_registered_widgets;
+		
+		$widget_data = apply_filters( 'layers_filter_widgets', $widget_data, NULL );
+		
+		$widget_data;
+		
+		return $widget_data;
+	}
+	
+	/**
+	* Search and Replace Widget Data
+	*/
+
+	public function search_and_replace_widget( $data, $args = array() ) {
+		
+		if( !is_array( $data ) ) return stripslashes( $data );
+		
+		$defaults = array(
+			'option_type' => array(),
+			'search_for' => '',
+			'replace_with' => '',
+		);
+		$args = wp_parse_args( $args, $defaults );
+		
+		$validated_data = array();
+		
+		foreach( $data as $option => $option_data ){
+
+			if( is_array( $option_data ) ) {
+
+				$validated_data[ $option ] = $this->check_for_images( $option_data, $args );
+
+			} elseif( 'image' == $option || 'featuredimage' == $option ) {
+
+				// Check to see if this image exists in our media library already
+				$check_for_image = $this->check_for_image_in_media( $option_data, $args );
+
+				if( NULL != $check_for_image ) {
+					$get_image_id = $check_for_image;
+				} else {
+					// @TODO: Try improve the image loading
+					$import_image = media_sideload_image( $option_data , 0 );
+
+					if( NULL != $import_image && !is_wp_error( $import_image ) ) {
+						$get_image_id = $this->get_attachment_id_from_url( $import_image );
+					}
+				}
+
+				if( isset( $get_image_id ) ) {
+					$validated_data[ $option ] = $get_image_id;
+				} else {
+					$validated_data[ $option ] = stripslashes( $option_data );
+				}
+
+			} else {
+
+				$validated_data[ $option ] = stripslashes( $option_data );
+
+			}
+		}
+
+		return $validated_data;
 	}
 
 	/**
@@ -727,9 +889,9 @@ class Layers_Widget_Migrator {
 		global $layers_widgets;
 		
 		$defaults = array(
-			'post_id' => '', //@TODO: allow an id to be passed, then have one function that deals with all kind of preset-layout imports
-			'post_title' => '',
-			'widget_data' => '',
+			'post_id'                         => '', //@TODO: allow an id to be passed, then have one function that deals with all kind of preset-layout imports
+			'post_title'                      => '',
+			'widget_data'                     => '',
 			'create_new_image_if_name_exists' => FALSE,
 		);
 		$args = wp_parse_args( $args, $defaults );
@@ -784,9 +946,6 @@ class Layers_Widget_Migrator {
 
 		global $wp_registered_sidebars;
 		
-		/*
-		 * @param array 'check_image_locations' list of image names as key and location to grab the image and sideload it into media.
-		 */
 		$defaults = array(
 			'create_new_image_if_name_exists' => FALSE,
 		);
@@ -929,98 +1088,6 @@ class Layers_Widget_Migrator {
 		return $results;
 	}
 	
-	/**
-	*  Get Images
-	*/
-
-	public function modify_widgets( $page_ids = array() ) {
-		
-		global $wp_registered_sidebars, $wp_registered_widgets;
-		
-		foreach ( $page_ids as $page_id ) {
-			
-			$sidebar_id = 'obox-layers-builder-' . $page_id;
-	
-			// Holds the final data to return
-			$output = array();
-			
-			// Loop over all of the registered sidebars looking for the one with the same name as $sidebar_id
-			$sibebar_id = false;
-			foreach( $wp_registered_sidebars as $sidebar ) {
-				if( $sidebar['name'] == $sidebar_id ) {
-					// We now have the Sidebar ID, we can stop our loop and continue.
-					$sidebar_id = $sidebar['id'];
-					break;
-				}
-			}
-			
-			if( !$sidebar_id ) {
-				// There is no sidebar registered with the name provided.
-				return $output;
-			}
-			
-			// A nested array in the format $sidebar_id => array( 'widget_id-1', 'widget_id-2' ... );
-			$sidebars_widgets = wp_get_sidebars_widgets();
-			$widget_ids = $sidebars_widgets[$sidebar_id];
-			
-			if( !$widget_ids ) {
-				// Without proper widget_ids we can't continue.
-				return array();
-			}
-			
-			// Loop over each widget_id so we can fetch the data out of the wp_options table.
-			foreach( $widget_ids as $id ) {
-				
-				// The name of the option in the database is the name of the widget class.
-				$option_name = $wp_registered_widgets[$id]['callback'][0]->option_name;
-				
-				// Widget data is stored as an associative array. To get the right data we need to get the right key which is stored in $wp_registered_widgets
-				$key = $wp_registered_widgets[$id]['params'][0]['number'];
-				
-				$widget_data = get_option( $option_name );
-				
-				// Add the widget data on to the end of the output array.
-				//$widgys[] = (object) $widget_data[$key];
-				
-				$widget_data = $widget_data[$key];
-				
-				$widget_data = array_merge( array(
-					'option_name' => $option_name,
-					'key' => $key,
-					'id' => $id,
-				), $widget_data );
-				
-				$widgys[] = $widget_data;
-			}
-			
-			// if ( FALSE && isset( $widgys[0]['slides'][488]['title'] ) ) {
-			// 	$widgys[0]['slides'][488]['title'] = "Business development and acquisition specialist yeah!";
-			// }
-			
-			$widgys_modified = apply_filters( 'layers_filter_widgets', $widgys, $page_id );
-			
-			// Nothing has been modified in the widgets so just continue
-			if ( $widgys_modified === $widgys ) continue;
-			
-			// Loop through the widgets and put them back into their own individual option fields
-			foreach ( $widgys_modified as $widget ) {
-				
-				$option_name = $widget['option_name'];
-				$key = $widget['key'];
-				$id = $widget['id'];
-				
-				unset( $widget['option_name'] );
-				unset( $widget['key'] );
-				unset( $widget['id'] );
-				
-				$widget_option = get_option( $option_name );
-				
-				$widget_option[$key] = $widget;
-				
-				update_option( $option_name, $widget_option );
-			}
-		}
-	}
 }
 
 if( !function_exists( 'layers_builder_export_init' ) ) {
