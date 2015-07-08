@@ -417,125 +417,148 @@
 		// Handle final click of confirm import
 		$( document ).on( 'click', '.layers-stylekit-import-step-2-submit', function(){
 			
-			
 			// Get the user to Confirm this operation.
 			// if ( !window.confirm("This StyleKit Import will:\n\n- Change your settings.\n\n- Add 3 pages.\n\n- Add Custom CSS.") ) {
 			// 	return false;
 			// }
 			
-			
-			var process_collection = array();
-			
+			var stylekit_json = {};
 			
 			// User Feedback
-			layers.loader.add_to_queue( function(){
-				layers.slider.go_to_slide( 3, $importer_slides );
-				layers.loader.add_loader_text('');
-			});
-			layers.loader.add_to_queue( 1000 );
-			layers.loader.add_to_queue( function(){
-				layers.loader.show_loader('');
-			});
-			layers.loader.add_to_queue( 500 );
-			layers.loader.add_to_queue( function(){
-				
-				layers.loader.loader_progress( 50 );
-				layers.loader.add_loader_text( 'Importing StyleKit. Please wait...' );
-				
-			});
+			add_feedback_message( 'Importing StyleKit. Please wait...' );
+
+			console.log('Importing StyleKit. Please wait...');
 			
+			//return false;
 			
-			// Get the operations started.
-			$.post(
-				ajaxurl,
-				$( 'form.layers-stylekit-form-import' ).serialize() + '&action=layers_stylekit_import_ajax_step_1',
-				function( response ){
+			// Ajax
+			$.ajax({
+				type: 'POST',
+				//contentType: "json",
+				dataType: "json",
+				data: $( 'form.layers-stylekit-form-import' ).serialize() + '&action=layers_stylekit_import_ajax_step_1',
+				url: ajaxurl,
+				success: function( response ){
+
+					//console.log( response );
+
+					console.log( response );
+
+					stylekit_json = $.extend( response.return_json, response.stylekit_json );
 					
-					response.status;
+					// $( '.layers-stylekit-import-step-2 .layers-stylekit-slide-4' ).append( response.result );
+					// layers.slider.go_to_slide( 4, $importer_slides );
 					
-					layers.loader.add_to_queue( function(){
-						layers.loader.loader_progress( 100 );
-						layers.loader.add_loader_text( '' );
-					});
-					layers.loader.add_to_queue( 1000 );
-					layers.loader.add_to_queue( function(){
-						layers.loader.hide_loader();
-					});
-					layers.loader.add_to_queue( 500 );
-					layers.loader.add_to_queue( function(){
-						
-						// $( '.layers-stylekit-import-step-2 .layers-stylekit-slide-4' ).append( response.result );
-						// layers.slider.go_to_slide( 4, $importer_slides );
-						
-					});
+					console.log('--- starting step!!! ---' );
 					
-					
-					response.action = 'layers_stylekit_import_ajax_step_2';
-					
-					// Start next ajax operation
-					$.post(
-						ajaxurl,
-						response,
-						function( response ){
-							
-							response.status;
-							
-							layers.loader.add_to_queue( function(){
-								layers.loader.loader_progress( 100 );
-								layers.loader.add_loader_text( '' );
-							});
-							layers.loader.add_to_queue( 1000 );
-							layers.loader.add_to_queue( function(){
-								layers.loader.hide_loader();
-							});
-							layers.loader.add_to_queue( 500 );
-							layers.loader.add_to_queue( function(){
-								
-								// $( '.layers-stylekit-import-step-2 .layers-stylekit-slide-4' ).append( response.result );
-								// layers.slider.go_to_slide( 4, $importer_slides );
-								
-							});
-							
-							response.action = 'layers_stylekit_import_ajax_step_3';
-					
-							// Start next ajax operation
-							$.post(
-								ajaxurl,
-								response,
-								function( response ){
-									
-									response.status;
-									
-									layers.loader.add_to_queue( function(){
-										layers.loader.loader_progress( 100 );
-										layers.loader.add_loader_text( '' );
-									});
-									layers.loader.add_to_queue( 1000 );
-									layers.loader.add_to_queue( function(){
-										layers.loader.hide_loader();
-									});
-									layers.loader.add_to_queue( 500 );
-									layers.loader.add_to_queue( function(){
-										
-										// $( '.layers-stylekit-import-step-2 .layers-stylekit-slide-4' ).append( response.result );
-										// layers.slider.go_to_slide( 4, $importer_slides );
-										
-									});
-									
-								},
-								'json'
-							);
-							
+					// Ajax
+					$.ajax({
+						type: 'POST',
+// 						contentType: "application/json",
+ 						dataType: "xml",
+						data: {
+							action: 'layers_stylekit_import_ajax_step_2',
+							stylekit_json: response.stylekit_json,
 						},
-						'json'
-					);
-					
-				},
-				'json'
-			);
+						url: ajaxurl,
+						success: function( response ){
+
+							// User Feedback
+							add_feedback_message( 'Settings Done!...' );
+
+							console.log('PING!!!');
+
+							console.log( $( response ).find('stylekit_json').text() );
+
+							return false;
+							
+							//console.log('Settings Done!...', response.stylekit_json );
+							
+							stylekit_json = $.extend( response.return_json, response.stylekit_json );
+							
+							// Ajax
+							$.ajax({
+								type: 'POST',
+								//contentType: "json",
+								dataType: "xml",
+								data: {
+									action: 'layers_stylekit_import_ajax_step_3',
+									stylekit_json: response.stylekit_json,
+								},
+								url: ajaxurl,
+								success: function( response ){
+
+									return false;
+									
+									// User Feedback
+									add_feedback_message( 'Pages Done!...' );
+									
+									console.log('Pages Done!...', response.stylekit_json );
+									
+									stylekit_json = $.extend( response.return_json, response.stylekit_json );
+									
+									// Ajax
+									$.ajax({
+										type: 'POST',
+										//contentType: "json",
+										dataType: "json",
+										data: {
+											action: 'layers_stylekit_import_ajax_step_3',
+											stylekit_json: response.stylekit_json,
+										},
+										url: ajaxurl,
+										success: function( response ){
+											
+											// User Feedback
+											add_feedback_message( 'Pages Done!...' );
+											
+											console.log('Pages Done!...', response.stylekit_json );
+											
+											stylekit_json = $.extend( response.return_json, response.stylekit_json );
+											
+											// Ajax
+											$.ajax({
+												type: 'POST',
+												//contentType: "json",
+												dataType: "json",
+												data: {
+													action: 'layers_stylekit_import_ajax_step_4',
+													stylekit_json: stylekit_json,
+												},
+												url: ajaxurl,
+												success: function( response ){
+													
+													// User Feedback
+													add_feedback_message( 'Images Done!...' );
+													
+													console.log('Images Done!...', response.stylekit_json );
+													
+													stylekit_json = $.extend( response.return_json, response.stylekit_json );
+													
+												}
+											});
+										}
+									});
+								}
+							});
+						}
+					});
+				}
+			});
 			
 			return false;
 		});
+
+
+		function add_feedback_message( $message ){
+			
+			// User Feedback
+			layers.loader.add_to_queue( function(){
+				layers.loader.add_loader_text( $message );
+			});
+			layers.loader.add_to_queue( 1000 );
+			
+		}
 
 
 		/**

@@ -14,7 +14,7 @@ class Layers_Widget_Migrator {
 	 *
 	 * @var array
 	 */
-	public $images_downloaded;
+	public $images_processed;
 	
 	/**
 	 * Collect a report of what happned during the image import process for debugging purposes.
@@ -505,6 +505,8 @@ class Layers_Widget_Migrator {
 		// Allow adding of other locations to look for image names in.
 		$check_image_locations = apply_filters( 'layers_check_image_locations', $common_locations );
 		
+		s( $check_image_locations );
+		
 		// Check if the image is in the DB.
 		$db_image = $wpdb->get_var( $wpdb->prepare( "SELECT ID FROM {$wpdb->posts} WHERE guid LIKE %s", "%$file_name%" ) );
 		
@@ -514,9 +516,9 @@ class Layers_Widget_Migrator {
 		$status = array( $file_name );
 		
 		if ( $db_image && $args['create_new_image_if_name_exists'] ) {
-			if ( isset( $this->images_downloaded[$file_name] ) ) {
+			if ( isset( $this->images_processed[$file_name] ) ) {
 				$status[] = 'Have previously uploaded image from disk';
-				$disk_image = $this->images_downloaded[$file_name];
+				$disk_image = $this->images_processed[$file_name];
 			}
 			else {
 				foreach ( $check_image_locations as $location ) {
@@ -530,7 +532,7 @@ class Layers_Widget_Migrator {
 					 		// Otherwise just leave the value as it is.
 					 		$disk_image = $image_url;
 					 	}
-					 	$this->images_downloaded[$file_name] = $disk_image;
+					 	$this->images_processed[$file_name] = $disk_image;
 					}
 				}
 			}

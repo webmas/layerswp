@@ -62,8 +62,10 @@ class Layers_StyleKit_Exporter {
 		add_action( 'wp_ajax_layers_stylekit_unpack_ajax', array( $this, 'layers_stylekit_unpack_ajax' ) );
 		
 		add_action( 'wp_ajax_layers_stylekit_import_ajax_step_1', array( $this, 'layers_stylekit_import_ajax_step_1' ) );
-		
 		add_action( 'wp_ajax_layers_stylekit_import_ajax_step_2', array( $this, 'layers_stylekit_import_ajax_step_2' ) );
+		add_action( 'wp_ajax_layers_stylekit_import_ajax_step_3', array( $this, 'layers_stylekit_import_ajax_step_3' ) );
+		add_action( 'wp_ajax_layers_stylekit_import_ajax_step_4', array( $this, 'layers_stylekit_import_ajax_step_4' ) );
+		add_action( 'wp_ajax_layers_stylekit_import_ajax_step_5', array( $this, 'layers_stylekit_import_ajax_step_5' ) );
 		
 	}
 	
@@ -216,7 +218,7 @@ class Layers_StyleKit_Exporter {
 					$this->migrator->process_widgets_in_data( $widget_data );
 					
 					
-					s( $this->migrator->images_downloaded );
+					s( $this->migrator->images_processed );
 					s( $this->migrator->images_report );
 					
 					?>
@@ -781,7 +783,7 @@ class Layers_StyleKit_Exporter {
 		// Loop through the widgets modify them.
 		//foreach ( $widgets as $widget ) {
 			
-			// Setting 'download_images' to false will result in a list called 'images_downloaded' being generated, which we'll use at a later stage.
+			// Setting 'download_images' to false will result in a list called 'images_processed' being generated, which we'll use at a later stage.
 			$this->migrator->check_for_images( $widgets, array(
 				'download_images' => FALSE,
 				'create_new_image_if_name_exists' => TRUE,
@@ -1574,34 +1576,60 @@ class Layers_StyleKit_Exporter {
 			unset( $stylekit_json['css'] );
 		}
 		
+		
+		// Prep the style_kit json to be returned;
+		$return_json = $stylekit_json;
+		
 		/**
-		 * Images
+		 * Internal Data
+		 *
+		 * Data that will be added to the StyleKit json as it steps through the various ajax calls.
 		 */
+		$return_json['internal-data'] = array();
 		
-		$stylekit_json['image_locations'] = array();
+		// Image locations
+		$return_json['internal-data']['image-locations'] = array();
 		
-		$stylekit_json['image_locations'][] = array(
+		$return_json['internal-data']['image-locations'][] = array(
 			'path' => $temp_directory_path . 'assets/images/',
 			'url'  => $temp_directory_url . 'assets/images/',
 		);
 		
-		echo json_encode( array( 'result' => $result ) );
+		
+		// Return the StyleKit JSON
+		echo json_encode( array(
+			'test' => 'hello',
+			'return_json' => $return_json,
+			'stylekit_json' => $return_json,
+		) );
 		
 		die();
 	}
 	
-	
-	
-	public function layers_stylekit_import_ajax_step_1 ( $stylekit_json ) {
+	public function layers_stylekit_import_ajax_step_2 () {
 		
-		$result = $this->layers_import_stylekit( $stylekit_json );
+		$stylekit_json = ( isset( $_REQUEST['stylekit_json'] ) ) ? $_REQUEST['stylekit_json'] : array() ;
 		
-		echo json_encode( array( 'result' => $result ) );
+		$return_json = $this->layers_import_stylekit( $stylekit_json );
+		
+		// Return the StyleKit JSON
+		
+		?>
+		<mydata>
+		<return_json><![CDATA[<?php echo json_encode( $return_json ) ?>]]></return_json>
+		<notify><![CDATA[<?php echo 'Imported Settings & CSS' ?>]]></notify>
+		<stylekit_json><![CDATA[<?php echo json_encode( $stylekit_json ) ?>]]></stylekit_json>
+		</mydata>
+		<?php
+		
+		// echo json_encode( array(
+		// 	'return_json' => serialize( $return_json ),
+		// 	'notify' => 'Imported Settings & CSS',
+		// 	'stylekit_json' => $stylekit_json,
+		// ) );
 		
 		die();
 	}
-	
-	
 	
 	/**
 	 * Import StyleKit JSON
@@ -1609,12 +1637,6 @@ class Layers_StyleKit_Exporter {
 	public function layers_import_stylekit ( $stylekit_json ) {
 		
 		$this->init_vars();
-		
-		$collect_results = array(
-			'settings' => array(),
-			'pages' => array(),
-			'css' => array(),
-		);
 		
 		/**
 		 * Settings
@@ -1639,25 +1661,32 @@ class Layers_StyleKit_Exporter {
 			
 			// Set theme mod
 			set_theme_mod( 'layers-custom-css', $stylekit_json['css'] );
-			
-			// Collect result so we can display in report
-			$collect_results['css'] = $stylekit_json['css'];
 		}
 		
+		return;
 	}
 	
 	
-	public function layers_stylekit_import_ajax_step_2 ( $stylekit_json ) {
+	public function layers_stylekit_import_ajax_step_3 () {
 		
-		$result = $this->layers_import_pages( $stylekit_json );
+		$stylekit_json = ( isset( $_REQUEST['stylekit_json'] ) ) ? $_REQUEST['stylekit_json'] : array() ;
 		
-		echo json_encode( array( 'result' => $result ) );
+		$return_json = $this->layers_import_pages( $stylekit_json );
+		
+		// Return the StyleKit JSON
+		echo json_encode( array(
+			'return_json' => serialize( $return_json ),
+			'notify' => 'Imported Pages',
+			'stylekit_json' => $stylekit_json,
+		) );
 		
 		die();
 	}
 	
 	
 	public function layers_import_pages ( $stylekit_json ) {
+		
+		$this->init_vars();
 		
 		/**
 		 * Pages
@@ -1666,13 +1695,14 @@ class Layers_StyleKit_Exporter {
 		// If there are pages in the StyleKit and user has chosen to import some.
 		if ( isset( $stylekit_json[ 'pages' ] ) ) {
 			
-			// Set locations to search for images during 'create_builder_page_from_preset'
-			if ( isset( $stylekit_json[ 'image_locations' ] ) ){
-				foreach ( $stylekit_json[ 'image_locations' ] as $image_location ) {
-					
+			$return_json['internal-data']['page-ids'] = array();
+			
+			// Set locations to search for images during 'create_builder_page_from_preset'  - disabled
+			if ( isset( $stylekit_json['internal-data']['image-locations'] ) ){
+				foreach ( $stylekit_json['internal-data']['image-locations'] as $image_location ) {
 					$this->check_image_locations = $image_location;
-					add_filter( 'layers_check_image_locations', array( $this, 'check_image_locations' ) );
 				}
+				add_filter( 'layers_check_image_locations', array( $this, 'check_image_locations' ) );
 			}
 			
 			// Add the pages
@@ -1689,10 +1719,6 @@ class Layers_StyleKit_Exporter {
 					'download_images'                 => FALSE,
 				));
 				
-				s( 'Images Downloaded!! :', $this->migrator->images_downloaded );
-				
-				s( $this->migrator->images_report );
-					
 				/*
 				add_filter( 'layers_filter_widgets', array( $this, 'handle_images' ), 10, 2 );
 				
@@ -1705,22 +1731,62 @@ class Layers_StyleKit_Exporter {
 				$this->migrator->process_widgets_in_data( $widget_data );
 				
 				
-				s( $this->migrator->images_downloaded );
+				s( $this->migrator->images_processed );
 				s( $this->migrator->images_report );
 				*/
-					
 				
 				$post_id = $result['post_id'];
 				
 				// Collect result so we can return a report.
-				$collect_results['pages'][] = $post_id;
+				$return_json['internal-data']['page-ids'][] = $post_id;
 			}
+			
+			// Poplulate data into stylekit for next step
+			
+			if ( !empty( $this->migrator->images_processed ) ){
+				$return_json['internal-data']['images-processed'] = $this->migrator->images_processed;
+			}
+			if ( !empty( $this->migrator->images_report ) ){
+				
+				$return_json['internal-data']['images-report'] = $this->migrator->images_report;
+			}
+			
 		}
+		
+		return $return_json;
+		
+	}
+	
+	public function layers_stylekit_import_ajax_step_4 () {
+		
+		$stylekit_json = ( isset( $_REQUEST['stylekit_json'] ) ) ? $_REQUEST['stylekit_json'] : array() ;
+		
+		$return_json = $this->layers_import_images( $stylekit_json );
+		
+		// Return the StyleKit JSON
+		echo json_encode( (object)  array(
+			'return_json' => serialize( $return_json ),
+			'notify' => 'Imported Pages',
+			'stylekit_json' => $stylekit_json,
+		) );
+		
+		die();
+	}
+	
+	
+	public function layers_import_images ( $stylekit_json ) {
+		
+		$this->init_vars();
+		
+		return;
 		
 	}
 	
 	
-	public function layers_stylekit_import_ajax_step_3 ( $stylekit_json ) {
+	
+	public function layers_stylekit_import_ajax_step_5 () {
+		
+		$stylekit_json = ( isset( $_REQUEST['stylekit_json'] ) ) ? $_REQUEST['stylekit_json'] : array() ;
 		
 		ob_start();
 		?>
