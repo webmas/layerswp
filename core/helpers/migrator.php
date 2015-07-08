@@ -505,7 +505,7 @@ class Layers_Widget_Migrator {
 		// Allow adding of other locations to look for image names in.
 		$check_image_locations = apply_filters( 'layers_check_image_locations', $common_locations );
 		
-		s( $check_image_locations );
+		//s( $check_image_locations );
 		
 		// Check if the image is in the DB.
 		$db_image = $wpdb->get_var( $wpdb->prepare( "SELECT ID FROM {$wpdb->posts} WHERE guid LIKE %s", "%$file_name%" ) );
@@ -558,7 +558,7 @@ class Layers_Widget_Migrator {
 		}
 		
 		// Debugging purposes.
-		echo implode( ' -> ', $status ) . '<br>';
+		//echo implode( ' -> ', $status ) . '<br>';
 		$this->images_report[] = implode( ' -> ', $status );
 		
 		// If nothing is found, just return NULL

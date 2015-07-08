@@ -454,7 +454,7 @@
 					// Ajax
 					$.ajax({
 						type: 'POST',
-// 						contentType: "application/json",
+ 						//contentType: "application/json",
  						dataType: "xml",
 						data: {
 							action: 'layers_stylekit_import_ajax_step_2',

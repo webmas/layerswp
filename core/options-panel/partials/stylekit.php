@@ -217,9 +217,8 @@ class Layers_StyleKit_Exporter {
 					
 					$this->migrator->process_widgets_in_data( $widget_data );
 					
-					
-					s( $this->migrator->images_processed );
-					s( $this->migrator->images_report );
+					// s( $this->migrator->images_processed );
+					// s( $this->migrator->images_report );
 					
 					?>
 					
@@ -1673,13 +1672,22 @@ class Layers_StyleKit_Exporter {
 		
 		$return_json = $this->layers_import_pages( $stylekit_json );
 		
+		?>
+		<mydata>
+		<return_json><![CDATA[<?php echo json_encode( $return_json ) ?>]]></return_json>
+		<notify><![CDATA[<?php echo 'Imported Settings & CSS' ?>]]></notify>
+		<stylekit_json><![CDATA[<?php echo json_encode( $stylekit_json ) ?>]]></stylekit_json>
+		</mydata>
+		<?php
+		
+		/*
 		// Return the StyleKit JSON
 		echo json_encode( array(
 			'return_json' => serialize( $return_json ),
 			'notify' => 'Imported Pages',
 			'stylekit_json' => $stylekit_json,
 		) );
-		
+		*/
 		die();
 	}
 	
@@ -1763,12 +1771,22 @@ class Layers_StyleKit_Exporter {
 		
 		$return_json = $this->layers_import_images( $stylekit_json );
 		
+		?>
+		<mydata>
+		<return_json><![CDATA[<?php echo json_encode( $return_json ) ?>]]></return_json>
+		<notify><![CDATA[<?php echo 'Imported Settings & CSS' ?>]]></notify>
+		<stylekit_json><![CDATA[<?php echo json_encode( $stylekit_json ) ?>]]></stylekit_json>
+		</mydata>
+		<?php
+		
+		/*
 		// Return the StyleKit JSON
 		echo json_encode( (object)  array(
 			'return_json' => serialize( $return_json ),
 			'notify' => 'Imported Pages',
 			'stylekit_json' => $stylekit_json,
 		) );
+		*/
 		
 		die();
 	}
