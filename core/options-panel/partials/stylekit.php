@@ -2090,14 +2090,12 @@ class Layers_StyleKit_Exporter {
 									
 									if ( !in_array( $page->ID, $chosen_pages ) ) continue;
 									
-									$preset_name = $theme_name . '-' . $page->post_name;
-									$post_title = esc_html( get_bloginfo( 'name' ) . '-' . esc_attr( $page->post_title ) );
+									//$preset_name = $theme_name . '-' . $page->post_name;
+									//$post_title = esc_html( get_bloginfo( 'name' ) . '-' . esc_attr( $page->post_title ) );
 									
-									$page_presets[ $preset_name ]  = array(
-										'post_title' => $post_title,
-										'screenshot' => 'http://s.wordpress.com/mshots/v1/' . urlencode( get_permalink( $page->ID ) ) . '?w=' . 320 . '&h=' . 480,
-										'screenshot_type' => 'png',
-										'widget_data' => json_encode( $this->migrator->export_data( $page ) ),
+									$page_presets[ $page->post_name ]  = array(
+										'post_title' => esc_html( get_bloginfo( 'name' ) . '-' . esc_attr( $page->post_title ) ),
+										'widget_data' => $this->migrator->export_data( $page ),
 									);
 									
 									/*
@@ -2111,7 +2109,7 @@ class Layers_StyleKit_Exporter {
 								<li class="tick ticked-all"><?php count( $page_presets ) ?> <?php echo esc_html( __( 'Pages', 'layerswp' ) ); ?></li>
 								<?php
 								
-								$stylekit_json[ 'pages' ] = $page_presets;
+								//$stylekit_json[ 'pages' ] = $page_presets;
 							}
 							
 							if ( isset( $_POST['layers_css'] ) ) {
@@ -2188,36 +2186,38 @@ class Layers_StyleKit_Exporter {
 							$stylekit_json = $this->prettyPrint( json_encode( $stylekit_json ) );
 							
 							// Compile stylekit.json, put it, then add it to the zip collection.
-							$wp_filesystem->put_contents( $export_path . 'stylekit.json', $stylekit_json ); // Finally, store the file :)
-							$files_to_zip["$zip_sanitized_name/stylekit.json"] = $export_path . 'stylekit.json';
+							$file_name = "stylekit.json";
+							$wp_filesystem->put_contents( "$export_path$file_name", $stylekit_json ); // Finally, store the file :)
+							$files_to_zip[ "$zip_sanitized_name/$file_name" ] = "$export_path$file_name";
+							
+							
+							foreach ( $page_presets as $page_preset_key => $page_preset_value ) {
+								
+								// Prettyfy the JSON
+								$widget_data = $this->prettyPrint( json_encode( $page_preset_value['widget_data'] ) );
+								
+								//post_title, widget_data
+								$file_name = "page-$page_preset_key.json";
+								$wp_filesystem->put_contents( "$export_path$file_name", $widget_data );
+								$files_to_zip["$zip_sanitized_name/$file_name"] = "$export_path$file_name";
+							}
 							
 							// Create image assets
 							if ( isset( $this->migrator->images_collected ) ) {
 								
-								// if( ! $wp_filesystem->is_dir( $export_path . 'assets/' ) ) {
-								// 	$wp_filesystem->mkdir( $export_path . 'assets/' );
-								// }
-								
-								// if( ! $wp_filesystem->is_dir( $export_path . 'assets/images/' ) ) {
-								// 	$wp_filesystem->mkdir( $export_path . 'assets/images/' );
-								// }
+								// if ( !$wp_filesystem->is_dir( $export_path . 'assets/' ) ) $wp_filesystem->mkdir( $export_path . 'assets/' );
+								// if ( !$wp_filesystem->is_dir( $export_path . 'assets/images/' ) ) $wp_filesystem->mkdir( $export_path . 'assets/images/' );
 								
 								foreach ( $this->migrator->images_collected as $image_collected ) {
 									
-									// Get and store the FileName.
 									$image_pieces = explode( '/', $image_collected['url'] );
 									$file_name = $image_pieces[count($image_pieces)-1];
-									
 									$files_to_zip["$zip_sanitized_name/assets/images/$file_name"] = $image_collected['path'];
-									
-									//copy( $image_collected['path'], $export_path . 'assets/images/' . $file_name );
 								}
 							}
 							
-							
 							$wp_filesystem->delete( $export_path . $zip_sanitized_name . '.zip' );
 							$wp_filesystem->delete( $export_path . $zip_sanitized_name );
-							
 							
 							//if true, good; if false, zip creation failed
 							$result = $this->create_zip( $files_to_zip, $export_path . $zip_sanitized_name . '.zip' );
