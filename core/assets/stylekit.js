@@ -422,8 +422,6 @@
 			// 	return false;
 			// }
 			
-			var stylekit_json = {};
-			
 			// User Feedback
 			add_feedback_message( 'Importing StyleKit. Please wait...' );
 
@@ -434,28 +432,29 @@
 			// Ajax
 			$.ajax({
 				type: 'POST',
-				//contentType: "json",
 				dataType: "json",
 				data: $( 'form.layers-stylekit-form-import' ).serialize() + '&action=layers_stylekit_import_ajax_step_1',
 				url: ajaxurl,
 				success: function( response ){
 
-					//console.log( response );
-
-					console.log( response );
-
-					stylekit_json = $.extend( response.return_json, response.stylekit_json );
-					
 					// $( '.layers-stylekit-import-step-2 .layers-stylekit-slide-4' ).append( response.result );
-					// layers.slider.go_to_slide( 4, $importer_slides );
+					layers.slider.go_to_slide( 3, $importer_slides );
 					
-					console.log('--- starting step!!! ---' );
+					layers.loader.show_loader();
+					
+					// User Feedback
+					console.log( '--- starting step!!! ---' );
+					console.log( response );
+					add_feedback_message( 'Starting!...' );
+
+					// Populate test etxtarea
+					$('[name="layers-stylekit-import-stylekit-prettyprint"]').val( JSON.stringify( response ) );
 					
 					// Ajax
 					$.ajax({
 						type: 'POST',
  						//contentType: "application/json",
- 						dataType: "xml",
+ 						dataType: "json",
 						data: {
 							action: 'layers_stylekit_import_ajax_step_2',
 							stylekit_json: response.stylekit_json,
@@ -465,37 +464,31 @@
 
 							// User Feedback
 							add_feedback_message( 'Settings Done!...' );
+							console.log( 'Settings Done!...' );
+							console.log( response );
 
-							console.log('PING!!!');
-
-							console.log( $( response ).find('stylekit_json').text() );
-
-							return false;
-							
-							//console.log('Settings Done!...', response.stylekit_json );
-							
-							stylekit_json = $.extend( response.return_json, response.stylekit_json );
+							// Populate test etxtarea
+							$('[name="layers-stylekit-import-stylekit-prettyprint"]').val( JSON.stringify( response ) );
 							
 							// Ajax
 							$.ajax({
 								type: 'POST',
 								//contentType: "json",
-								dataType: "xml",
+								dataType: "json",
 								data: {
 									action: 'layers_stylekit_import_ajax_step_3',
 									stylekit_json: response.stylekit_json,
 								},
 								url: ajaxurl,
 								success: function( response ){
-
-									return false;
 									
 									// User Feedback
 									add_feedback_message( 'Pages Done!...' );
-									
-									console.log('Pages Done!...', response.stylekit_json );
-									
-									stylekit_json = $.extend( response.return_json, response.stylekit_json );
+									console.log( 'Pages Done!...' );
+									console.log( response );
+
+									// Populate test etxtarea
+									$('[name="layers-stylekit-import-stylekit-prettyprint"]').val( JSON.stringify( response ) );
 									
 									// Ajax
 									$.ajax({
@@ -503,40 +496,43 @@
 										//contentType: "json",
 										dataType: "json",
 										data: {
-											action: 'layers_stylekit_import_ajax_step_3',
+											action: 'layers_stylekit_import_ajax_step_4',
 											stylekit_json: response.stylekit_json,
 										},
 										url: ajaxurl,
 										success: function( response ){
-											
+
 											// User Feedback
-											add_feedback_message( 'Pages Done!...' );
-											
-											console.log('Pages Done!...', response.stylekit_json );
-											
-											stylekit_json = $.extend( response.return_json, response.stylekit_json );
-											
+											add_feedback_message( 'Images Done!...' );
+											console.log('Images Done!...' );
+											console.log( response );
+
+											// Populate test etxtarea
+											$('[name="layers-stylekit-import-stylekit-prettyprint"]').val( JSON.stringify( response ) );
+
 											// Ajax
 											$.ajax({
 												type: 'POST',
 												//contentType: "json",
 												dataType: "json",
 												data: {
-													action: 'layers_stylekit_import_ajax_step_4',
-													stylekit_json: stylekit_json,
+													action: 'layers_stylekit_import_ajax_step_5',
+													stylekit_json: response.stylekit_json,
 												},
 												url: ajaxurl,
 												success: function( response ){
-													
+
 													// User Feedback
-													add_feedback_message( 'Images Done!...' );
-													
-													console.log('Images Done!...', response.stylekit_json );
-													
-													stylekit_json = $.extend( response.return_json, response.stylekit_json );
-													
+													add_feedback_message( 'ALL DONE!!!!!' );
+													console.log('ALL DONE!!!!!' );
+													console.log( response );
+
+													// Populate test etxtarea
+													$('[name="layers-stylekit-import-stylekit-prettyprint"]').val( JSON.stringify( response ) );
+
 												}
 											});
+
 										}
 									});
 								}
