@@ -10,15 +10,19 @@
 	 * Adapted from WP's - updates.js - wp.updates.updatePlugin()
 	 */
 	wp.updates.updateStyleKit = function( plugin, slug ) {
-
-		layers.loader.add_to_queue( 1500 );
-		layers.loader.add_to_queue( function(){
+		
+		$.layerswp
+		.queue( function(){
 			layers.loader.show_loader();
+		})
+		.queue( 1000 )
+		.queue( function(){
 			layers.loader.add_loader_text( 'Unpacking StyleKit. Please wait...' );
-		});
-		layers.loader.add_to_queue( function(){
+		})
+		.queue( 1000 )
+		.queue( function(){
 			
-			layers.loader.loader_progress( 50 );
+			layers.loader.loader_progress( 100 );
 			
 			var data = {
 				package:         $('input[name="layers-stylekit-package"]').val(),
@@ -32,8 +36,18 @@
 				public_key:      wp.updates.filesystemCredentials.ssh.publicKey,
 				private_key:     wp.updates.filesystemCredentials.ssh.privateKey
 			};
+			
+			// $.ajax({
+			// 	type: 'POST',
+			// 	dataType: 'json',
+			// 	url: ajaxurl,
+			// 	data: form_data.push({ action: 'layers_stylekit_import_ajax_step_1' }),
+			// 	success: ajax_step_2,
+			// });
 
-			wp.ajax.post( 'layers_stylekit_unpack_ajax', data )
+			wp
+			.ajax
+			.post( 'layers_stylekit_unpack_ajax', data )
 			.done( function( response ){
 				
 				/**
@@ -41,22 +55,19 @@
 				 * Adapted from WP's - updates.js - wp.updates.updateSuccess()
 				 */
 				
-				layers.loader.add_to_queue( 1500 );
-				layers.loader.add_to_queue( function(){
-					layers.loader.loader_progress( 100 );
-					layers.loader.add_loader_text( '' );
-				});
-				layers.loader.add_to_queue( 1500 );
-				layers.loader.add_to_queue( function(){
+				$.layerswp
+				.queue( 1000 )
+				.queue( function(){
 					layers.loader.hide_loader();
-				});
-				layers.loader.add_to_queue( 500 );
-				layers.loader.add_to_queue( function(){
+				})
+				.queue( 1000 )
+				.queue( function(){
 					
 					$('.layers-stylekit-import-step-2 .layers-stylekit-slide-2').append( response.ui );
 					$('.layers-stylekit-form-import').prepend( response.ui2 );
 					
 					layers.slider.go_to_slide( 2, $importer_slides );
+					
 				});
 				
 			})
@@ -79,13 +90,31 @@
 		});
 	};
 	
+	
 
 	var layers = { loader : {} };
+	
+	layers.loader.show_loader = function(){
+		
+		// Remove any legacy text.
+		layers.loader.remove_loader_text();
+		
+		var $loader_bar = $( '.layers-load-bar' );
+		//$loader_bar.parent().append( $loader_bar );
+		$loader_bar.removeClass( 'layers-hide' ).fadeIn();
+	};
 
-	layers.loader.loading_text_queue_collection = [];
-
-	layers.loader.queue_busy = false;
-
+	layers.loader.hide_loader = function(){
+		
+		// Remove any legacy text.
+		layers.loader.remove_loader_text();
+		
+		var $loader = $( '.layers-load-bar' );
+		$('.layers-load-bar-floater').fadeOut(function(){
+			$loader.hide();
+		});
+	};
+	
 	layers.loader.loader_progress = function( $progress ){
 
 		var $loader = $('.layers-load-bar');
@@ -105,67 +134,6 @@
 				$loader.addClass('done');
 			}, 500 );
 		}
-	};
-
-	layers.loader.show_loader = function(){
-		var $loader_bar = $( '.layers-load-bar' );
-		//$loader_bar.parent().append( $loader_bar );
-		$loader_bar.removeClass( 'layers-hide' ).fadeIn();
-	};
-
-	layers.loader.hide_loader = function(){
-		var $loader = $( '.layers-load-bar' );
-		$('.layers-load-bar-floater').fadeOut(function(){
-			$loader.hide();
-		});
-	};
-
-	layers.loader.check_queue = function() {
-		
-		// Bail if nothing is in queue
-		if ( layers.loader.queue_busy || layers.loader.loading_text_queue_collection.length <= 0 ) return;
-		
-		// Lock the queue to prevent overlapping
-		layers.loader.queue_busy = true;
-		
-		// Get current item off the start of the queue
-		var $current_item = layers.loader.loading_text_queue_collection.shift();
-
-		// Apply : --- DELAY ---
-		setTimeout( function(){
-			
-			// Apply : --- FUNCTION ---
-			if( $current_item.function ) $current_item.function();
-			
-			// Testing:
-			$( '.event-notification' ).remove();
-			var $notification;
-			$( 'body' ).append( $notification = $( '<div class="event-notification" style="background: #F00; position: fixed; top: 60px; right: 60px; z-index: 1000; width: 30px; height: 30px; border-radius: 100px; ">&nbsp;</div>' ) );
-			setTimeout(function() {
-				$notification.fadeOut( '500' );
-			}, 50 );
-			
-			// Un-lock the queue
-			layers.loader.queue_busy = false;
-			
-			// Recheck this queue
-			layers.loader.check_queue();
-
-		}, $current_item.delay );
-
-	};
-
-	layers.loader.add_to_queue = function( $args ){
-		
-		var $defaults = {
-			delay: ( 'number' === typeof $args ) ? $args : 1,
-			function: ( 'function' === typeof $args ) ? $args : function(){},
-		};
-
-		$args = $.extend( $defaults, $args );
-
-		layers.loader.loading_text_queue_collection.push( $args );
-		layers.loader.check_queue();
 	};
 
 	layers.loader.add_loader_text = function( $text ){
@@ -292,8 +260,13 @@
 					//console.log( 'File Added', i, file );
 				} );
 				
-				layers.slider.go_to_slide(0, $uploader_slides );
-				layers.loader.show_loader();
+				
+				$.layerswp
+				.queue( function(){
+					layers.slider.go_to_slide( 0, $uploader_slides );
+					layers.loader.show_loader();
+					layers.loader.add_loader_text( 'Uploading StyleKit. Please wait...' );
+				});
 
 				up.refresh();
 				up.start();
@@ -312,16 +285,15 @@
 				response = $.parseJSON( response.response );
 
 				if( response['status'] == 'success' ) {
+					
 					//console.log( 'Success', up, file, response );
 					$('input[name="layers-stylekit-source-path"]').val( response['attachment']['src'] );
 					$('input[name="layers-stylekit-source-id"]').val( response['attachment']['id'] );
 					
-					layers.loader.add_to_queue( 100 );
-					layers.loader.add_to_queue( function(){
-						layers.loader.add_loader_text('StyleKit Uploaded. Please wait...');
-					});
-					layers.loader.add_to_queue( 1000 );
-					layers.loader.add_to_queue( function(){
+					$.layerswp
+					.queue( 1000 )
+					.queue( function(){
+						layers.loader.hide_loader();
 						$('#layers-stylekit-plupload-info-form').submit();
 					});
 				}
@@ -417,143 +389,173 @@
 		// Handle final click of confirm import
 		$( document ).on( 'click', '.layers-stylekit-import-step-2-submit', function(){
 			
+			// Invoke the first step in the Ajax chain.
+			ajax_step_1();
+			return false;
+		});
+		
+		function ajax_step_1() {
+			
 			// Get the user to Confirm this operation.
 			// if ( !window.confirm("This StyleKit Import will:\n\n- Change your settings.\n\n- Add 3 pages.\n\n- Add Custom CSS.") ) {
 			// 	return false;
 			// }
 			
-			// User Feedback
-			add_feedback_message( 'Importing StyleKit. Please wait...' );
-
-			console.log('Importing StyleKit. Please wait...');
+			// Sequence in the chnage of slides and showing of the loader.
+			$.layerswp
+			.queue( function(){
+				layers.slider.go_to_slide( 3, $importer_slides );
+			})
+			.queue( 1000 )
+			.queue( function(){
+				layers.loader.show_loader();
+				layers.loader.add_loader_text( 'Preparing StyleKit. Please wait...' );
+			})
+			.queue( 1000 );
 			
-			//return false;
+			// Collect the form data. Holds the user selections and the whole StyleKit json.
+			//var form_data = $( 'form.layers-stylekit-form-import' ).serializeArray();
+			var form_data = $( 'form.layers-stylekit-form-import' ).serialize() + '&action=layers_stylekit_import_ajax_step_1';
 			
 			// Ajax
 			$.ajax({
 				type: 'POST',
-				dataType: "json",
-				data: $( 'form.layers-stylekit-form-import' ).serialize() + '&action=layers_stylekit_import_ajax_step_1',
+				dataType: 'json',
 				url: ajaxurl,
-				success: function( response ){
-
-					// $( '.layers-stylekit-import-step-2 .layers-stylekit-slide-4' ).append( response.result );
-					layers.slider.go_to_slide( 3, $importer_slides );
-					
-					layers.loader.show_loader();
-					
-					// User Feedback
-					console.log( '--- starting step!!! ---' );
-					console.log( response );
-					add_feedback_message( 'Starting!...' );
-
-					// Populate test etxtarea
-					$('[name="layers-stylekit-import-stylekit-prettyprint"]').val( JSON.stringify( response ) );
-					
-					// Ajax
-					$.ajax({
-						type: 'POST',
- 						//contentType: "application/json",
- 						dataType: "json",
-						data: {
-							action: 'layers_stylekit_import_ajax_step_2',
-							stylekit_json: response.stylekit_json,
-						},
-						url: ajaxurl,
-						success: function( response ){
-
-							// User Feedback
-							add_feedback_message( 'Settings Done!...' );
-							console.log( 'Settings Done!...' );
-							console.log( response );
-
-							// Populate test etxtarea
-							$('[name="layers-stylekit-import-stylekit-prettyprint"]').val( JSON.stringify( response ) );
-							
-							// Ajax
-							$.ajax({
-								type: 'POST',
-								//contentType: "json",
-								dataType: "json",
-								data: {
-									action: 'layers_stylekit_import_ajax_step_3',
-									stylekit_json: response.stylekit_json,
-								},
-								url: ajaxurl,
-								success: function( response ){
-									
-									// User Feedback
-									add_feedback_message( 'Pages Done!...' );
-									console.log( 'Pages Done!...' );
-									console.log( response );
-
-									// Populate test etxtarea
-									$('[name="layers-stylekit-import-stylekit-prettyprint"]').val( JSON.stringify( response ) );
-									
-									// Ajax
-									$.ajax({
-										type: 'POST',
-										//contentType: "json",
-										dataType: "json",
-										data: {
-											action: 'layers_stylekit_import_ajax_step_4',
-											stylekit_json: response.stylekit_json,
-										},
-										url: ajaxurl,
-										success: function( response ){
-
-											// User Feedback
-											add_feedback_message( 'Images Done!...' );
-											console.log('Images Done!...' );
-											console.log( response );
-
-											// Populate test etxtarea
-											$('[name="layers-stylekit-import-stylekit-prettyprint"]').val( JSON.stringify( response ) );
-
-											// Ajax
-											$.ajax({
-												type: 'POST',
-												//contentType: "json",
-												dataType: "json",
-												data: {
-													action: 'layers_stylekit_import_ajax_step_5',
-													stylekit_json: response.stylekit_json,
-												},
-												url: ajaxurl,
-												success: function( response ){
-
-													// User Feedback
-													add_feedback_message( 'ALL DONE!!!!!' );
-													console.log('ALL DONE!!!!!' );
-													console.log( response );
-
-													// Populate test etxtarea
-													$('[name="layers-stylekit-import-stylekit-prettyprint"]').val( JSON.stringify( response ) );
-
-												}
-											});
-
-										}
-									});
-								}
-							});
-						}
-					});
-				}
+				//data: form_data.push({ action: 'layers_stylekit_import_ajax_step_1' }),
+				data: form_data,
+				success: ajax_step_2,
 			});
-			
-			return false;
-		});
-
-
-		function add_feedback_message( $message ){
+		}
+		
+		function ajax_step_2( response ) {
 			
 			// User Feedback
-			layers.loader.add_to_queue( function(){
-				layers.loader.add_loader_text( $message );
-			});
-			layers.loader.add_to_queue( 1000 );
 			
+			$.layerswp
+			.queue( function(){
+				layers.loader.show_loader();
+				layers.loader.add_loader_text( 'Importing Settings & CSS. Please wait...' );
+			})
+			.queue( 1000 );
+			
+			// Debugging
+			console.log( response );
+			$('[name="layers-stylekit-import-stylekit-prettyprint"]').val( JSON.stringify( response ) );
+			
+			// Ajax
+			$.ajax({
+				type: 'POST',
+				dataType: 'json',
+				url: ajaxurl,
+				data: {
+					action: 'layers_stylekit_import_ajax_step_2',
+					stylekit_json: response.stylekit_json,
+				},
+				success: ajax_step_3,
+			});
+		}
+
+		function ajax_step_3( response ) {
+	
+			// User Feedback
+			$.layerswp
+			.queue( function(){
+				layers.loader.show_loader();
+				layers.loader.add_loader_text( 'Importing Pages. Please wait...' );
+			})
+			.queue( 1000 );
+
+			// Debugging
+			console.log( response );
+			$('[name="layers-stylekit-import-stylekit-prettyprint"]').val( JSON.stringify( response ) );
+			
+			// Ajax
+			$.ajax({
+				type: 'POST',
+				dataType: 'json',
+				url: ajaxurl,
+				data: {
+					action: 'layers_stylekit_import_ajax_step_3',
+					stylekit_json: response.stylekit_json,
+				},
+				success: ajax_step_4,
+			});
+		};
+
+		function ajax_step_4( response ) {
+			
+			// User Feedback
+			$.layerswp
+			.queue( function(){
+				layers.loader.show_loader();
+				layers.loader.add_loader_text( 'Importing Images. Please wait...' );
+			})
+			.queue( 1000 );
+			
+			// Debugging
+			console.log( response );
+			$('[name="layers-stylekit-import-stylekit-prettyprint"]').val( JSON.stringify( response ) );
+			
+			// Ajax
+			$.ajax({
+				type: 'POST',
+				dataType: 'json',
+				url: ajaxurl,
+				data: {
+					action: 'layers_stylekit_import_ajax_step_4',
+					stylekit_json: response.stylekit_json,
+				},
+				success: ajax_step_5,
+			});
+		};
+		
+		function ajax_step_5( response ) {
+			
+			// User Feedback
+			$.layerswp
+			.queue( function(){
+				layers.loader.show_loader();
+				layers.loader.add_loader_text( 'Finishing. Thanks for waiting :)' );
+			})
+			.queue( 1000 );
+
+			// Debugging
+			console.log( response );
+			$('[name="layers-stylekit-import-stylekit-prettyprint"]').val( JSON.stringify( response ) );
+			
+			// Ajax
+			$.ajax({
+				type: 'POST',
+				dataType: 'json',
+				url: ajaxurl,
+				data: {
+					action: 'layers_stylekit_import_ajax_step_5',
+					stylekit_json: response.stylekit_json,
+				},
+				success: ajax_step_6,
+			});
+		};
+		
+		
+		function ajax_step_6( response ) {
+			
+			// Sequence in the chnage of slides and showing of the loader.
+			$.layerswp
+			.queue( 1000 )
+			.queue( function(){
+				layers.loader.hide_loader();
+			})
+			.queue( 1000 )
+			.queue( function(){
+				layers.slider.go_to_slide( 2, $importer_slides );
+			});
+			
+			// Debugging
+			console.log( response );
+			$('[name="layers-stylekit-import-stylekit-prettyprint"]').val( JSON.stringify( response ) );
+			
+			// $( '.layers-stylekit-import-step-2 .layers-stylekit-slide-4' ).append( response.result );
 		}
 
 
@@ -597,3 +599,128 @@
 	} );
 
 } )( wp, jQuery );
+
+
+/**
+ * Queue jQuery Plugin
+ *
+ * Plugin for layers that allows the queuing of events so they happen in a set sequence.
+ * Uses setTimeout at it's core, but provides a mroe linear syntax when defining the code.
+ *
+ * e.g.
+
+	$.layerswp
+	.stop_queue( 'name' )
+	.queue( 'name', 2000 )
+	.queue( 'name', function(){
+		//console.log('ONE!');
+	})
+	.queue( 'name', 2000 )
+	.queue( 'name', function(){
+		//console.log('TWO!');
+});
+
+ *
+ */
+
+(function( $ ) {
+
+	// Setup or get layerswp.
+	$.fn.layerswp = $.fn.layerswp || {};
+
+	$.layerswp = $.extend({
+
+		_queue: {
+
+			main_queue_collection: [],
+
+			queue_busy: [],
+
+			add_to_queue: function( $args, $name ) {
+
+				var $defaults = {
+					delay: ( 'number' === typeof $args ) ? $args : 1,
+					function: ( 'function' === typeof $args ) ? $args : function(){},
+				};
+
+				$args = $.extend( $defaults, $args );
+
+				if ( !this.main_queue_collection[$name] ) this.main_queue_collection[$name] = [];
+				this.main_queue_collection[$name].push( $args );
+
+				this.check_queue( $name );
+			},
+
+			check_queue: function( $name ) {
+
+				$queue_collection = this.main_queue_collection[$name];
+
+				// Bail if nothing is in queue
+				if ( this.queue_busy[$name] || $queue_collection.length <= 0 ) return;
+
+				// Lock the queue to prevent overlapping
+				this.queue_busy[$name] = true;
+
+				// Get current item off the start of the queue
+				var $current_item = $queue_collection.shift();
+
+				// Apply : --- DELAY ---
+				setTimeout( this.next_step.bind( this, $name, $current_item ), $current_item.delay );
+			},
+
+			next_step: function() {
+
+				$name = arguments[0];
+				$current_item = arguments[1];
+
+				// Apply : --- FUNCTION ---
+				if( typeof( $current_item.function ) === "function" ) $current_item.function();
+
+				// Un-lock the queue
+				this.queue_busy[$name] = false;
+
+				// Recheck this queue
+				this.check_queue( $name );
+			}
+
+		}
+
+	}, $.layerswp );
+
+	// Make 'queue' call a default function 'add_to_queue' in '_queue' so it can be added easy.
+	$.layerswp = $.extend({
+
+		queue: function( $arg1, $arg2 ){
+
+			if( $.type( $arg1 ) === "string" ){
+				$name = $arg1; $args = $arg2;
+			}
+			else{
+				$name = '_general_'; $args = $arg1;
+			}
+
+			if( typeof $.layerswp._queue.queue_busy[$name] === 'undefined' ){
+				$.layerswp._queue.queue_busy[$name] = false;
+			}
+
+			$.layerswp._queue.add_to_queue( $args, $name );
+
+			return this;
+		},
+
+		stop_queue: function( $name ) {
+
+			if( !$name ) $name = '_general_';
+
+			if ( ! typeof $.layerswp._queue.main_queue_collection[ $name ] === 'undefined' ){
+
+				$.layerswp._queue.main_queue_collection[$name] = [];
+				$.layerswp._queue.queue_busy[$name] = false;
+			}
+
+			return this;
+		}
+
+	}, $.layerswp );
+
+}( jQuery ));
