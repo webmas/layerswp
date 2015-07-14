@@ -485,8 +485,8 @@ class Layers_Widget_Migrator {
 		if( NULL == $image_url ) return;
 		
 		$defaults = array(
-			'download_images' => TRUE,
 			'create_new_image_if_name_exists' => FALSE,
+			'download_images'                 => TRUE,
 		);
 		$args = wp_parse_args( $args, $defaults );
 
@@ -574,8 +574,8 @@ class Layers_Widget_Migrator {
 		if( !is_array( $data ) ) return stripslashes( $data );
 		
 		$defaults = array(
-			'download_images' => TRUE,
 			'create_new_image_if_name_exists' => FALSE,
+			'download_images'                 => TRUE,
 		);
 		$args = wp_parse_args( $args, $defaults );
 		
@@ -895,6 +895,7 @@ class Layers_Widget_Migrator {
 			'post_title'                      => '',
 			'widget_data'                     => '',
 			'create_new_image_if_name_exists' => FALSE,
+			'download_images'                 => TRUE,
 		);
 		$args = wp_parse_args( $args, $defaults );
 
@@ -921,7 +922,10 @@ class Layers_Widget_Migrator {
 		}
 
 		// Run data import
-		$import_progress = $this->import( $import_data, array( 'create_new_image_if_name_exists' => $args['create_new_image_if_name_exists'] ) );
+		$import_progress = $this->import( $import_data, array(
+			'create_new_image_if_name_exists' => $args['create_new_image_if_name_exists'],
+			'download_images'                 => $args['download_images'],
+		) );
 
 		if( count( $check_builder_pages ) == 0 ){
 			update_option( 'page_on_front', $import_data[ 'post_id' ] );
@@ -950,6 +954,7 @@ class Layers_Widget_Migrator {
 		
 		$defaults = array(
 			'create_new_image_if_name_exists' => FALSE,
+			'download_images'                 => TRUE,
 		);
 		$args = wp_parse_args( $args, $defaults );
 
