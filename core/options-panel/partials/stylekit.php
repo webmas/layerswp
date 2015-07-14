@@ -369,11 +369,9 @@ class Layers_StyleKit_Exporter {
 					------------------------------------- -->
 					
 					<div class="layers-onboard-slider">
-					
 						<div class="layers-onboard-slide layers-animate layers-onboard-slide-current layers-stylekit-import-step-2">
 							
 							<div class="layers-row">
-							
 								<div class="layers-column layers-span-8 layers-panel">
 								
 									<div class="layers-animate layers-stylekit-slide layers-stylekit-slide-1 layers-stylekit-slide-current">
@@ -460,11 +458,19 @@ class Layers_StyleKit_Exporter {
 										</ul>
 									</div>
 								</div>
-								
 							</div>
 							
+							<!-- Debugging Textarea -->
+							<div class="layers-row layers-push-top NOT-layers-hide">
+								<div class="layers-column layers-span-12">
+									<div class="json-code">
+										<textarea name="layers-stylekit-import-stylekit-prettyprint"></textarea>
+									</div>
+								</div>
+							</div>
+							<!-- /Debugging Textarea -->
+							
 						</div>
-					
 					</div>
 				
 				<?php elseif ( 'layers-stylekit-export-step-1' == $current_step ): ?>
@@ -1206,7 +1212,7 @@ class Layers_StyleKit_Exporter {
 		
 		foreach ( $files as $file ) {
 			if ( is_file( $temp_directory_path . $file ) && !in_array( $file, $reserved_files ) &&  rtrim( $file, '.json' ) !== $file ) {
-				$page_files[ rtrim( $file, '.json' ) ] = json_decode( file_get_contents( $temp_directory_path . $file ), TRUE );
+				$page_files[ rtrim( $file, '.json' ) ] = array( 'page-data' => json_decode( file_get_contents( $temp_directory_path . $file ), TRUE ) );
 			}
 		}
 		if ( !empty( $page_files ) ) {
@@ -1353,19 +1359,6 @@ class Layers_StyleKit_Exporter {
 				<input type="submit" class="layers-button btn-large btn-primary layers-pull-right layers-stylekit-import-step-2-submit" value="Import StyleKit" >
 			</div>
 			
-			
-			
-			<!-- Testing Textarea -->
-			<div class="layers-row layers-push-top layers-hide">
-				<div class="layers-column layers-span-12 layers-content">
-				
-					<div class="json-code">
-						<textarea name="layers-stylekit-import-stylekit-prettyprint"><?php echo $this->prettyPrint( json_encode( $stylekit_json ) ); ?></textarea>
-					</div>
-
-				</div>
-			</div>
-			
 			<!-- Required Textarea -->
 			<div class="layers-row layers-push-top layers-hide">
 				<div class="layers-column layers-span-12 layers-content">
@@ -1474,7 +1467,6 @@ class Layers_StyleKit_Exporter {
 			'ui' => $ui,
 			'ui2' => $ui2,
 		);
-		
 	}
 	
 	function layers_stylekit_import_ajax_step_1() {
@@ -1518,9 +1510,9 @@ class Layers_StyleKit_Exporter {
 		$filtered_pages = array();
 		
 		// Modify json so only the chosen previal.
-		if ( isset( $stylekit_json[ 'pages' ] ) && ( isset( $_POST['layers_pages'] ) || isset( $_POST['layers-stylekit-import-all'] ) ) ) {
+		if ( isset( $stylekit_json['pages'] ) && ( isset( $_POST['layers_pages'] ) || isset( $_POST['layers-stylekit-import-all'] ) ) ) {
 			
-			foreach ( $stylekit_json[ 'pages' ] as $page_slug => $page_data ) {
+			foreach ( $stylekit_json['pages'] as $page_slug => $page_data ) {
 				if ( isset( $_POST['layers-stylekit-import-all'] ) || in_array( $page_slug, $_POST['layers_pages'] ) ) {
 					
 					$filtered_pages[ $page_slug ] = $page_data;
@@ -1547,9 +1539,12 @@ class Layers_StyleKit_Exporter {
 			unset( $stylekit_json['css'] );
 		}
 		
+		$stylekit_json_pretty = $this->prettyPrint( json_encode( $stylekit_json ) );
+		
 		// Return the StyleKit json
 		echo json_encode( array(
 			'stylekit_json' => $stylekit_json,
+			'stylekit_json_pretty' => $this->prettyPrint( json_encode( $stylekit_json ) ),
 		) );
 		
 		die();
@@ -1557,29 +1552,9 @@ class Layers_StyleKit_Exporter {
 	
 	public function layers_stylekit_import_ajax_step_2 () {
 		
-		/**
-		 * Import Settings & CSS.
-		 */
+		$this->init_vars();
 		
 		$stylekit_json = ( isset( $_POST['stylekit_json'] ) ) ? $_POST['stylekit_json'] : array() ;
-		
-		$stylekit_json = $this->layers_import_stylekit( $stylekit_json );
-		
-		// Return the StyleKit JSON
-		echo json_encode( array(
-			'stylekit_json' => $stylekit_json,
-			'notify' => 'Imported Settings & CSS',
-		) );
-		
-		die();
-	}
-	
-	/**
-	 * Import StyleKit JSON
-	 */
-	public function layers_import_stylekit ( $stylekit_json ) {
-		
-		$this->init_vars();
 		
 		/**
 		 * Settings
@@ -1606,44 +1581,35 @@ class Layers_StyleKit_Exporter {
 			set_theme_mod( 'layers-custom-css', $stylekit_json['css'] );
 		}
 		
-		return $stylekit_json;
-	}
-	
-	
-	public function layers_stylekit_import_ajax_step_3 () {
-		
-		/**
-		 * Import Pages.
-		 */
-		
-		$stylekit_json = ( isset( $_POST['stylekit_json'] ) ) ? $_POST['stylekit_json'] : array() ;
-		
-		$stylekit_json = $this->layers_import_pages( $stylekit_json );
 		
 		// Return the StyleKit JSON
 		echo json_encode( array(
 			'stylekit_json' => $stylekit_json,
-			'notify' => 'Imported Pages',
+			'stylekit_json_pretty' => $this->prettyPrint( json_encode( $stylekit_json ) ),
 		) );
 		
 		die();
 	}
 	
-	
-	public function layers_import_pages ( $stylekit_json ) {
+	public function layers_stylekit_import_ajax_step_3 () {
 		
 		$this->init_vars();
+		
+		$stylekit_json = ( isset( $_POST['stylekit_json'] ) ) ? $_POST['stylekit_json'] : array() ;
 		
 		/**
 		 * Pages
 		 */
 		
 		// If there are pages in the StyleKit and user has chosen to import some.
-		if ( isset( $stylekit_json[ 'pages' ] ) ) {
+		if ( isset( $stylekit_json['pages'] ) ) {
 			
-			$stylekit_json['internal-data']['page-ids'] = array();
+			// Prep internal data for collection page id's
+			if ( !isset( $stylekit_json['internal-data']['page-ids'] ) ) {
+				$stylekit_json['internal-data']['page-ids'] = array();
+			}
 			
-			// Set locations to search for images during 'create_builder_page_from_preset'  - disabled
+			// Set locations to search for images during 'create_builder_page_from_preset'
 			if ( isset( $stylekit_json['internal-data']['image-locations'] ) ){
 				foreach ( $stylekit_json['internal-data']['image-locations'] as $image_location ) {
 					$this->check_image_locations = $image_location;
@@ -1652,36 +1618,24 @@ class Layers_StyleKit_Exporter {
 			}
 			
 			// Add the pages
-			foreach ( $stylekit_json[ 'pages' ] as $page_slug => $page_data ) {
+			foreach ( $stylekit_json['pages'] as $page_slug => $page_array ) {
+				
+				if( !isset( $stylekit_json['pages'][$page_slug]['status'] ) ){
 					
-				// Import the page
-				$result = $this->migrator->create_builder_page_from_preset( array(
-					'post_title'                      => $page_slug,
-					'widget_data'                     => $page_data,
-					'create_new_image_if_name_exists' => TRUE,
-					'download_images'                 => FALSE,
-				));
-				
-				/*
-				add_filter( 'layers_filter_widgets', array( $this, 'handle_images' ), 10, 2 );
-				
-				//$this->migrator->process_widgets_in_page( array( 169 ) );
-				
-				$page_data = json_decode( "{\"obox-layers-builder-169\":{\"layers-widget-slide-19\":{\"show_slider_arrows\":\"on\",\"show_slider_dots\":\"on\",\"slide_time\":\"\",\"slide_height\":\"550\",\"design\":{\"advanced\":{\"customclass\":\"\",\"customcss\":\"\",\"padding\":{\"top\":\"\",\"right\":\"\",\"bottom\":\"\",\"left\":\"\"},\"margin\":{\"top\":\"\",\"right\":\"\",\"bottom\":\"\",\"left\":\"\"}}},\"slide_ids\":\"575\",\"slides\":{\"575\":{\"design\":{\"background\":{\"image\":\"http:\\\/\\\/localhost\\\/layers\\\/layers10\\\/wp-content\\\/uploads\\\/sites\\\/10\\\/2015\\\/06\\\/tile.png\",\"color\":\"#efefef\",\"repeat\":\"repeat\",\"position\":\"center\"},\"featuredimage\":\"\",\"featuredvideo\":\"\",\"imagealign\":\"image-top\",\"fonts\":{\"align\":\"text-center\",\"size\":\"large\",\"color\":\"\"}},\"title\":\"Incredible Application\",\"excerpt\":\"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse vitae massa velit, eu laoreet massa.\",\"link\":\"#\",\"link_text\":\"Purchase Now\"}}},\"layers-widget-column-24\":{\"design\":{\"layout\":\"layout-boxed\",\"gutter\":\"on\",\"fonts\":{\"align\":\"text-center\",\"size\":\"medium\",\"color\":\"\"},\"background\":{\"image\":\"\",\"color\":\"\",\"repeat\":\"no-repeat\",\"position\":\"center\"},\"advanced\":{\"customclass\":\"\",\"customcss\":\"\",\"padding\":{\"top\":\"\",\"right\":\"\",\"bottom\":\"\",\"left\":\"\"},\"margin\":{\"top\":\"\",\"right\":\"\",\"bottom\":\"\",\"left\":\"\"}}},\"title\":\"Unbelievable Features\",\"excerpt\":\"Our services run deep and are backed by over ten years of experience.\",\"column_ids\":\"347,191\",\"columns\":{\"191\":{\"design\":{\"background\":{\"image\":\"\",\"color\":\"\",\"repeat\":\"no-repeat\",\"position\":\"center\"},\"featuredimage\":\"http:\\\/\\\/localhost\\\/layers\\\/layers10\\\/wp-content\\\/uploads\\\/sites\\\/10\\\/2015\\\/06\\\/demo-image.png\",\"featuredvideo\":\"\",\"imagealign\":\"image-top\",\"fonts\":{\"align\":\"text-center\",\"size\":\"medium\",\"color\":\"\"}},\"width\":\"6\",\"title\":\"Your feature title\",\"excerpt\":\"Give us a brief description of the feature that you are promoting. Try keep it short so that it is easy for people to scan your page.\",\"link\":\"\",\"link_text\":\"\"},\"347\":{\"design\":{\"background\":{\"image\":\"\",\"color\":\"\",\"repeat\":\"no-repeat\",\"position\":\"center\"},\"featuredimage\":\"http:\\\/\\\/localhost\\\/layers\\\/layers10\\\/wp-content\\\/uploads\\\/sites\\\/10\\\/2015\\\/06\\\/demo-image.png\",\"featuredvideo\":\"\",\"imageratios\":\"image-no-crop\",\"imagealign\":\"image-top\",\"fonts\":{\"align\":\"text-center\",\"size\":\"medium\",\"color\":\"\"}},\"width\":\"6\",\"title\":\"Your feature title\",\"excerpt\":\"Give us a brief description of the feature that you are promoting. Try keep it short so that it is easy for people to scan your page.\",\"link\":\"\",\"link_text\":\"\"}}},\"layers-widget-slide-20\":{\"show_slider_arrows\":\"on\",\"show_slider_dots\":\"on\",\"slide_time\":\"\",\"slide_height\":\"350\",\"design\":{\"advanced\":{\"customclass\":\"\",\"customcss\":\"\",\"padding\":{\"top\":\"\",\"right\":\"\",\"bottom\":\"\",\"left\":\"\"},\"margin\":{\"top\":\"\",\"right\":\"\",\"bottom\":\"\",\"left\":\"\"}}},\"slide_ids\":\"701\",\"slides\":{\"701\":{\"design\":{\"background\":{\"image\":\"http:\\\/\\\/localhost\\\/layers\\\/layers10\\\/wp-content\\\/uploads\\\/sites\\\/10\\\/2015\\\/06\\\/tile.png\",\"color\":\"#efefef\",\"repeat\":\"repeat\",\"position\":\"center\"},\"featuredimage\":\"\",\"featuredvideo\":\"\",\"imagealign\":\"image-top\",\"fonts\":{\"align\":\"text-center\",\"size\":\"medium\",\"color\":\"\"}},\"title\":\"Purchase for $0.99\",\"excerpt\":\"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse vitae massa velit, eu laoreet massa.\",\"link\":\"#\",\"link_text\":\"Purchase Now\"}}}}}", TRUE );
-				
-				//s($page_data);
-				
-				$this->migrator->process_widgets_in_data( $page_data );
-				
-				
-				s( $this->migrator->images_processed );
-				s( $this->migrator->images_report );
-				*/
-				
-				$post_id = $result['post_id'];
-				
-				// Collect result so we can return a report.
-				$stylekit_json['internal-data']['page-ids'][] = $post_id;
+					// Import the page
+					$result = $this->migrator->create_builder_page_from_preset( array(
+						'post_title'                      => $page_slug,
+						'widget_data'                     => $page_array['page-data'],
+						'create_new_image_if_name_exists' => TRUE,
+						'download_images'                 => FALSE,
+					) );
+					
+					$stylekit_json['pages'][$page_slug]['status'] = 'done';
+					
+					$stylekit_json['internal-data']['page-ids'][] = $result['post_id'];
+					
+					break;
+				}
 			}
 			
 			// Poplulate data into stylekit for next step
@@ -1696,44 +1650,49 @@ class Layers_StyleKit_Exporter {
 			
 		}
 		
-		return $stylekit_json;
-		
-	}
-	
-	public function layers_stylekit_import_ajax_step_4 () {
-		
-		/**
-		 * Import Images - @TODO
-		 */
-		
-		$stylekit_json = ( isset( $_POST['stylekit_json'] ) ) ? $_POST['stylekit_json'] : array() ;
-		
-		$stylekit_json = $this->layers_import_images( $stylekit_json );
 		
 		// Return the StyleKit JSON
 		echo json_encode( array(
 			'stylekit_json' => $stylekit_json,
-			'notify' => 'Imported Pages',
+			'stylekit_json_pretty' => $this->prettyPrint( json_encode( $stylekit_json ) ),
 		) );
 		
 		die();
 	}
 	
-	
-	public function layers_import_images ( $stylekit_json ) {
+	public function layers_stylekit_import_ajax_step_4 () {
 		
-		$this->init_vars();
+		$stylekit_json = ( isset( $_POST['stylekit_json'] ) ) ? $_POST['stylekit_json'] : array() ;
 		
-		return $stylekit_json;
+		/**
+		 * Import Images - @TODO
+		 */
+		
+		// Return the StyleKit JSON
+		echo json_encode( array(
+			'stylekit_json' => $stylekit_json,
+			'stylekit_json_pretty' => $this->prettyPrint( json_encode( $stylekit_json ) ),
+		) );
+		
+		die();
 	}
-	
-	
 	
 	public function layers_stylekit_import_ajax_step_5 () {
 		
 		$stylekit_json = ( isset( $_POST['stylekit_json'] ) ) ? $_POST['stylekit_json'] : array() ;
 		
-		return false;
+		if ( TRUE ):
+		
+		// Return the StyleKit JSON
+		echo json_encode( array(
+			'stylekit_json' => $stylekit_json,
+			'stylekit_json_pretty' => $this->prettyPrint( json_encode( $stylekit_json ) ),
+		) );
+		
+		die();
+		
+		endif;
+		
 		
 		ob_start();
 		?>
@@ -1827,7 +1786,7 @@ class Layers_StyleKit_Exporter {
 							 */
 							
 							// If there are pages in the StyleKit and user has chosen to import some.
-							if ( isset( $stylekit_json[ 'pages' ] ) && ( isset( $_POST['layers_pages'] ) || isset( $_POST['layers-stylekit-import-all'] ) ) ) {
+							if ( isset( $stylekit_json['pages'] ) && ( isset( $_POST['layers_pages'] ) || isset( $_POST['layers-stylekit-import-all'] ) ) ) {
 								
 								// Set locations to search for images during 'create_builder_page_from_preset'
 								$this->check_image_locations = array(
@@ -1839,7 +1798,7 @@ class Layers_StyleKit_Exporter {
 								
 								<?php
 								// Add the pages
-								$pages = $stylekit_json[ 'pages' ];
+								$pages = $stylekit_json['pages'];
 								foreach ( $pages as $page_slug => $page_data ) {
 									if ( isset( $_POST['layers-stylekit-import-all'] ) || in_array( $page_slug, $_POST['layers_pages'] ) ) {
 										
@@ -1916,8 +1875,6 @@ class Layers_StyleKit_Exporter {
 		
 		echo json_encode( array( 'ui' => $ui ) );
 	}
-	
-	
 	
 	
 	/**
@@ -2022,7 +1979,7 @@ class Layers_StyleKit_Exporter {
 									//$preset_name = $theme_name . '-' . $page->post_name;
 									//$post_title = esc_html( get_bloginfo( 'name' ) . '-' . esc_attr( $page->post_title ) );
 									
-									$page_presets[ $page->post_name ]  = array(
+									$page_presets[ $page->post_name ] = array(
 										'post_title' => esc_html( get_bloginfo( 'name' ) . '-' . esc_attr( $page->post_title ) ),
 										'widget_data' => $this->migrator->export_data( $page ),
 									);
@@ -2038,7 +1995,7 @@ class Layers_StyleKit_Exporter {
 								<li class="tick ticked-all"><?php count( $page_presets ) ?> <?php echo esc_html( __( 'Pages', 'layerswp' ) ); ?></li>
 								<?php
 								
-								//$stylekit_json[ 'pages' ] = $page_presets;
+								//$stylekit_json['pages'] = $page_presets;
 							}
 							
 							if ( isset( $_POST['layers_css'] ) ) {

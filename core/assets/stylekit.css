@@ -175,23 +175,24 @@ p.layers-excerpt{
 	font-weight: bold;
 }
 
-.layers-stylekit-form .json-code {
+.json-code {
 
 }
-.layers-stylekit-form .json-code .json-code-heading {
+.json-code .json-code-heading {
 	font-size: 10px;
 	display: inline-block;
 	text-transform: uppercase;
 	margin: 0px 0 3px;
 	color: #9D9D9D;
 }
-.layers-stylekit-form .json-code textarea {
+.json-code textarea {
 	width:100%;
-	min-height: 330px;
+	min-height: 600px;
 	box-sizing: border-box;
 	padding: 10px;
 	line-height: 21px;
-	background: #FDFDFD;
+	background: #E7E7E7;
+	border: 1px solid #D3D3D3;
 }
 
 .layers-stylekit-select-group .page-block {

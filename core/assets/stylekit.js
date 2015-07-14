@@ -17,7 +17,7 @@
 		})
 		.queue( 1000 )
 		.queue( function(){
-			layers.loader.add_loader_text( 'Unpacking StyleKit. Please wait...' );
+			layers.loader.add_loader_text( 'Unpacking StyleKit.<br />Please wait...' );
 		})
 		.queue( 1000 )
 		.queue( function(){
@@ -265,7 +265,7 @@
 				.queue( function(){
 					layers.slider.go_to_slide( 0, $uploader_slides );
 					layers.loader.show_loader();
-					layers.loader.add_loader_text( 'Uploading StyleKit. Please wait...' );
+					layers.loader.add_loader_text( 'Uploading StyleKit.<br />Please wait...' );
 				});
 
 				up.refresh();
@@ -389,8 +389,12 @@
 		// Handle final click of confirm import
 		$( document ).on( 'click', '.layers-stylekit-import-step-2-submit', function(){
 			
+			// Reset
+			current_page = 0;
+			
 			// Invoke the first step in the Ajax chain.
 			ajax_step_1();
+			
 			return false;
 		});
 		
@@ -409,7 +413,7 @@
 			.queue( 1000 )
 			.queue( function(){
 				layers.loader.show_loader();
-				layers.loader.add_loader_text( 'Preparing StyleKit. Please wait...' );
+				layers.loader.add_loader_text( 'Preparing StyleKit.<br />Please wait...' );
 			})
 			.queue( 1000 );
 			
@@ -435,13 +439,13 @@
 			$.layerswp
 			.queue( function(){
 				layers.loader.show_loader();
-				layers.loader.add_loader_text( 'Importing Settings & CSS. Please wait...' );
+				layers.loader.add_loader_text( 'Importing Settings & CSS.<br />Please wait...' );
 			})
 			.queue( 1000 );
 			
 			// Debugging
 			console.log( response );
-			$('[name="layers-stylekit-import-stylekit-prettyprint"]').val( JSON.stringify( response ) );
+			$('[name="layers-stylekit-import-stylekit-prettyprint"]').val( response.stylekit_json_pretty );
 			
 			// Ajax
 			$.ajax({
@@ -455,20 +459,32 @@
 				success: ajax_step_3,
 			});
 		}
+		
+		var total_pages = 0;
+		var current_page = 0;
+		var success_function;
 
 		function ajax_step_3( response ) {
-	
+			
+			current_page++;
+			total_pages = 0;
+			for ( var property in response.stylekit_json.pages ) if ( response.stylekit_json.pages.hasOwnProperty( property ) ) total_pages++;
+			
 			// User Feedback
 			$.layerswp
 			.queue( function(){
 				layers.loader.show_loader();
-				layers.loader.add_loader_text( 'Importing Pages. Please wait...' );
+				layers.loader.add_loader_text( 'Importing Page ' + current_page + ' of ' + total_pages + '.<br />Please wait...' );
 			})
 			.queue( 1000 );
-
+			
+			// This puts the page import into a loop.
+			if ( current_page >= total_pages ) success_function = ajax_step_4;
+			else success_function = ajax_step_3;
+			
 			// Debugging
 			console.log( response );
-			$('[name="layers-stylekit-import-stylekit-prettyprint"]').val( JSON.stringify( response ) );
+			$('[name="layers-stylekit-import-stylekit-prettyprint"]').val( response.stylekit_json_pretty );
 			
 			// Ajax
 			$.ajax({
@@ -479,7 +495,7 @@
 					action: 'layers_stylekit_import_ajax_step_3',
 					stylekit_json: response.stylekit_json,
 				},
-				success: ajax_step_4,
+				success: success_function,
 			});
 		};
 
@@ -489,13 +505,13 @@
 			$.layerswp
 			.queue( function(){
 				layers.loader.show_loader();
-				layers.loader.add_loader_text( 'Importing Images. Please wait...' );
+				layers.loader.add_loader_text( 'Importing Images.<br />Please wait...' );
 			})
 			.queue( 1000 );
 			
 			// Debugging
 			console.log( response );
-			$('[name="layers-stylekit-import-stylekit-prettyprint"]').val( JSON.stringify( response ) );
+			$('[name="layers-stylekit-import-stylekit-prettyprint"]').val( response.stylekit_json_pretty );
 			
 			// Ajax
 			$.ajax({
@@ -516,13 +532,13 @@
 			$.layerswp
 			.queue( function(){
 				layers.loader.show_loader();
-				layers.loader.add_loader_text( 'Finishing. Thanks for waiting :)' );
+				layers.loader.add_loader_text( 'Finishing.<br />Thanks for waiting :)' );
 			})
 			.queue( 1000 );
 
 			// Debugging
 			console.log( response );
-			$('[name="layers-stylekit-import-stylekit-prettyprint"]').val( JSON.stringify( response ) );
+			$('[name="layers-stylekit-import-stylekit-prettyprint"]').val( response.stylekit_json_pretty );
 			
 			// Ajax
 			$.ajax({
@@ -553,7 +569,7 @@
 			
 			// Debugging
 			console.log( response );
-			$('[name="layers-stylekit-import-stylekit-prettyprint"]').val( JSON.stringify( response ) );
+			$('[name="layers-stylekit-import-stylekit-prettyprint"]').val( response.stylekit_json_pretty );
 			
 			// $( '.layers-stylekit-import-step-2 .layers-stylekit-slide-4' ).append( response.result );
 		}
