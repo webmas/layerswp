@@ -15,6 +15,7 @@ class Layers_StyleKit_Exporter {
 	private $exclude_types_on_save;
 	
 	public $check_image_locations;
+	public $check_images;
 	
 	public $stored_images;
 	
@@ -207,17 +208,17 @@ class Layers_StyleKit_Exporter {
 					
 					<?php
 					
-					add_filter( 'layers_filter_widgets', array( $this, 'handle_images' ), 10, 2 );
+					//add_filter( 'layers_filter_widgets', array( $this, 'search_and_replace_images' ), 10, 2 );
 					
 					//$this->migrator->process_widgets_in_page( array( 169 ) );
 					
-					$widget_data = json_decode( "{\"obox-layers-builder-169\":{\"layers-widget-slide-19\":{\"show_slider_arrows\":\"on\",\"show_slider_dots\":\"on\",\"slide_time\":\"\",\"slide_height\":\"550\",\"design\":{\"advanced\":{\"customclass\":\"\",\"customcss\":\"\",\"padding\":{\"top\":\"\",\"right\":\"\",\"bottom\":\"\",\"left\":\"\"},\"margin\":{\"top\":\"\",\"right\":\"\",\"bottom\":\"\",\"left\":\"\"}}},\"slide_ids\":\"575\",\"slides\":{\"575\":{\"design\":{\"background\":{\"image\":\"http:\\\/\\\/localhost\\\/layers\\\/layers10\\\/wp-content\\\/uploads\\\/sites\\\/10\\\/2015\\\/06\\\/tile.png\",\"color\":\"#efefef\",\"repeat\":\"repeat\",\"position\":\"center\"},\"featuredimage\":\"\",\"featuredvideo\":\"\",\"imagealign\":\"image-top\",\"fonts\":{\"align\":\"text-center\",\"size\":\"large\",\"color\":\"\"}},\"title\":\"Incredible Application\",\"excerpt\":\"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse vitae massa velit, eu laoreet massa.\",\"link\":\"#\",\"link_text\":\"Purchase Now\"}}},\"layers-widget-column-24\":{\"design\":{\"layout\":\"layout-boxed\",\"gutter\":\"on\",\"fonts\":{\"align\":\"text-center\",\"size\":\"medium\",\"color\":\"\"},\"background\":{\"image\":\"\",\"color\":\"\",\"repeat\":\"no-repeat\",\"position\":\"center\"},\"advanced\":{\"customclass\":\"\",\"customcss\":\"\",\"padding\":{\"top\":\"\",\"right\":\"\",\"bottom\":\"\",\"left\":\"\"},\"margin\":{\"top\":\"\",\"right\":\"\",\"bottom\":\"\",\"left\":\"\"}}},\"title\":\"Unbelievable Features\",\"excerpt\":\"Our services run deep and are backed by over ten years of experience.\",\"column_ids\":\"347,191\",\"columns\":{\"191\":{\"design\":{\"background\":{\"image\":\"\",\"color\":\"\",\"repeat\":\"no-repeat\",\"position\":\"center\"},\"featuredimage\":\"http:\\\/\\\/localhost\\\/layers\\\/layers10\\\/wp-content\\\/uploads\\\/sites\\\/10\\\/2015\\\/06\\\/demo-image.png\",\"featuredvideo\":\"\",\"imagealign\":\"image-top\",\"fonts\":{\"align\":\"text-center\",\"size\":\"medium\",\"color\":\"\"}},\"width\":\"6\",\"title\":\"Your feature title\",\"excerpt\":\"Give us a brief description of the feature that you are promoting. Try keep it short so that it is easy for people to scan your page.\",\"link\":\"\",\"link_text\":\"\"},\"347\":{\"design\":{\"background\":{\"image\":\"\",\"color\":\"\",\"repeat\":\"no-repeat\",\"position\":\"center\"},\"featuredimage\":\"http:\\\/\\\/localhost\\\/layers\\\/layers10\\\/wp-content\\\/uploads\\\/sites\\\/10\\\/2015\\\/06\\\/demo-image.png\",\"featuredvideo\":\"\",\"imageratios\":\"image-no-crop\",\"imagealign\":\"image-top\",\"fonts\":{\"align\":\"text-center\",\"size\":\"medium\",\"color\":\"\"}},\"width\":\"6\",\"title\":\"Your feature title\",\"excerpt\":\"Give us a brief description of the feature that you are promoting. Try keep it short so that it is easy for people to scan your page.\",\"link\":\"\",\"link_text\":\"\"}}},\"layers-widget-slide-20\":{\"show_slider_arrows\":\"on\",\"show_slider_dots\":\"on\",\"slide_time\":\"\",\"slide_height\":\"350\",\"design\":{\"advanced\":{\"customclass\":\"\",\"customcss\":\"\",\"padding\":{\"top\":\"\",\"right\":\"\",\"bottom\":\"\",\"left\":\"\"},\"margin\":{\"top\":\"\",\"right\":\"\",\"bottom\":\"\",\"left\":\"\"}}},\"slide_ids\":\"701\",\"slides\":{\"701\":{\"design\":{\"background\":{\"image\":\"http:\\\/\\\/localhost\\\/layers\\\/layers10\\\/wp-content\\\/uploads\\\/sites\\\/10\\\/2015\\\/06\\\/tile.png\",\"color\":\"#efefef\",\"repeat\":\"repeat\",\"position\":\"center\"},\"featuredimage\":\"\",\"featuredvideo\":\"\",\"imagealign\":\"image-top\",\"fonts\":{\"align\":\"text-center\",\"size\":\"medium\",\"color\":\"\"}},\"title\":\"Purchase for $0.99\",\"excerpt\":\"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse vitae massa velit, eu laoreet massa.\",\"link\":\"#\",\"link_text\":\"Purchase Now\"}}}}}", TRUE );
+					//$widget_data = json_decode( "{\"obox-layers-builder-169\":{\"layers-widget-slide-19\":{\"show_slider_arrows\":\"on\",\"show_slider_dots\":\"on\",\"slide_time\":\"\",\"slide_height\":\"550\",\"design\":{\"advanced\":{\"customclass\":\"\",\"customcss\":\"\",\"padding\":{\"top\":\"\",\"right\":\"\",\"bottom\":\"\",\"left\":\"\"},\"margin\":{\"top\":\"\",\"right\":\"\",\"bottom\":\"\",\"left\":\"\"}}},\"slide_ids\":\"575\",\"slides\":{\"575\":{\"design\":{\"background\":{\"image\":\"http:\\\/\\\/localhost\\\/layers\\\/layers10\\\/wp-content\\\/uploads\\\/sites\\\/10\\\/2015\\\/06\\\/tile.png\",\"color\":\"#efefef\",\"repeat\":\"repeat\",\"position\":\"center\"},\"featuredimage\":\"\",\"featuredvideo\":\"\",\"imagealign\":\"image-top\",\"fonts\":{\"align\":\"text-center\",\"size\":\"large\",\"color\":\"\"}},\"title\":\"Incredible Application\",\"excerpt\":\"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse vitae massa velit, eu laoreet massa.\",\"link\":\"#\",\"link_text\":\"Purchase Now\"}}},\"layers-widget-column-24\":{\"design\":{\"layout\":\"layout-boxed\",\"gutter\":\"on\",\"fonts\":{\"align\":\"text-center\",\"size\":\"medium\",\"color\":\"\"},\"background\":{\"image\":\"\",\"color\":\"\",\"repeat\":\"no-repeat\",\"position\":\"center\"},\"advanced\":{\"customclass\":\"\",\"customcss\":\"\",\"padding\":{\"top\":\"\",\"right\":\"\",\"bottom\":\"\",\"left\":\"\"},\"margin\":{\"top\":\"\",\"right\":\"\",\"bottom\":\"\",\"left\":\"\"}}},\"title\":\"Unbelievable Features\",\"excerpt\":\"Our services run deep and are backed by over ten years of experience.\",\"column_ids\":\"347,191\",\"columns\":{\"191\":{\"design\":{\"background\":{\"image\":\"\",\"color\":\"\",\"repeat\":\"no-repeat\",\"position\":\"center\"},\"featuredimage\":\"http:\\\/\\\/localhost\\\/layers\\\/layers10\\\/wp-content\\\/uploads\\\/sites\\\/10\\\/2015\\\/06\\\/demo-image.png\",\"featuredvideo\":\"\",\"imagealign\":\"image-top\",\"fonts\":{\"align\":\"text-center\",\"size\":\"medium\",\"color\":\"\"}},\"width\":\"6\",\"title\":\"Your feature title\",\"excerpt\":\"Give us a brief description of the feature that you are promoting. Try keep it short so that it is easy for people to scan your page.\",\"link\":\"\",\"link_text\":\"\"},\"347\":{\"design\":{\"background\":{\"image\":\"\",\"color\":\"\",\"repeat\":\"no-repeat\",\"position\":\"center\"},\"featuredimage\":\"http:\\\/\\\/localhost\\\/layers\\\/layers10\\\/wp-content\\\/uploads\\\/sites\\\/10\\\/2015\\\/06\\\/demo-image.png\",\"featuredvideo\":\"\",\"imageratios\":\"image-no-crop\",\"imagealign\":\"image-top\",\"fonts\":{\"align\":\"text-center\",\"size\":\"medium\",\"color\":\"\"}},\"width\":\"6\",\"title\":\"Your feature title\",\"excerpt\":\"Give us a brief description of the feature that you are promoting. Try keep it short so that it is easy for people to scan your page.\",\"link\":\"\",\"link_text\":\"\"}}},\"layers-widget-slide-20\":{\"show_slider_arrows\":\"on\",\"show_slider_dots\":\"on\",\"slide_time\":\"\",\"slide_height\":\"350\",\"design\":{\"advanced\":{\"customclass\":\"\",\"customcss\":\"\",\"padding\":{\"top\":\"\",\"right\":\"\",\"bottom\":\"\",\"left\":\"\"},\"margin\":{\"top\":\"\",\"right\":\"\",\"bottom\":\"\",\"left\":\"\"}}},\"slide_ids\":\"701\",\"slides\":{\"701\":{\"design\":{\"background\":{\"image\":\"http:\\\/\\\/localhost\\\/layers\\\/layers10\\\/wp-content\\\/uploads\\\/sites\\\/10\\\/2015\\\/06\\\/tile.png\",\"color\":\"#efefef\",\"repeat\":\"repeat\",\"position\":\"center\"},\"featuredimage\":\"\",\"featuredvideo\":\"\",\"imagealign\":\"image-top\",\"fonts\":{\"align\":\"text-center\",\"size\":\"medium\",\"color\":\"\"}},\"title\":\"Purchase for $0.99\",\"excerpt\":\"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse vitae massa velit, eu laoreet massa.\",\"link\":\"#\",\"link_text\":\"Purchase Now\"}}}}}", TRUE );
 					
 					//s($widget_data);
 					
-					$this->migrator->process_widgets_in_data( $widget_data );
+					//$this->migrator->process_widgets_in_data( $widget_data );
 					
-					// s( $this->migrator->images_processed );
+					// s( $this->migrator->images_in_widgets );
 					// s( $this->migrator->images_report );
 					
 					?>
@@ -783,17 +784,13 @@ class Layers_StyleKit_Exporter {
 		<?php
 	}
 	
-	public function handle_images( $widgets, $page_id ) {
+	public function search_and_replace_images( $widgets, $page_id ) {
 		
 		// Loop through the widgets modify them.
-		//foreach ( $widgets as $widget ) {
+		foreach ( $widgets as $widget ) {
 			
-			// Setting 'download_images' to false will result in a list called 'images_processed' being generated, which we'll use at a later stage.
-			$this->migrator->check_for_images( $widgets, array(
-				'download_images' => FALSE,
-				'create_new_image_if_name_exists' => TRUE,
-			));
-		//}
+			$this->migrator->search_and_replace_images_in_widget( $widgets, array() );
+		}
 		
 		return $widgets;
 	}
@@ -1227,13 +1224,31 @@ class Layers_StyleKit_Exporter {
 		 */
 		$stylekit_json['internal-data'] = array();
 		
-		// Image locations
-		$stylekit_json['internal-data']['image-locations'] = array();
-		
-		$stylekit_json['internal-data']['image-locations'][] = array(
-			'path' => $temp_directory_path . 'assets/images/',
-			'url'  => $temp_directory_url . 'assets/images/',
+		// Image locations - to search for images in
+		$stylekit_json['internal-data']['image-locations'] = array(
+			array(
+				'path' => $temp_directory_path . 'assets/images/',
+				'url'  => $temp_directory_url . 'assets/images/',
+			)
 		);
+		
+		// Images - to use later to import images
+		$image_assets_path = $temp_directory_path . 'assets/images/';
+		$image_assets_url = $temp_directory_url . 'assets/images/';
+		$image_array = array();
+		if ( is_dir( $image_assets_path ) ) {
+			if ( $dh = opendir( $image_assets_path ) ) {
+				while ( ( $file = readdir( $dh ) ) !== false ) {
+					if ( "." != $file && ".." != $file ) {
+						$image_array[$file] = array( 'url' => $image_assets_url . $file );
+					}
+				}
+				closedir( $dh );
+			}
+		}
+		if ( !empty( $image_array ) ) {
+			$stylekit_json['internal-data']['images-on-disk'] = $image_array;
+		}
 		
 		
 		/**
@@ -1550,7 +1565,7 @@ class Layers_StyleKit_Exporter {
 		die();
 	}
 	
-	public function layers_stylekit_import_ajax_step_2 () {
+	public function layers_stylekit_import_ajax_step_2() {
 		
 		$this->init_vars();
 		
@@ -1581,7 +1596,6 @@ class Layers_StyleKit_Exporter {
 			set_theme_mod( 'layers-custom-css', $stylekit_json['css'] );
 		}
 		
-		
 		// Return the StyleKit JSON
 		echo json_encode( array(
 			'stylekit_json' => $stylekit_json,
@@ -1591,7 +1605,7 @@ class Layers_StyleKit_Exporter {
 		die();
 	}
 	
-	public function layers_stylekit_import_ajax_step_3 () {
+	public function layers_stylekit_import_ajax_step_3() {
 		
 		$this->init_vars();
 		
@@ -1638,19 +1652,25 @@ class Layers_StyleKit_Exporter {
 				}
 			}
 			
-			// Poplulate data into stylekit for next step
-			
-			if ( !empty( $this->migrator->images_processed ) ){
-				$stylekit_json['internal-data']['images-processed'] = $this->migrator->images_processed;
-			}
-			if ( !empty( $this->migrator->images_report ) ){
+			// Poplulate data into stylekit for next step - importing images
+			if ( !empty( $this->migrator->images_in_widgets ) ){
 				
+				// Get the existing images_in_widgets.
+				$images_in_widgets = ( isset( $stylekit_json['internal-data']['images-in-widgets'] ) ) ? $stylekit_json['internal-data']['images-in-widgets'] : array();
+				
+				// Merge it with new images_in_widgets.
+				$images_in_widgets = array_merge( $this->migrator->images_in_widgets, $images_in_widgets );
+				
+				// Re-set the new images_in_widgets.
+				$stylekit_json['internal-data']['images-in-widgets'] = $images_in_widgets;
+			}
+			
+			if ( !empty( $this->migrator->images_report ) ){
 				$stylekit_json['internal-data']['images-report'] = $this->migrator->images_report;
 			}
 			
 		}
 		
-		
 		// Return the StyleKit JSON
 		echo json_encode( array(
 			'stylekit_json' => $stylekit_json,
@@ -1660,13 +1680,52 @@ class Layers_StyleKit_Exporter {
 		die();
 	}
 	
-	public function layers_stylekit_import_ajax_step_4 () {
+	public function layers_stylekit_import_ajax_step_4() {
+		
+		$this->init_vars();
 		
 		$stylekit_json = ( isset( $_POST['stylekit_json'] ) ) ? $_POST['stylekit_json'] : array() ;
 		
 		/**
-		 * Import Images - @TODO
+		 * Import Images
 		 */
+		
+		$images_in_widgets = ( isset( $stylekit_json['internal-data']['images-in-widgets'] ) ) ? $stylekit_json['internal-data']['images-in-widgets'] : array() ;
+		$images_on_disk = ( isset( $stylekit_json['internal-data']['images-on-disk'] ) ) ? $stylekit_json['internal-data']['images-on-disk'] : array() ;
+		$pages = ( isset( $stylekit_json['internal-data']['page-ids'] ) ) ? $stylekit_json['internal-data']['page-ids'] : array() ;
+			
+		// Loop images
+		foreach ( $images_in_widgets as $image_name => $image_array ) {
+			
+			if( array_key_exists( $image_name, $images_on_disk ) ){
+				
+				// Upload the image and get the ID.
+				$image_id = $this->migrator->get_attachment_id_from_url( media_sideload_image( $images_on_disk[$image_name]['url'], 0 ) );
+				
+				// Add the new id to an array to use in the following filter.
+				if ( !is_array( $this->check_images ) ) $this->check_images = array();
+				$this->check_images[$image_name] = array( 'id' => $image_id );
+				
+				// Add filter to be used during the following Widget mod
+				// filter will replace any image of this name with this new ID
+				add_filter( 'layers_filter_widgets', array( $this, 'search_and_replace_images' ), 10, 2 );
+				
+				// Loop through all the pages and modify their widgets
+				foreach ( $pages as $page_id ) {
+					$this->migrator->process_widgets_in_page( $page_id );
+				}
+				
+				// Mark this image as having been done.
+				$stylekit_json['internal-data']['images-on-disk'][$image_name]['status'] = 'done';
+				
+				// Break so only one image is imported at time.
+				break;
+			}
+			else{
+				// Mark this image as having been done.
+				$stylekit_json['internal-data']['images-on-disk'][$image_name]['status'] = 'done';
+			}
+		}
 		
 		// Return the StyleKit JSON
 		echo json_encode( array(
@@ -1677,7 +1736,7 @@ class Layers_StyleKit_Exporter {
 		die();
 	}
 	
-	public function layers_stylekit_import_ajax_step_5 () {
+	public function layers_stylekit_import_ajax_step_5() {
 		
 		$stylekit_json = ( isset( $_POST['stylekit_json'] ) ) ? $_POST['stylekit_json'] : array() ;
 		
@@ -1722,7 +1781,6 @@ class Layers_StyleKit_Exporter {
 							$collect_results = array(
 								'settings' => array(),
 								'pages' => array(),
-								//'images' => array(),
 								'css' => array(),
 							);
 							

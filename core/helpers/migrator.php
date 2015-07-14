@@ -14,7 +14,7 @@ class Layers_Widget_Migrator {
 	 *
 	 * @var array
 	 */
-	public $images_processed;
+	public $images_in_widgets;
 	
 	/**
 	 * Collect a report of what happned during the image import process for debugging purposes.
@@ -405,20 +405,6 @@ class Layers_Widget_Migrator {
 	}
 
 	/**
-	* Get image urls from their attachment ID
-	*/
-
-	function get_image_url( $data ){
-
-		$get_image = wp_get_attachment_image_src( $data, 'full' );
-		if( $get_image ) {
-			return $get_image[0];
-		} else {
-			return NULL;
-		}
-	}
-
-	/**
 	*  Validate Input (Look for images)
 	*/
 
@@ -434,7 +420,7 @@ class Layers_Widget_Migrator {
 				$validated_data[ $option ] = $this->validate_data( $option_data );
 
 			} elseif( 'image' == $option || 'featuredimage' == $option ) {
-				$get_image_url = $this->get_image_url( $option_data );
+				$get_image_url = $this->get_attachment_url_from_id( $option_data );
 
 				if( NULL != $get_image_url ) {
 					$validated_data[ $option ] = $get_image_url;
@@ -456,17 +442,31 @@ class Layers_Widget_Migrator {
 
 		return $validated_data;
 	}
-
+	
 	/**
-	*  Get attachment ID from URL, used when importing images
+	* Get image url from their attachment ID.
 	*/
 
-	function get_attachment_id_from_url($img_tag) {
+	function get_attachment_url_from_id( $id ){
+
+		$get_image = wp_get_attachment_image_src( $id, 'full' );
+		if( $get_image ) {
+			return $get_image[0];
+		} else {
+			return NULL;
+		}
+	}
+
+	/**
+	*  Get image ID from their url.
+	*/
+
+	function get_attachment_id_from_url( $url ) {
 		global $wpdb;
 
-		if( is_object( $img_tag ) ) return;
+		if( is_object( $url ) ) return;
 
-		preg_match("/src='([^']+)/i", $img_tag , $img_url_almost );
+		preg_match("/src='([^']+)/i", $url , $img_url_almost );
 
 		if( empty( $img_url_almost ) ) return NULL;
 
@@ -476,10 +476,66 @@ class Layers_Widget_Migrator {
 	}
 
 	/**
-	*  Check if this image exists in our media library
+	*  Import Images
 	*/
 
-	public function check_for_image_in_media( $image_url = NULL, $args = array() ){
+	public function import_images( $data, $args = array() ) {
+
+		if( !is_array( $data ) ) return stripslashes( $data );
+		
+		$defaults = array(
+			'create_new_image_if_name_exists' => FALSE,
+			'download_images'                 => TRUE,
+		);
+		$args = wp_parse_args( $args, $defaults );
+		
+		$validated_data = array();
+		
+		foreach( $data as $option => $option_data ){
+
+			if( is_array( $option_data ) ) {
+
+				$validated_data[ $option ] = $this->import_images( $option_data, $args );
+
+			} elseif( 'image' == $option || 'featuredimage' == $option ) {
+
+				// Check to see if this image exists in our media library already
+				$check_for_image = $this->search_for_import_image( $option_data, $args );
+
+				if( NULL != $check_for_image ) {
+					$get_image_id = $check_for_image;
+				} else {
+					// @TODO: Try improve the image loading
+					$import_image = media_sideload_image( $option_data , 0 );
+
+					if( NULL != $import_image && !is_wp_error( $import_image ) ) {
+						$get_image_id = $this->get_attachment_id_from_url( $import_image );
+					}
+				}
+
+				if( isset( $get_image_id ) ) {
+					$validated_data[ $option ] = $get_image_id;
+				} else {
+					$validated_data[ $option ] = stripslashes( $option_data );
+				}
+
+			} else {
+
+				$validated_data[ $option ] = stripslashes( $option_data );
+
+			}
+		}
+
+		return $validated_data;
+	}
+	
+	/**
+	*  Search for an image
+	*
+	*  Search in media library, common locations, or filter created custom locations.
+	*/
+
+	public function search_for_import_image( $image_url = NULL, $args = array() ){
 		global $wpdb;
 
 		if( NULL == $image_url ) return;
@@ -516,9 +572,9 @@ class Layers_Widget_Migrator {
 		$status = array( $file_name );
 		
 		if ( $db_image && $args['create_new_image_if_name_exists'] ) {
-			if ( isset( $this->images_processed[$file_name] ) ) {
+			if ( isset( $this->images_in_widgets[$file_name]['url'] ) ) {
 				$status[] = 'Have previously uploaded image from disk';
-				$disk_image = $this->images_processed[$file_name];
+				$disk_image = $this->images_in_widgets[$file_name]['url'];
 			}
 			else {
 				foreach ( $check_image_locations as $location ) {
@@ -532,7 +588,8 @@ class Layers_Widget_Migrator {
 					 		// Otherwise just leave the value as it is.
 					 		$disk_image = $image_url;
 					 	}
-					 	$this->images_processed[$file_name] = $disk_image;
+					 	$this->images_in_widgets[$file_name] = array();
+						$this->images_in_widgets[$file_name]['url'] = $disk_image;
 					}
 				}
 			}
@@ -564,68 +621,19 @@ class Layers_Widget_Migrator {
 		// If nothing is found, just return NULL
 		return $found_image;
 	}
-
-	/**
-	*  Import Images
-	*/
-
-	public function check_for_images( $data, $args = array() ) {
-
-		if( !is_array( $data ) ) return stripslashes( $data );
-		
-		$defaults = array(
-			'create_new_image_if_name_exists' => FALSE,
-			'download_images'                 => TRUE,
-		);
-		$args = wp_parse_args( $args, $defaults );
-		
-		$validated_data = array();
-		
-		foreach( $data as $option => $option_data ){
-
-			if( is_array( $option_data ) ) {
-
-				$validated_data[ $option ] = $this->check_for_images( $option_data, $args );
-
-			} elseif( 'image' == $option || 'featuredimage' == $option ) {
-
-				// Check to see if this image exists in our media library already
-				$check_for_image = $this->check_for_image_in_media( $option_data, $args );
-
-				if( NULL != $check_for_image ) {
-					$get_image_id = $check_for_image;
-				} else {
-					// @TODO: Try improve the image loading
-					$import_image = media_sideload_image( $option_data , 0 );
-
-					if( NULL != $import_image && !is_wp_error( $import_image ) ) {
-						$get_image_id = $this->get_attachment_id_from_url( $import_image );
-					}
-				}
-
-				if( isset( $get_image_id ) ) {
-					$validated_data[ $option ] = $get_image_id;
-				} else {
-					$validated_data[ $option ] = stripslashes( $option_data );
-				}
-
-			} else {
-
-				$validated_data[ $option ] = stripslashes( $option_data );
-
-			}
-		}
-
-		return $validated_data;
-	}
 	
 	/**
 	* Search & Replace Widgets in a specific page
 	*/
-
+	
 	public function process_widgets_in_page( $page_ids = array() ) {
 		
 		global $wp_registered_sidebars, $wp_registered_widgets;
+		
+		// This allows for the argument to be a single page ID, as appose to array
+		if ( !is_array( $page_ids ) ){
+			$page_ids = array( $page_ids );
+		}
 		
 		foreach ( $page_ids as $page_id ) {
 			
@@ -670,7 +678,7 @@ class Layers_Widget_Migrator {
 				$widget_data = get_option( $option_name );
 				
 				// Add the widget data on to the end of the output array.
-				//$widgys[] = (object) $widget_data[$key];
+				//$widgets[] = (object) $widget_data[$key];
 				
 				$widget_data = $widget_data[$key];
 				
@@ -680,20 +688,20 @@ class Layers_Widget_Migrator {
 					'id' => $id,
 				), $widget_data );
 				
-				$widgys[] = $widget_data;
+				$widgets[] = $widget_data;
 			}
 			
-			// if ( FALSE && isset( $widgys[0]['slides'][488]['title'] ) ) {
-			// 	$widgys[0]['slides'][488]['title'] = "Business development and acquisition specialist yeah!";
+			// if ( FALSE && isset( $widgets[0]['slides'][488]['title'] ) ) {
+			// 	$widgets[0]['slides'][488]['title'] = "Business development and acquisition specialist yeah!";
 			// }
 			
-			$widgys_modified = apply_filters( 'layers_filter_widgets', $widgys, $page_id );
+			$widgets_modified = apply_filters( 'layers_filter_widgets', $widgets, $page_id );
 			
-			// Nothing has been modified in the widgets so just continue
-			if ( $widgys_modified === $widgys ) continue;
+			// Nothing has been modified in the widgets so just continue to the next Page
+			if ( $widgets_modified === $widgets ) continue;
 			
 			// Loop through the widgets and put them back into their own individual option fields
-			foreach ( $widgys_modified as $widget ) {
+			foreach ( $widgets_modified as $widget ) {
 				
 				$option_name = $widget['option_name'];
 				$key = $widget['key'];
@@ -713,69 +721,40 @@ class Layers_Widget_Migrator {
 	}
 	
 	/**
-	* Search & Replace Widgets in a data group of Widgets
-	*/
-
-	public function process_widgets_in_data( $widget_data = array() ) {
-		
-		global $wp_registered_sidebars, $wp_registered_widgets;
-		
-		$widget_data = apply_filters( 'layers_filter_widgets', $widget_data, NULL );
-		
-		$widget_data;
-		
-		return $widget_data;
-	}
-	
-	/**
 	* Search and Replace Widget Data
 	*/
 
-	public function search_and_replace_widget( $data, $args = array() ) {
+	public function search_and_replace_images_in_widget( $data, $args = array() ) {
 		
 		if( !is_array( $data ) ) return stripslashes( $data );
-		
-		$defaults = array(
-			'option_type' => array(),
-			'search_for' => '',
-			'replace_with' => '',
-		);
-		$args = wp_parse_args( $args, $defaults );
 		
 		$validated_data = array();
 		
 		foreach( $data as $option => $option_data ){
 
 			if( is_array( $option_data ) ) {
-
-				$validated_data[ $option ] = $this->check_for_images( $option_data, $args );
+				
+				// Recursively call this function
+				$validated_data[ $option ] = $this->search_and_replace_images_in_widget( $option_data, $args );
 
 			} elseif( 'image' == $option || 'featuredimage' == $option ) {
-
-				// Check to see if this image exists in our media library already
-				$check_for_image = $this->check_for_image_in_media( $option_data, $args );
-
-				if( NULL != $check_for_image ) {
-					$get_image_id = $check_for_image;
-				} else {
-					// @TODO: Try improve the image loading
-					$import_image = media_sideload_image( $option_data , 0 );
-
-					if( NULL != $import_image && !is_wp_error( $import_image ) ) {
-						$get_image_id = $this->get_attachment_id_from_url( $import_image );
-					}
+				
+				// Get and store the FileName.
+				$image_pieces = explode( '/', $option_data );
+				$file_name = $image_pieces[count( $image_pieces )-1];
+				
+				// Check if we have passed a 'file_name' to 'id' replacement to this array.
+				if ( array_key_exists( $file_name, $args ) ){
+					$option_data = $args[$file_name]['id'];
 				}
-
-				if( isset( $get_image_id ) ) {
-					$validated_data[ $option ] = $get_image_id;
-				} else {
-					$validated_data[ $option ] = stripslashes( $option_data );
-				}
-
-			} else {
-
+				
+				// Return the value
 				$validated_data[ $option ] = stripslashes( $option_data );
 
+			} else {
+				
+				// Return the value
+				$validated_data[ $option ] = stripslashes( $option_data );
 			}
 		}
 
@@ -802,10 +781,10 @@ class Layers_Widget_Migrator {
 		$import_progress = $this->import( $import_data );
 
 		$results = array(
-				'post_id' => $import_data[ 'post_id' ],
-				'data_report' => $import_progress,
-				'customizer_location' => admin_url() . 'customize.php?url=' . esc_url( get_the_permalink( $import_data[ 'post_id' ] ) )
-			);
+			'post_id' => $import_data[ 'post_id' ],
+			'data_report' => $import_progress,
+			'customizer_location' => admin_url() . 'customize.php?url=' . esc_url( get_the_permalink( $import_data[ 'post_id' ] ) )
+		);
 
 		die( json_encode( $results ) );
 	}
@@ -840,10 +819,10 @@ class Layers_Widget_Migrator {
 		$import_progress = $this->import( $import_data );
 
 		$results = array(
-				'post_id' => $pageid,
-				'data_report' => $import_progress,
-				'page_location' => admin_url() . 'post.php?post=' . $pageid . '&action=edit&message=1'
-			);
+			'post_id' => $pageid,
+			'data_report' => $import_progress,
+			'page_location' => admin_url() . 'post.php?post=' . $pageid . '&action=edit&message=1'
+		);
 
 		die( json_encode( $results ) );
 
@@ -1002,7 +981,7 @@ class Layers_Widget_Migrator {
 				
 				// Check for and import images
 				foreach ( $widget as $option => $widget_data ){
-					$widget[ $option ] = $this->check_for_images( $widget_data, $args );
+					$widget[ $option ] = $this->import_images( $widget_data, $args );
 				}
 
 				$fail = false;
