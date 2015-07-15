@@ -17,7 +17,7 @@
 		})
 		.queue( 1000 )
 		.queue( function(){
-			layers.loader.add_loader_text( 'Unpacking StyleKit.<br />Please wait...' );
+			layers.loader.add_loader_text( 'Unpacking StyleKit<br />Please wait...' );
 		})
 		.queue( 1000 )
 		.queue( function(){
@@ -84,7 +84,7 @@
 				}
 				
 				// Feedback
-				$( '.layers-column.layers-span-8' ).append( 'StyleKit Unpack Failed :( <br>' );
+				$( '.layers-column.layers-span-8' ).append( 'StyleKit Unpack Failed :( <br />' );
 			});
 			
 		});
@@ -265,7 +265,7 @@
 				.queue( function(){
 					layers.slider.go_to_slide( 0, $uploader_slides );
 					layers.loader.show_loader();
-					layers.loader.add_loader_text( 'Uploading StyleKit.<br />Please wait...' );
+					layers.loader.add_loader_text( 'Uploading StyleKit<br />Please wait...' );
 				});
 
 				up.refresh();
@@ -421,12 +421,12 @@
 			.queue( function(){
 				layers.slider.go_to_slide( 3, $importer_slides );
 			})
-			.queue( 200 )
+			.queue( 800 )
 			.queue( function(){
 				layers.loader.show_loader();
-				layers.loader.add_loader_text( 'Preparing StyleKit.<br />Please wait...' );
+				layers.loader.add_loader_text( 'Preparing StyleKit<br />Please wait...' );
 			})
-			.queue( 200 );
+			.queue( 800 );
 			
 			// Collect the form data. Holds the user selections and the whole StyleKit json.
 			//var form_data = $( 'form.layers-stylekit-form-import' ).serializeArray();
@@ -450,9 +450,9 @@
 			$.layerswp
 			.queue( function(){
 				layers.loader.show_loader();
-				layers.loader.add_loader_text( 'Importing Settings & CSS.<br />Please wait...' );
+				layers.loader.add_loader_text( 'Importing Settings & CSS<br />Please wait...' );
 			})
-			.queue( 200 );
+			.queue( 800 );
 			
 			// Debugging
 			console.log( response );
@@ -488,9 +488,9 @@
 				
 				reported_page++;
 				layers.loader.show_loader();
-				layers.loader.add_loader_text( 'Importing Page ' + reported_page + ' of ' + total_pages + '.<br />Please wait...' );
+				layers.loader.add_loader_text( 'Importing Page ' + reported_page + ' of ' + total_pages + '<br />Please wait...' );
 			})
-			.queue( 200 );
+			.queue( 800 );
 			
 			// This puts the page import into a loop.
 			if ( current_page >= total_pages ) page_success_function = ajax_step_4;
@@ -530,9 +530,9 @@
 				
 				reported_image++;
 				layers.loader.show_loader();
-				layers.loader.add_loader_text( 'Importing Image ' + reported_image + ' of ' + total_images + '.<br />Please wait...' );
+				layers.loader.add_loader_text( 'Importing Image ' + reported_image + ' of ' + total_images + '<br />Please wait...' );
 			})
-			.queue( 200 );
+			.queue( 800 );
 			
 			// This puts the page import into a loop.
 			if ( current_image >= total_images ) image_success_function = ajax_step_5;
@@ -561,9 +561,9 @@
 			$.layerswp
 			.queue( function(){
 				layers.loader.show_loader();
-				layers.loader.add_loader_text( 'Finishing.<br />Thanks for waiting :)' );
+				layers.loader.add_loader_text( 'Finishing<br />Thanks for waiting :)' );
 			})
-			.queue( 200 );
+			.queue( 800 );
 
 			// Debugging
 			console.log( response );
@@ -587,11 +587,11 @@
 			
 			// Sequence in the chnage of slides and showing of the loader.
 			$.layerswp
-			.queue( 200 )
+			.queue( 800 )
 			.queue( function(){
 				layers.loader.hide_loader();
 			})
-			.queue( 200 )
+			.queue( 800 )
 			.queue( function(){
 				$( '.layers-stylekit-import-step-2 .layers-stylekit-slide-4' ).append( response.ui );
 				layers.slider.go_to_slide( 4, $importer_slides );

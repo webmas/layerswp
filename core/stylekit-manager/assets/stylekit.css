@@ -50,13 +50,13 @@ p.layers-excerpt{
 	transition: .1s;
 }
 .tick.ticked-some {
-	background-image: url( images/stylekit/ticked-some.png ) !important;
+	background-image: url( ../../assets/images/stylekit/ticked-some.png ) !important;
 }
 .tick.ticked-all {
-	background-image: url( images/stylekit/ticked-all.png ) !important;
+	background-image: url( ../../assets/images/stylekit/ticked-all.png ) !important;
 }
 .tick.ticked-none {
-	background-image: url( images/stylekit/ticked-none.png ) !important;
+	background-image: url( ../../assets/images/stylekit/ticked-none.png ) !important;
 }
 
 .layers-stylekit-onboard-wrapper input[type="text"]{
@@ -190,9 +190,11 @@ p.layers-excerpt{
 	min-height: 600px;
 	box-sizing: border-box;
 	padding: 10px;
-	line-height: 21px;
+	margin: 50px 0;
+	line-height: 16px;
 	background: #E7E7E7;
 	border: 1px solid #D3D3D3;
+	font-size: 13px;
 }
 
 .layers-stylekit-select-group .page-block {
@@ -472,7 +474,7 @@ a.preview-page:hover span {
 
 .layers-load-bar.layers-stylekit-load-bar{
     background-color: #FFFFFF;
-    background-image: url( images/stylekit/horizontal_loader_2.gif );
+    background-image: url( ../../assets/images/stylekit/horizontal_loader_2.gif );
     width: 100%;
     margin: auto;
     position: absolute;
@@ -487,7 +489,7 @@ a.preview-page:hover span {
 	transition: .6s ease-in-out;
 	position: absolute;
 	height: 4px;
-	background-image: url( images/stylekit/horizontal_loader_3.gif );
+	background-image: url( ../../assets/images/stylekit/horizontal_loader_3.gif );
 }
 .layers-load-bar.layers-stylekit-load-bar .layers-progress.zero{
 	width: 0;
