@@ -786,10 +786,15 @@ class Layers_StyleKit_Exporter {
 	
 	public function search_and_replace_images( $widgets, $page_id ) {
 		
-		// Loop through the widgets modify them.
-		foreach ( $widgets as $widget ) {
+		if ( is_array( $this->check_images ) && !empty( $this->check_images ) ){
 			
-			$this->migrator->search_and_replace_images_in_widget( $widgets, array() );
+			// // Loop through the widgets modify them.
+			// foreach ( $widgets as $widget ) {
+			// 	$widget = $this->migrator->search_and_replace_images_in_widget( $widgets, $this->check_images );
+			// }
+			
+			$widgets = $this->migrator->search_and_replace_images_in_widget( $widgets, $this->check_images );
+			
 		}
 		
 		return $widgets;
@@ -1222,10 +1227,10 @@ class Layers_StyleKit_Exporter {
 		 *
 		 * Data that will be added to the StyleKit json as it steps through the various ajax calls.
 		 */
-		$stylekit_json['internal-data'] = array();
+		$stylekit_json['internal_data'] = array();
 		
 		// Image locations - to search for images in
-		$stylekit_json['internal-data']['image-locations'] = array(
+		$stylekit_json['internal_data']['image_locations'] = array(
 			array(
 				'path' => $temp_directory_path . 'assets/images/',
 				'url'  => $temp_directory_url . 'assets/images/',
@@ -1247,7 +1252,7 @@ class Layers_StyleKit_Exporter {
 			}
 		}
 		if ( !empty( $image_array ) ) {
-			$stylekit_json['internal-data']['images-on-disk'] = $image_array;
+			$stylekit_json['internal_data']['images_on_disk'] = $image_array;
 		}
 		
 		
@@ -1619,13 +1624,13 @@ class Layers_StyleKit_Exporter {
 		if ( isset( $stylekit_json['pages'] ) ) {
 			
 			// Prep internal data for collection page id's
-			if ( !isset( $stylekit_json['internal-data']['page-ids'] ) ) {
-				$stylekit_json['internal-data']['page-ids'] = array();
+			if ( !isset( $stylekit_json['internal_data']['page_ids'] ) ) {
+				$stylekit_json['internal_data']['page_ids'] = array();
 			}
 			
 			// Set locations to search for images during 'create_builder_page_from_preset'
-			if ( isset( $stylekit_json['internal-data']['image-locations'] ) ){
-				foreach ( $stylekit_json['internal-data']['image-locations'] as $image_location ) {
+			if ( isset( $stylekit_json['internal_data']['image_locations'] ) ){
+				foreach ( $stylekit_json['internal_data']['image_locations'] as $image_location ) {
 					$this->check_image_locations = $image_location;
 				}
 				add_filter( 'layers_check_image_locations', array( $this, 'check_image_locations' ) );
@@ -1646,7 +1651,7 @@ class Layers_StyleKit_Exporter {
 					
 					$stylekit_json['pages'][$page_slug]['status'] = 'done';
 					
-					$stylekit_json['internal-data']['page-ids'][] = $result['post_id'];
+					$stylekit_json['internal_data']['page_ids'][] = $result['post_id'];
 					
 					break;
 				}
@@ -1656,17 +1661,17 @@ class Layers_StyleKit_Exporter {
 			if ( !empty( $this->migrator->images_in_widgets ) ){
 				
 				// Get the existing images_in_widgets.
-				$images_in_widgets = ( isset( $stylekit_json['internal-data']['images-in-widgets'] ) ) ? $stylekit_json['internal-data']['images-in-widgets'] : array();
+				$images_in_widgets = ( isset( $stylekit_json['internal_data']['images_in_widgets'] ) ) ? $stylekit_json['internal_data']['images_in_widgets'] : array();
 				
 				// Merge it with new images_in_widgets.
 				$images_in_widgets = array_merge( $this->migrator->images_in_widgets, $images_in_widgets );
 				
 				// Re-set the new images_in_widgets.
-				$stylekit_json['internal-data']['images-in-widgets'] = $images_in_widgets;
+				$stylekit_json['internal_data']['images_in_widgets'] = $images_in_widgets;
 			}
 			
 			if ( !empty( $this->migrator->images_report ) ){
-				$stylekit_json['internal-data']['images-report'] = $this->migrator->images_report;
+				$stylekit_json['internal_data']['images_report'] = $this->migrator->images_report;
 			}
 			
 		}
@@ -1690,14 +1695,14 @@ class Layers_StyleKit_Exporter {
 		 * Import Images
 		 */
 		
-		$images_in_widgets = ( isset( $stylekit_json['internal-data']['images-in-widgets'] ) ) ? $stylekit_json['internal-data']['images-in-widgets'] : array() ;
-		$images_on_disk = ( isset( $stylekit_json['internal-data']['images-on-disk'] ) ) ? $stylekit_json['internal-data']['images-on-disk'] : array() ;
-		$pages = ( isset( $stylekit_json['internal-data']['page-ids'] ) ) ? $stylekit_json['internal-data']['page-ids'] : array() ;
+		$images_in_widgets = ( isset( $stylekit_json['internal_data']['images_in_widgets'] ) ) ? $stylekit_json['internal_data']['images_in_widgets'] : array() ;
+		$images_on_disk = ( isset( $stylekit_json['internal_data']['images_on_disk'] ) ) ? $stylekit_json['internal_data']['images_on_disk'] : array() ;
+		$pages = ( isset( $stylekit_json['internal_data']['page_ids'] ) ) ? $stylekit_json['internal_data']['page_ids'] : array() ;
 			
 		// Loop images
 		foreach ( $images_in_widgets as $image_name => $image_array ) {
 			
-			if( array_key_exists( $image_name, $images_on_disk ) ){
+			if( array_key_exists( $image_name, $images_on_disk ) && !isset( $stylekit_json['internal_data']['images_on_disk'][$image_name]['status'] ) ){
 				
 				// Upload the image and get the ID.
 				$image_id = $this->migrator->get_attachment_id_from_url( media_sideload_image( $images_on_disk[$image_name]['url'], 0 ) );
@@ -1716,14 +1721,14 @@ class Layers_StyleKit_Exporter {
 				}
 				
 				// Mark this image as having been done.
-				$stylekit_json['internal-data']['images-on-disk'][$image_name]['status'] = 'done';
+				$stylekit_json['internal_data']['images_on_disk'][$image_name]['status'] = 'done';
 				
 				// Break so only one image is imported at time.
 				break;
 			}
 			else{
 				// Mark this image as having been done.
-				$stylekit_json['internal-data']['images-on-disk'][$image_name]['status'] = 'done';
+				$stylekit_json['internal_data']['images_on_disk'][$image_name]['status'] = 'done';
 			}
 		}
 		
@@ -1740,20 +1745,9 @@ class Layers_StyleKit_Exporter {
 		
 		$stylekit_json = ( isset( $_POST['stylekit_json'] ) ) ? $_POST['stylekit_json'] : array() ;
 		
-		if ( TRUE ):
-		
-		// Return the StyleKit JSON
-		echo json_encode( array(
-			'stylekit_json' => $stylekit_json,
-			'stylekit_json_pretty' => $this->prettyPrint( json_encode( $stylekit_json ) ),
-		) );
-		
-		die();
-		
-		endif;
-		
-		
 		ob_start();
+		
+		if ( TRUE ) :
 		?>
 		
 		<div class="layers-row">
@@ -1921,6 +1915,10 @@ class Layers_StyleKit_Exporter {
 						<?php _e( 'Customize your Site' , 'layerswp' ) ?>
 					</a>
 					
+					<a class="layers-back-a-step" href="#">
+						&#8592; <?php _e( 'Back' , 'layerswp' ) ?>
+					</a>
+					
 				</div>
 				
 			</div>
@@ -1929,9 +1927,20 @@ class Layers_StyleKit_Exporter {
 		
 		<?php
 		
+		endif ;
+		
+		//echo 'PEEEG!!';
+		
 		$ui = ob_get_clean();
 		
-		echo json_encode( array( 'ui' => $ui ) );
+		// Return the StyleKit JSON
+		echo json_encode( array(
+			'stylekit_json' => $stylekit_json,
+			'stylekit_json_pretty' => $this->prettyPrint( json_encode( $stylekit_json ) ),
+			'ui' => $ui,
+		) );
+		
+		die();
 	}
 	
 	
