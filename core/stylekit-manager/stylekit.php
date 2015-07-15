@@ -15,7 +15,7 @@ class Layers_StyleKit_Exporter {
 	
 	private $control_groups;
 	
-	private $exclude_types_on_save;
+	private $controls_to_exclude;
 	
 	public $check_image_locations;
 	public $check_images;
@@ -40,49 +40,45 @@ class Layers_StyleKit_Exporter {
 	/**
 	*  Construct empty on purpose
 	*/
-
 	private function __construct() {}
 
 	/**
 	*  Init behaves like, and replaces, construct
 	*/
-	
 	public function init() {
 		
 		add_action( 'admin_menu', array( $this, 'layers_stylekit_menu'), 100 );
 		
 		add_action( 'admin_enqueue_scripts', array( $this, 'stylekit_enqueue_script' ) );
 		
-		add_action( 'admin_head', array( $this, 'se179618_admin_head' ) );
-		
-		add_action( 'wp_ajax_your-plugin-upload-action', array( $this, 'se179618_ajax_action' ) );
-		
-		
+		// Export
 		add_action( 'wp_ajax_layers_stylekit_export_ajax', array( $this, 'layers_stylekit_export_ajax' ) );
 		
+		// Import - file drag&drop plupload interface
+		add_action( 'admin_head', array( $this, 'se179618_admin_head' ) );
+		add_action( 'wp_ajax_your-plugin-upload-action', array( $this, 'se179618_ajax_action' ) );
 		
+		// Import - Unpack the zip
 		add_action( 'wp_ajax_layers_stylekit_unpack_ajax', array( $this, 'layers_stylekit_unpack_ajax' ) );
 		
+		// Import - Ajax for each step of the import process
 		add_action( 'wp_ajax_layers_stylekit_import_ajax_step_1', array( $this, 'layers_stylekit_import_ajax_step_1' ) );
 		add_action( 'wp_ajax_layers_stylekit_import_ajax_step_2', array( $this, 'layers_stylekit_import_ajax_step_2' ) );
 		add_action( 'wp_ajax_layers_stylekit_import_ajax_step_3', array( $this, 'layers_stylekit_import_ajax_step_3' ) );
 		add_action( 'wp_ajax_layers_stylekit_import_ajax_step_4', array( $this, 'layers_stylekit_import_ajax_step_4' ) );
 		add_action( 'wp_ajax_layers_stylekit_import_ajax_step_5', array( $this, 'layers_stylekit_import_ajax_step_5' ) );
 		
-		$this->init_vars();
-	}
-	
-	function init_vars() {
-		
 		/**
 		 * Init Vars
 		 */
 		
+		// Init Config so the controls can be used in the StyleKit
 		$this->config = Layers_Customizer_Config::get_instance();
 		
+		// Init Migrator so can be used in the StyleKit
 		$this->migrator = new Layers_Widget_Migrator();
 		
-		// Define groups of Settings that will be used in the Export and Import
+		// Define groups of Settings that will be used in the Export/Import
 		$this->control_groups = array(
 			'header' => array(
 								'title'    => 'Header Settings',
@@ -108,14 +104,19 @@ class Layers_StyleKit_Exporter {
 							),
 		);
 		
-		
-		$this->exclude_types_on_save = array(
+		// Exclude controls of these types while Export/Import
+		$this->controls_to_exclude = array(
 			'layers-seperator',
 			'layers-heading',
 		);
 		
 	}
 	
+	/**
+	 * Get Controls helper.
+	 *
+	 * Used to get specific controls from the layers-controls config.
+	 */
 	function get_controls( $args = array() ){
 		
 		$defaults = array(
@@ -137,15 +138,12 @@ class Layers_StyleKit_Exporter {
 		$controls = array();
 		
 		foreach ( $args['sections'] as $section_key ) {
-			
 			if( isset( $this->config->controls[ $section_key ] ) ){
-				
 				$controls = array_merge( $controls, $this->config->controls[ $section_key ] );
 			}
 		}
 		
 		foreach ( $controls as $control_key => $control ) {
-			
 			if ( in_array( $control[ 'type' ], $args['exclude_types'] ) ) {
 				unset( $controls[ $control_key ] );
 			}
@@ -154,6 +152,9 @@ class Layers_StyleKit_Exporter {
 		return $controls;
 	}
 	
+	/**
+	 * Re-usable checking all interface to use in both Import/Export
+	 */
 	function check_all_ui() {
 		?>
 		<div class="layers-stylekit-import-check-actions">
@@ -803,7 +804,7 @@ class Layers_StyleKit_Exporter {
 																
 																$controls = $this->get_controls( array(
 																	'sections' => $control_group['contains'],
-																	'exclude_types' => $this->exclude_types_on_save,
+																	'exclude_types' => $this->controls_to_exclude,
 																) );
 																
 																$settings_collection = array();
@@ -1092,7 +1093,7 @@ class Layers_StyleKit_Exporter {
 								
 								$controls = $this->get_controls( array(
 									'sections' => $sections_to_get,
-									'exclude_types' => $this->exclude_types_on_save,
+									'exclude_types' => $this->controls_to_exclude,
 								) );
 								
 								foreach ( $controls as $control_key => $control ) {
@@ -2108,7 +2109,7 @@ echo esc_attr( json_encode( $stylekit_json ) );
 								// Get all the controls in the required sections.
 								$controls = $this->get_controls( array(
 									'sections' => $collect_sections_to_get,
-									'exclude_types' => $this->exclude_types_on_save,
+									'exclude_types' => $this->controls_to_exclude,
 								) );
 								?>
 								
