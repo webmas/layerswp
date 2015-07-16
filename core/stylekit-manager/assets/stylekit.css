@@ -67,6 +67,7 @@ p.layers-excerpt{
 	font-size: 16px;
 	line-height: 1.5;
 	border-radius: 2px;
+	background-color: #FCFCFC;
 }
 
 .layers-list.layers-list-complex li label:hover input{

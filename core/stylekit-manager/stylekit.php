@@ -4,10 +4,10 @@
  * Style Kit Export / Import
  */
 
-require_once get_template_directory() . '/core/stylekit-manager/stylekit-import.php';
-require_once get_template_directory() . '/core/stylekit-manager/stylekit-export.php';
-
 class Layers_StyleKit_Exporter {
+	
+	// Global
+	private static $instance; // stores singleton class
 	
 	private $config;
 	
@@ -16,15 +16,6 @@ class Layers_StyleKit_Exporter {
 	private $control_groups;
 	
 	private $controls_to_exclude;
-	
-	public $check_image_locations;
-	public $check_images;
-	
-	public $stored_images;
-	
-	public $count_images;
-
-	private static $instance; // stores singleton class
 	
 	/**
 	*  Get Instance creates a singleton class that's cached to stop duplicate instances
@@ -55,8 +46,8 @@ class Layers_StyleKit_Exporter {
 		add_action( 'wp_ajax_layers_stylekit_export_ajax', array( $this, 'layers_stylekit_export_ajax' ) );
 		
 		// Import - file drag&drop plupload interface
-		add_action( 'admin_head', array( $this, 'se179618_admin_head' ) );
-		add_action( 'wp_ajax_your-plugin-upload-action', array( $this, 'se179618_ajax_action' ) );
+		add_action( 'admin_head', array( $this, 'file_upload_settings' ) );
+		add_action( 'wp_ajax_layers_stylekit_file_upload_ajax', array( $this, 'file_upload_ajax' ) );
 		
 		// Import - Unpack the zip
 		add_action( 'wp_ajax_layers_stylekit_unpack_ajax', array( $this, 'layers_stylekit_unpack_ajax' ) );
@@ -113,10 +104,52 @@ class Layers_StyleKit_Exporter {
 	}
 	
 	/**
+	 * Enqueue Scripts
+	 */
+	
+	function stylekit_enqueue_script() {
+		
+		wp_enqueue_style(
+			'layers-stylekit-export-css',
+			LAYERS_TEMPLATE_URI . '/core/stylekit-manager/assets/stylekit.css',
+			array(
+				'layers-admin'
+			)
+		);
+		
+		wp_enqueue_script(
+			'layers-stylekit-export-js',
+			LAYERS_TEMPLATE_URI . '/core/stylekit-manager/assets/stylekit.js',
+			array(
+				'jquery',
+				'plupload-all',
+				'updates',
+			)
+		);
+	}
+	
+	/**
+	 * Add StyleKit Manager menu item
+	 */
+	
+	function layers_stylekit_menu(){
+		
+		add_submenu_page(
+			'layers-dashboard',
+			__( 'StyleKit Manager' , 'layerswp' ),
+			__( 'StyleKit Manager' , 'layerswp' ),
+			'edit_theme_options',
+			'layers_stylekit_export',
+			array( $this, 'layers_stylekit_export_page' )
+		);
+	}
+	
+	/**
 	 * Get Controls helper.
 	 *
 	 * Used to get specific controls from the layers-controls config.
 	 */
+	
 	function get_controls( $args = array() ){
 		
 		$defaults = array(
@@ -155,6 +188,7 @@ class Layers_StyleKit_Exporter {
 	/**
 	 * Re-usable checking all interface to use in both Import/Export
 	 */
+	
 	function check_all_ui() {
 		?>
 		<div class="layers-stylekit-import-check-actions">
@@ -171,6 +205,7 @@ class Layers_StyleKit_Exporter {
 	 * @param  string $json Un-Pretty Json
 	 * @return string       Pretty Json
 	 */
+	
 	function prettyPrint( $json ) {
 		
 		$result = '';
@@ -199,17 +234,14 @@ class Layers_StyleKit_Exporter {
 						$ends_line_level = NULL;
 						$new_line_level = $level;
 						break;
-
 					case '{': case '[':
 						$level++;
 					case ',':
 						$ends_line_level = $level;
 						break;
-
 					case ':':
 						$post = " ";
 						break;
-
 					case " ": case "\t": case "\n": case "\r":
 						$char = "";
 						$ends_line_level = $new_line_level;
@@ -228,19 +260,11 @@ class Layers_StyleKit_Exporter {
 		return $result;
 	}
 	
-	function layers_stylekit_menu(){
-		
-		add_submenu_page(
-			'layers-dashboard',
-			__( 'StyleKit Manager' , 'layerswp' ),
-			__( 'StyleKit Manager' , 'layerswp' ),
-			'edit_theme_options',
-			'layers_stylekit_export',
-			array( $this, 'layers_stylekit_export_page' )
-		);
-	}
+	/**
+	 * File Upload Settings
+	 */
 	
-	function se179618_admin_head() {
+	function file_upload_settings() {
 		
 		$uploader_options = array(
 			'runtimes'          => 'html5,silverlight,flash,html4',
@@ -264,7 +288,7 @@ class Layers_StyleKit_Exporter {
 			'multi_selection'   => true,
 			'multipart_params' => array(
 				'_ajax_nonce' => '',
-				'action'      => 'your-plugin-upload-action'
+				'action'      => 'layers_stylekit_file_upload_ajax'
 			)
 		);
 		?>
@@ -274,12 +298,20 @@ class Layers_StyleKit_Exporter {
 		<?php
 	}
 	
+	/**
+	 * Change File Upload Mime Types
+	 */
+	
 	function add_allowed_mimes( $mimes ) {
 		$mimes['zip'] = 'application/zip';
 		return $mimes;
 	}
 	
-	function se179618_ajax_action() {
+	/**
+	 * File Upload Ajax
+	 */
+	
+	function file_upload_ajax() {
 		// check ajax nonce
 		check_ajax_referer( __FILE__ );
 
@@ -294,7 +326,7 @@ class Layers_StyleKit_Exporter {
 			   0,
 			   array(
 				  'test_form' => true,
-				  'action' => 'your-plugin-upload-action',
+				  'action' => 'layers_stylekit_file_upload_ajax',
 			   )
 			);
 
@@ -317,34 +349,9 @@ class Layers_StyleKit_Exporter {
 		echo json_encode( $response );
 		exit;
 	}
-
-	function stylekit_enqueue_script() {
-		
-		wp_enqueue_style(
-			'layers-stylekit-export-css',
-			LAYERS_TEMPLATE_URI . '/core/stylekit-manager/assets/stylekit.css',
-			array(
-				'layers-admin'
-			)
-		);
-		
-		wp_enqueue_script(
-			'layers-stylekit-export-js',
-			LAYERS_TEMPLATE_URI . '/core/stylekit-manager/assets/stylekit.js',
-			array(
-				'jquery',
-				'plupload-all',
-				'updates',
-			)
-		);
-	}
 	
 	/**
 	 * ------------------------------------------------------------------
-	 *
-	 *
-	 *
-	 *
 	 *
 	 *
 	 *
@@ -358,44 +365,10 @@ class Layers_StyleKit_Exporter {
 	 *
 	 *
 	 *
-	 *
-	 *
-	 *
-	 *
 	 * ------------------------------------------------------------------
 	 */
 	
 	function layers_stylekit_export_page() {
-		
-		$panels = $this->config->panels;
-		$sections = $this->config->sections;
-		$controls = $this->config->controls;
-		
-		$export_pages = array(
-			array(
-				'title' => __( 'Start', 'layerswp' ),
-				'url' => add_query_arg( array( 'page' => 'layers_stylekit_export' ), admin_url() . 'admin.php' ),
-			),
-			array(
-				'title' => __( 'Choose what to export', 'layerswp' ),
-			),
-			array(
-				'title' => __( 'Done!', 'layerswp' ),
-			),
-		);
-		
-		$import_pages = array(
-			array(
-				'title' => __( 'Start', 'layerswp' ),
-				'url' => add_query_arg( array( 'page' => 'layers_stylekit_export' ), admin_url() . 'admin.php' ),
-			),
-			array(
-				'title' => __( 'Choose what to import', 'layerswp' ),
-			),
-			array(
-				'title' => __( 'Done!', 'layerswp' ),
-			),
-		);
 		
 		$tabs = array(
 			'layers-stylekit-import' => __( 'Import' , 'layerswp' ),
@@ -403,7 +376,6 @@ class Layers_StyleKit_Exporter {
 		);
 
 		$current_tab = ( isset( $_GET['tab'] ) ) ? $_GET['tab'] : 'layers-stylekit-import' ;
-		
 		$current_step = ( isset( $_GET['step'] ) ) ? $_GET['step'] : false ;
 		?>
 		
@@ -456,23 +428,6 @@ class Layers_StyleKit_Exporter {
 					
 				
 				<?php elseif ( 'layers-stylekit-import-step-1' == $current_step ): ?>
-					
-					<?php
-					
-					//add_filter( 'layers_filter_widgets', array( $this, 'search_and_replace_images' ), 10, 2 );
-					
-					//$this->migrator->process_widgets_in_page( array( 169 ) );
-					
-					//$widget_data = json_decode( "{\"obox-layers-builder-169\":{\"layers-widget-slide-19\":{\"show_slider_arrows\":\"on\",\"show_slider_dots\":\"on\",\"slide_time\":\"\",\"slide_height\":\"550\",\"design\":{\"advanced\":{\"customclass\":\"\",\"customcss\":\"\",\"padding\":{\"top\":\"\",\"right\":\"\",\"bottom\":\"\",\"left\":\"\"},\"margin\":{\"top\":\"\",\"right\":\"\",\"bottom\":\"\",\"left\":\"\"}}},\"slide_ids\":\"575\",\"slides\":{\"575\":{\"design\":{\"background\":{\"image\":\"http:\\\/\\\/localhost\\\/layers\\\/layers10\\\/wp-content\\\/uploads\\\/sites\\\/10\\\/2015\\\/06\\\/tile.png\",\"color\":\"#efefef\",\"repeat\":\"repeat\",\"position\":\"center\"},\"featuredimage\":\"\",\"featuredvideo\":\"\",\"imagealign\":\"image-top\",\"fonts\":{\"align\":\"text-center\",\"size\":\"large\",\"color\":\"\"}},\"title\":\"Incredible Application\",\"excerpt\":\"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse vitae massa velit, eu laoreet massa.\",\"link\":\"#\",\"link_text\":\"Purchase Now\"}}},\"layers-widget-column-24\":{\"design\":{\"layout\":\"layout-boxed\",\"gutter\":\"on\",\"fonts\":{\"align\":\"text-center\",\"size\":\"medium\",\"color\":\"\"},\"background\":{\"image\":\"\",\"color\":\"\",\"repeat\":\"no-repeat\",\"position\":\"center\"},\"advanced\":{\"customclass\":\"\",\"customcss\":\"\",\"padding\":{\"top\":\"\",\"right\":\"\",\"bottom\":\"\",\"left\":\"\"},\"margin\":{\"top\":\"\",\"right\":\"\",\"bottom\":\"\",\"left\":\"\"}}},\"title\":\"Unbelievable Features\",\"excerpt\":\"Our services run deep and are backed by over ten years of experience.\",\"column_ids\":\"347,191\",\"columns\":{\"191\":{\"design\":{\"background\":{\"image\":\"\",\"color\":\"\",\"repeat\":\"no-repeat\",\"position\":\"center\"},\"featuredimage\":\"http:\\\/\\\/localhost\\\/layers\\\/layers10\\\/wp-content\\\/uploads\\\/sites\\\/10\\\/2015\\\/06\\\/demo-image.png\",\"featuredvideo\":\"\",\"imagealign\":\"image-top\",\"fonts\":{\"align\":\"text-center\",\"size\":\"medium\",\"color\":\"\"}},\"width\":\"6\",\"title\":\"Your feature title\",\"excerpt\":\"Give us a brief description of the feature that you are promoting. Try keep it short so that it is easy for people to scan your page.\",\"link\":\"\",\"link_text\":\"\"},\"347\":{\"design\":{\"background\":{\"image\":\"\",\"color\":\"\",\"repeat\":\"no-repeat\",\"position\":\"center\"},\"featuredimage\":\"http:\\\/\\\/localhost\\\/layers\\\/layers10\\\/wp-content\\\/uploads\\\/sites\\\/10\\\/2015\\\/06\\\/demo-image.png\",\"featuredvideo\":\"\",\"imageratios\":\"image-no-crop\",\"imagealign\":\"image-top\",\"fonts\":{\"align\":\"text-center\",\"size\":\"medium\",\"color\":\"\"}},\"width\":\"6\",\"title\":\"Your feature title\",\"excerpt\":\"Give us a brief description of the feature that you are promoting. Try keep it short so that it is easy for people to scan your page.\",\"link\":\"\",\"link_text\":\"\"}}},\"layers-widget-slide-20\":{\"show_slider_arrows\":\"on\",\"show_slider_dots\":\"on\",\"slide_time\":\"\",\"slide_height\":\"350\",\"design\":{\"advanced\":{\"customclass\":\"\",\"customcss\":\"\",\"padding\":{\"top\":\"\",\"right\":\"\",\"bottom\":\"\",\"left\":\"\"},\"margin\":{\"top\":\"\",\"right\":\"\",\"bottom\":\"\",\"left\":\"\"}}},\"slide_ids\":\"701\",\"slides\":{\"701\":{\"design\":{\"background\":{\"image\":\"http:\\\/\\\/localhost\\\/layers\\\/layers10\\\/wp-content\\\/uploads\\\/sites\\\/10\\\/2015\\\/06\\\/tile.png\",\"color\":\"#efefef\",\"repeat\":\"repeat\",\"position\":\"center\"},\"featuredimage\":\"\",\"featuredvideo\":\"\",\"imagealign\":\"image-top\",\"fonts\":{\"align\":\"text-center\",\"size\":\"medium\",\"color\":\"\"}},\"title\":\"Purchase for $0.99\",\"excerpt\":\"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse vitae massa velit, eu laoreet massa.\",\"link\":\"#\",\"link_text\":\"Purchase Now\"}}}}}", TRUE );
-					
-					//s($widget_data);
-					
-					//$this->migrator->process_widgets_in_data( $widget_data );
-					
-					// s( $this->migrator->images_in_widgets );
-					// s( $this->migrator->images_report );
-					
-					?>
 					
 					<!-- ------------------------------------
 					
@@ -1395,27 +1350,6 @@ echo esc_attr( json_encode( $stylekit_json ) );
 		}
 	}
 	
-	public function search_and_replace_images( $widgets, $page_id ) {
-		
-		if ( is_array( $this->check_images ) && !empty( $this->check_images ) ){
-			
-			// // Loop through the widgets modify them.
-			// foreach ( $widgets as $widget ) {
-			// 	$widget = $this->migrator->search_and_replace_images_in_widget( $widgets, $this->check_images );
-			// }
-			
-			$widgets = $this->migrator->search_and_replace_images_in_widget( $widgets, $this->check_images );
-			
-		}
-		
-		return $widgets;
-	}
-	
-	public function check_image_locations( $locations ) {
-		$locations[] = $this->check_image_locations;
-		return $locations;
-	}
-	
 	/**
 	 * ------------------------------------------------------------------
 	 *
@@ -1424,15 +1358,7 @@ echo esc_attr( json_encode( $stylekit_json ) );
 	 *
 	 *
 	 *
-	 *
-	 *
-	 *
-	 *
 	 *                            I M P O R T
-	 *
-	 *
-	 *
-	 *
 	 *
 	 *
 	 *
@@ -2251,7 +2177,27 @@ echo esc_attr( json_encode( $stylekit_json ) );
 		
 		die();
 	}
-
+	
+	public function search_and_replace_images( $widgets, $page_id ) {
+		
+		if ( is_array( $this->check_images ) && !empty( $this->check_images ) ){
+			
+			// // Loop through the widgets modify them.
+			// foreach ( $widgets as $widget ) {
+			// 	$widget = $this->migrator->search_and_replace_images_in_widget( $widgets, $this->check_images );
+			// }
+			
+			$widgets = $this->migrator->search_and_replace_images_in_widget( $widgets, $this->check_images );
+			
+		}
+		
+		return $widgets;
+	}
+	
+	public function check_image_locations( $locations ) {
+		$locations[] = $this->check_image_locations;
+		return $locations;
+	}
 }
 
 /**
