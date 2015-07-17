@@ -704,9 +704,7 @@ class Layers_StyleKit_Exporter {
 									
 									<div class="layers-column layers-span-8 layers-panel">
 										
-										<form class="layers-stylekit-form layers-stylekit-form-export" action=""  method="post">
-											
-											<input type="hidden" name="action" value="layers_stylekit_export_ajax">
+										<form class="layers-stylekit-form layers-stylekit-form-export" action="" method="post">
 											
 											<div class="layers-row layers-push-top ">
 													
@@ -739,6 +737,7 @@ class Layers_StyleKit_Exporter {
 														<input type="text" name="layers-stylekit-name" value="<?php echo esc_attr( $theme_name ); ?>" placeholder="<?php echo esc_attr( $theme_name ); ?>">
 													</div>
 												</div>
+												
 											</div>
 										
 											<div class="layers-row">
@@ -816,6 +815,7 @@ class Layers_StyleKit_Exporter {
 														
 													</div>
 												</div>
+												
 											</div>
 											
 											
@@ -1002,8 +1002,6 @@ class Layers_StyleKit_Exporter {
 		// Ready for us to be able to access filestytem and grab the images.
 		$this->migrator->init_filesystem();
 		
-		$data = "";
-		
 		$stylekit_json = array();
 		
 		ob_start();
@@ -1106,8 +1104,6 @@ class Layers_StyleKit_Exporter {
 								?>
 								<li class="tick ticked-all"><?php count( $page_presets ) ?> <?php echo esc_html( __( 'Pages', 'layerswp' ) ); ?></li>
 								<?php
-								
-								//$stylekit_json['pages'] = $page_presets;
 							}
 							
 							if ( isset( $_POST['layers_css'] ) ) {
@@ -1186,8 +1182,8 @@ class Layers_StyleKit_Exporter {
 							
 							// Compile stylekit.json, put it, then add it to the zip collection.
 							$file_name = "stylekit.json";
-							$wp_filesystem->put_contents( "$export_path$file_name", $stylekit_json ); // Finally, store the file :)
-							$files_to_zip[ "$zip_sanitized_name/$file_name" ] = "$export_path$file_name";
+							$wp_filesystem->put_contents( $export_path . $file_name, $stylekit_json ); // Finally, store the file :)
+							$files_to_zip[$zip_sanitized_name . "/" . $file_name] = $export_path . $file_name;
 							
 							
 							foreach ( $page_presets as $page_preset_key => $page_preset_value ) {
@@ -1197,9 +1193,9 @@ class Layers_StyleKit_Exporter {
 								$widget_data = json_encode( $page_preset_value['widget_data'] );
 								
 								//post_title, widget_data
-								$file_name = "$page_preset_key.json";
-								$wp_filesystem->put_contents( "$export_path$file_name", $widget_data );
-								$files_to_zip["$zip_sanitized_name/$file_name"] = "$export_path$file_name";
+								$file_name = $page_preset_key . ".json";
+								$wp_filesystem->put_contents( $export_path . $file_name, $widget_data );
+								$files_to_zip[$zip_sanitized_name . "/" . $file_name] = $export_path . $file_name;
 							}
 							
 							// Create image assets
@@ -1255,7 +1251,6 @@ class Layers_StyleKit_Exporter {
 		
 		</div>
 		
-		
 		<?php if ( FALSE ) : ?>
 		<form id="layers-stylekit-export-json-results" class="layers-stylekit-form" action=""  method="post">
 			
@@ -1276,7 +1271,7 @@ echo esc_attr( json_encode( $stylekit_json ) );
 }
 ?></textarea>
 					</div>
-							
+					
 				</div>
 			</div>
 		</form>

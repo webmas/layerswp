@@ -627,7 +627,7 @@
 			// Ajax to export StyleKit
 			$.post(
 				ajaxurl,
-				$( 'form.layers-stylekit-form-export' ).serialize(), // Convert form data to json
+				$( 'form.layers-stylekit-form-export' ).serialize() + '&action=layers_stylekit_export_ajax', // Convert form data to json
 				function( response ){
 					
 					$('.layers-stylekit-export-step-1 .layers-stylekit-slide-3').append( response.ui );
