@@ -58,11 +58,11 @@ class Layers_StyleKit_Exporter {
 		add_action( 'wp_ajax_layers_stylekit_unpack_ajax', array( $this, 'layers_stylekit_unpack_ajax' ) );
 		
 		// Import - Ajax for each step of the import process
-		add_action( 'wp_ajax_layers_stylekit_import_ajax_step_1', array( $this, 'layers_stylekit_import_ajax_step_1' ) );
 		add_action( 'wp_ajax_layers_stylekit_import_ajax_step_2', array( $this, 'layers_stylekit_import_ajax_step_2' ) );
 		add_action( 'wp_ajax_layers_stylekit_import_ajax_step_3', array( $this, 'layers_stylekit_import_ajax_step_3' ) );
 		add_action( 'wp_ajax_layers_stylekit_import_ajax_step_4', array( $this, 'layers_stylekit_import_ajax_step_4' ) );
 		add_action( 'wp_ajax_layers_stylekit_import_ajax_step_5', array( $this, 'layers_stylekit_import_ajax_step_5' ) );
+		add_action( 'wp_ajax_layers_stylekit_import_ajax_step_6', array( $this, 'layers_stylekit_import_ajax_step_6' ) );
 		
 		/**
 		 * Init Vars
@@ -145,7 +145,7 @@ class Layers_StyleKit_Exporter {
 			__( 'StyleKit Manager' , 'layerswp' ),
 			'edit_theme_options',
 			'layers_stylekit_export',
-			array( $this, 'layers_stylekit_export_page' )
+			array( $this, 'layers_stylekit_manager_page' )
 		);
 	}
 	
@@ -355,25 +355,7 @@ class Layers_StyleKit_Exporter {
 		exit;
 	}
 	
-	/**
-	 * ------------------------------------------------------------------
-	 *
-	 *
-	 *
-	 *
-	 *
-	 *
-	 *                            E X P O R T
-	 *
-	 *
-	 *
-	 *
-	 *
-	 *
-	 * ------------------------------------------------------------------
-	 */
-	
-	function layers_stylekit_export_page() {
+	function layers_stylekit_manager_page() {
 		
 		$tabs = array(
 			'layers-stylekit-import' => __( 'Import' , 'layerswp' ),
@@ -431,7 +413,6 @@ class Layers_StyleKit_Exporter {
 						</div>
 					</div>
 					
-				
 				<?php elseif ( 'layers-stylekit-import-step-1' == $current_step ): ?>
 					
 					<!-- ------------------------------------
@@ -875,7 +856,7 @@ class Layers_StyleKit_Exporter {
 											}
 											?>
 											
-													<div class="layers-row">
+											<div class="layers-row">
 												
 												<div class="layers-column layers-span-4 layers-content">
 													<h3 class="layers-heading">Custom CSS</h3>
@@ -901,19 +882,19 @@ class Layers_StyleKit_Exporter {
 												
 											</div>
 											
-													<div class="layers-alert">
-																
-														<span class="layers-stylekit-confrim">
-															<label>
-																<input type="checkbox" name="layers-stylekit-export-confirm-permission" />
-																Please confirm you have permission to distribute images enclosed in your StyleKit
-															</label>
-															<a class="more-info" href="#" target="blank">(more info)</a>
-														</span>
-															
-													</div>
+											<div class="layers-alert">
+														
+												<span class="layers-stylekit-confrim">
+													<label>
+														<input type="checkbox" name="layers-stylekit-export-confirm-permission" />
+														Please confirm you have permission to distribute images enclosed in your StyleKit
+													</label>
+													<a class="more-info" href="#" target="blank">(more info)</a>
+												</span>
 													
-													<div id="layers-stylekit-export-action-row" class="layers-button-well layers-button-well-content-NOT">
+											</div>
+											
+											<div id="layers-stylekit-export-action-row" class="layers-button-well layers-button-well-content-NOT">
 												<input type="submit" id="layers-stylekit-export-action" class="layers-button btn-large btn-primary layers-pull-right" value="Export StyleKit" >
 											</div>
 											
@@ -984,6 +965,16 @@ class Layers_StyleKit_Exporter {
 							</div>
 				
 						</div>
+						
+						<!-- Debugging Textarea -->
+						<div class="layers-row layers-push-top NOT-layers-hide">
+							<div class="layers-column layers-span-12">
+								<div class="json-code">
+									<textarea name="layers-stylekit-export-stylekit-prettyprint"></textarea>
+								</div>
+							</div>
+						</div>
+						<!-- /Debugging Textarea -->
 					
 					</div>
 					
@@ -996,6 +987,24 @@ class Layers_StyleKit_Exporter {
 	}
 	
 	/**
+	 * ------------------------------------------------------------------
+	 *
+	 *
+	 *
+	 *
+	 *
+	 *
+	 *                            E X P O R T
+	 *
+	 *
+	 *
+	 *
+	 *
+	 *
+	 * ------------------------------------------------------------------
+	 */
+	
+	/**
 	 * Ajax for Export Child Theme
 	 */
 	
@@ -1003,6 +1012,8 @@ class Layers_StyleKit_Exporter {
 		
 		//if( !check_ajax_referer( 'layers-backup-pages', 'layers_backup_pages_nonce', false ) ) die( 'You threw a Nonce exception' ); // Nonce
 		//if( ! isset( $_POST[ 'pageid' ] ) ) wp_die( __( 'You shall not pass' , 'layerswp' ) );
+		
+		$backup_settings_only = isset( $_POST['backup_settings_only'] );
 		
 		// Ready for us to be able to access filestytem and grab the images.
 		$this->migrator->init_filesystem();
@@ -1018,226 +1029,223 @@ class Layers_StyleKit_Exporter {
 			
 				<div class="layers-row">
 					
-			<div class="layers-column layers-span-4 layers-content">
-					
-				<div class="stylekit-statement-holder">
-					<i class="layers-button-icon-dashboard"></i>
-				</div>
-				
-			</div>
-			<div class="layers-column layers-span-8 layers-content">
-				
-				<div class="stylekit-statement">
-					
-					<div class="layers-section-title layers-small">
-						<h3 class="layers-heading">Your StyleKit is ready!</h3>
+					<div class="layers-column layers-span-4 layers-content">
+							
+						<div class="stylekit-statement-holder">
+							<i class="layers-button-icon-dashboard"></i>
+						</div>
+						
 					</div>
-					
-					<div class="layers-panel layers-push-bottom" style="display: none;">
-						<ul class="layers-list">
+					<div class="layers-column layers-span-8 layers-content">
+						
+						<div class="stylekit-statement">
 							
-							<?php
-							if ( isset( $_POST['layers_settings_groups'] ) ) {
-								
-								$chosen_settings_groups = $_POST['layers_settings_groups'];
-								
-								$sections_to_get = array();
-								
-								foreach ( $chosen_settings_groups as $chosen_settings_group ) {
-									$sections_to_get = array_merge( $this->control_groups[ $chosen_settings_group ][ 'contains' ], $sections_to_get );
-								}
-								
-								$stylekit_json['settings'] = array();
-								
-								$controls = $this->get_controls( array(
-									'sections' => $sections_to_get,
-									'exclude_types' => $this->controls_to_exclude,
-								) );
-								
-								foreach ( $controls as $control_key => $control ) {
-									
-									// @TODO: write a get field data function that does all this
-									// @TODO: perhaps also a get_field_name that looks at type and gets either the lable or subtitle as a result
-									
-									$name = '';
-									if ( isset( $control['subtitle'] ) ) $name = $control['subtitle'];
-									if ( '' == $name && isset(  $control['label'] ) ) $name = $control['label'];
-									
-									$stylekit_json['settings'][ LAYERS_THEME_SLUG . '-' . $control_key ] = array(
-										'title'   => $name,
-										'type'    => $control['type'],
-										'value'   => layers_get_theme_mod( $control_key, FALSE ),
-										'default' => layers_get_default( $control_key ),
-									);
-								}
-								?>
-								<li class="tick ticked-all"><?php _e( 'Settings', 'layerswp' ) ?></li>
-								<?php
-							}
+							<div class="layers-section-title layers-small">
+								<h3 class="layers-heading">Your StyleKit is ready!</h3>
+							</div>
 							
-							if ( isset( $_POST['layers_pages'] ) ) {
-								
-								$chosen_pages = $_POST['layers_pages'];
-								
-								// Start preset page bucket
-								$page_presets = array();
-								
-								$builder_pages = layers_get_builder_pages();
-								
-								$theme_name = esc_html( str_replace( ' ' , '_' , strtolower( get_bloginfo( 'name' ) ) ) );
-								$theme_lang_slug = 'layers-' . esc_html( str_replace( ' ' , '-' , strtolower( get_bloginfo( 'name' ) ) ) );
-								
-								foreach ( $builder_pages as $page ) {
+							<div class="layers-panel layers-push-bottom" style="display: none;">
+								<ul class="layers-list">
 									
-									if ( !in_array( $page->ID, $chosen_pages ) ) continue;
+									<?php
+									if ( isset( $_POST['layers_settings_groups'] ) || $backup_settings_only ) {
+										
+										$sections_to_get = array();
+										
+										if ( $backup_settings_only ) {
+											
+											foreach ( $this->control_groups as $control_group_key => $control_group ) {
+												$sections_to_get = array_merge( $control_group[ 'contains' ], $sections_to_get );
+											}
+										}
+										elseif ( isset( $_POST['layers_settings_groups'] ) ) {
+											
+											$chosen_settings_groups = $_POST['layers_settings_groups'];
+										
+											foreach ( $chosen_settings_groups as $chosen_settings_group ) {
+												$sections_to_get = array_merge( $this->control_groups[ $chosen_settings_group ][ 'contains' ], $sections_to_get );
+											}
+										}
+										
+										$controls = $this->get_controls( array(
+											'sections' => $sections_to_get,
+											'exclude_types' => $this->controls_to_exclude,
+										) );
+										
+										if ( !empty( $controls ) ) {
+											
+											$stylekit_json['settings'] = array();
+											
+											foreach ( $controls as $control_key => $control ) {
+												
+												// @TODO: write a get field data function that does all this
+												// @TODO: perhaps also a get_field_name that looks at type and gets either the lable or subtitle as a result
+												
+												$name = '';
+												if ( isset( $control['subtitle'] ) ) $name = $control['subtitle'];
+												if ( '' == $name && isset(  $control['label'] ) ) $name = $control['label'];
+												
+												$stylekit_json['settings'][ LAYERS_THEME_SLUG . '-' . $control_key ] = array(
+													'title'   => $name,
+													'type'    => $control['type'],
+													'value'   => layers_get_theme_mod( $control_key, FALSE ),
+													'default' => layers_get_default( $control_key ),
+												);
+											}
+										}
+										?>
+										<li class="tick ticked-all"><?php _e( 'Settings', 'layerswp' ) ?></li>
+										<?php
+									}
 									
-									//$preset_name = $theme_name . '-' . $page->post_name;
-									//$post_title = esc_html( get_bloginfo( 'name' ) . '-' . esc_attr( $page->post_title ) );
+									if ( isset( $_POST['layers_pages'] ) ) {
+										
+										$chosen_pages = ( isset( $_POST['layers_pages'] ) ) ? $_POST['layers_pages'] : array() ;
+										
+										// Start preset page bucket
+										$page_presets = array();
+										
+										$builder_pages = layers_get_builder_pages();
+										
+										$theme_name = esc_html( str_replace( ' ' , '_' , strtolower( get_bloginfo( 'name' ) ) ) );
+										$theme_lang_slug = 'layers-' . esc_html( str_replace( ' ' , '-' , strtolower( get_bloginfo( 'name' ) ) ) );
+										
+										foreach ( $builder_pages as $page ) {
+											if ( in_array( $page->ID, $chosen_pages ) ) {
+												
+												//$preset_name = $theme_name . '-' . $page->post_name;
+												//$post_title = esc_html( get_bloginfo( 'name' ) . '-' . esc_attr( $page->post_title ) );
+												
+												$page_presets[ $page->post_name ] = array(
+													'post_title' => esc_html( get_bloginfo( 'name' ) . '-' . esc_attr( $page->post_title ) ),
+													'widget_data' => $this->migrator->export_data( $page ),
+												);
+											}
+										}
+										
+										?>
+										<li class="tick ticked-all"><?php count( $page_presets ) ?> <?php echo esc_html( __( 'Pages', 'layerswp' ) ); ?></li>
+										<?php
+									}
 									
-									$page_presets[ $page->post_name ] = array(
-										'post_title' => esc_html( get_bloginfo( 'name' ) . '-' . esc_attr( $page->post_title ) ),
-										'widget_data' => $this->migrator->export_data( $page ),
-									);
+									if ( isset( $_POST['layers_css'] ) || $backup_settings_only ) {
+										
+										$stylekit_json['css'] = layers_get_theme_mod( 'custom-css' );
+										
+										?>
+										<li class="tick ticked-all"><?php _e( 'Custom CSS', 'layerswp' ); ?></li>
+										<?php
+									}
 									
 									/*
+									 * Check that the user has write permission on a folder
+									 */
+									$access_type = get_filesystem_method();
+									
+									if ( $access_type === 'direct' ) {
+										
+										/* you can safely run request_filesystem_credentials() without any issues and don't need to worry about passing in a URL */
+										$creds = request_filesystem_credentials( site_url() . '/wp-admin/', '', false, false, array() );
+
+										/* initialize the API */
+										if ( ! WP_Filesystem($creds) ) {
+											
+											/* any problems and we exit */
+											return false;
+										}
+										
+										// echo 'you can write files!';
+										global $wp_filesystem;
+									}
+									else {
+										
+										/* don't have direct write access. Prompt user with our notice */
+										add_action( 'admin_notice', "You don't have the file writing permession that you need create this zip" );
+									}
+									
+									$zip_name = isset( $_POST[ 'layers-stylekit-name' ] ) ? $_POST[ 'layers-stylekit-name' ] : str_replace( ' ' , '-' , get_bloginfo( 'name' ) ) /* incase input is emptied by mistake */ ;
+									$zip_sanitized_name = sanitize_title_with_dashes( $zip_name );
+									
+									
+									// Stash CSS in uploads directory
+									//$upload_dir = wp_upload_dir(); // Grab uploads folder array
+									//$dir = trailingslashit( $upload_dir['basedir'] ) . 'some-folder/'; // Set storage directory path
+									
+									/* replace the 'direct' absolute path with the Filesystem API path */
+									$plugin_path = str_replace( ABSPATH, $wp_filesystem->abspath(), LAYERS_TEMPLATE_DIR );
+									$export_path = $plugin_path . '/export/';
+									$download_path = LAYERS_TEMPLATE_URI . '/export/';
+
+									/* Now we can use $plugin_path in all our Filesystem API method calls */
+									if( ! $wp_filesystem->is_dir( $export_path ) ) {
+										
+										/* directory didn't exist, so let's create it */
+										$wp_filesystem->mkdir( $export_path );
+									}
+									
+									// Add Extra Info to the JSON
+									global $wp_version;
+									$stylekit_json[ 'info' ] = array();
+									$stylekit_json[ 'info' ][ 'layers-version' ] = LAYERS_VERSION;
+									$stylekit_json[ 'info' ][ 'php-version' ] = phpversion();
+									$stylekit_json[ 'info' ][ 'wp-version' ] = $wp_version;
+									
+									// Prettyfy the JSON
+									//$stylekit_json = $this->prettyPrint( json_encode( $stylekit_json ) );
+									
+									// Compile stylekit.json, put it, then add it to the zip collection.
+									$file_name = "stylekit.json";
+									$wp_filesystem->put_contents( $export_path . $file_name, json_encode( $stylekit_json ) ); // Finally, store the file :)
+									$files_to_zip[$zip_sanitized_name . "/" . $file_name] = $export_path . $file_name;
+									
+									
+									foreach ( $page_presets as $page_preset_key => $page_preset_value ) {
+										
+										// Prettyfy the JSON
+										//$widget_data = $this->prettyPrint( json_encode( $page_preset_value['widget_data'] ) );
+										$widget_data = json_encode( $page_preset_value['widget_data'] );
+										
+										//post_title, widget_data
+										$file_name = $page_preset_key . ".json";
+										$wp_filesystem->put_contents( $export_path . $file_name, $widget_data );
+										$files_to_zip[$zip_sanitized_name . "/" . $file_name] = $export_path . $file_name;
+									}
+									
+									// Create image assets
+									if ( isset( $this->migrator->images_collected ) ) {
+										
+										// if ( !$wp_filesystem->is_dir( $export_path . 'assets/' ) ) $wp_filesystem->mkdir( $export_path . 'assets/' );
+										// if ( !$wp_filesystem->is_dir( $export_path . 'assets/images/' ) ) $wp_filesystem->mkdir( $export_path . 'assets/images/' );
+										
+										foreach ( $this->migrator->images_collected as $image_collected ) {
+											
+											$image_pieces = explode( '/', $image_collected['url'] );
+											$file_name = $image_pieces[count($image_pieces)-1];
+											$files_to_zip["$zip_sanitized_name/assets/images/$file_name"] = $image_collected['path'];
+										}
+									}
+									
+									$wp_filesystem->delete( $export_path . $zip_sanitized_name . '.zip' );
+									$wp_filesystem->delete( $export_path . $zip_sanitized_name );
+									
+									//if true, good; if false, zip creation failed
+									$result = $this->create_zip( $files_to_zip, $export_path . $zip_sanitized_name . '.zip' );
+									
+									$wp_filesystem->delete( $export_path . 'stylekit.json' );
+									
+									$download_uri = $download_path . $zip_sanitized_name . '.zip';
 									?>
-									<li class="tick ticked-all"><?php echo esc_html( __( $post_title ) ) ?></li>
-									<?php
-									*/
-								}
 								
-								?>
-								<li class="tick ticked-all"><?php count( $page_presets ) ?> <?php echo esc_html( __( 'Pages', 'layerswp' ) ); ?></li>
-								<?php
-							}
+								</ul>
+							</div>
 							
-							if ( isset( $_POST['layers_css'] ) ) {
-								
-								$chosen_settings_groups = $_POST['layers_settings_groups'];
-								
-								$sections_to_get = array();
-								
-								foreach ( $chosen_settings_groups as $chosen_settings_group ) {
-									$sections_to_get = array_merge( $this->control_groups[ $chosen_settings_group ][ 'contains' ], $sections_to_get );
-								}
-								
-								$stylekit_json['css'] = layers_get_theme_mod( 'custom-css' );
-								
-								?>
-								<li class="tick ticked-all"><?php _e( 'Custom CSS', 'layerswp' ); ?></li>
-								<?php
-							}
+							<a class="layers-button btn-large btn-primary layers-pull-right-NOT" download="<?php echo $zip_sanitized_name ?>" href="<?php echo $download_uri ?>" >
+								<?php _e( 'Download StyleKit' , 'layerswp' ) ?>
+							</a>
 							
-							/*
-							 * Check that the user has write permission on a folder
-							 */
-							$access_type = get_filesystem_method();
-							
-							if ( $access_type === 'direct' ) {
-								
-								/* you can safely run request_filesystem_credentials() without any issues and don't need to worry about passing in a URL */
-								$creds = request_filesystem_credentials( site_url() . '/wp-admin/', '', false, false, array() );
-
-								/* initialize the API */
-								if ( ! WP_Filesystem($creds) ) {
-									
-									/* any problems and we exit */
-									return false;
-								}
-								
-								// echo 'you can write files!';
-								global $wp_filesystem;
-							}
-							else {
-								
-								/* don't have direct write access. Prompt user with our notice */
-								add_action( 'admin_notice', "You don't have the file writing permession that you need create this zip" );
-							}
-							
-							$zip_name = isset( $_POST[ 'layers-stylekit-name' ] ) ? $_POST[ 'layers-stylekit-name' ] : str_replace( ' ' , '-' , get_bloginfo( 'name' ) ) /* incase input is emptied by mistake */ ;
-							$zip_sanitized_name = sanitize_title_with_dashes( $zip_name );
-							
-							
-							// Stash CSS in uploads directory
-							//$upload_dir = wp_upload_dir(); // Grab uploads folder array
-							//$dir = trailingslashit( $upload_dir['basedir'] ) . 'some-folder/'; // Set storage directory path
-							
-							/* replace the 'direct' absolute path with the Filesystem API path */
-							$plugin_path = str_replace( ABSPATH, $wp_filesystem->abspath(), LAYERS_TEMPLATE_DIR );
-							$export_path = $plugin_path . '/export/';
-							$download_path = LAYERS_TEMPLATE_URI . '/export/';
-
-							/* Now we can use $plugin_path in all our Filesystem API method calls */
-							if( ! $wp_filesystem->is_dir( $export_path ) ) {
-								
-								/* directory didn't exist, so let's create it */
-								$wp_filesystem->mkdir( $export_path );
-							}
-							
-							// Add Extra Info to the JSON
-							global $wp_version;
-							$stylekit_json[ 'info' ] = array();
-							$stylekit_json[ 'info' ][ 'layers-version' ] = LAYERS_VERSION;
-							$stylekit_json[ 'info' ][ 'php-version' ] = phpversion();
-							$stylekit_json[ 'info' ][ 'wp-version' ] = $wp_version;
-							
-							// Prettyfy the JSON
-							//$stylekit_json = $this->prettyPrint( json_encode( $stylekit_json ) );
-							$stylekit_json = json_encode( $stylekit_json );
-							
-							// Compile stylekit.json, put it, then add it to the zip collection.
-							$file_name = "stylekit.json";
-							$wp_filesystem->put_contents( $export_path . $file_name, $stylekit_json ); // Finally, store the file :)
-							$files_to_zip[$zip_sanitized_name . "/" . $file_name] = $export_path . $file_name;
-							
-							
-							foreach ( $page_presets as $page_preset_key => $page_preset_value ) {
-								
-								// Prettyfy the JSON
-								//$widget_data = $this->prettyPrint( json_encode( $page_preset_value['widget_data'] ) );
-								$widget_data = json_encode( $page_preset_value['widget_data'] );
-								
-								//post_title, widget_data
-								$file_name = $page_preset_key . ".json";
-								$wp_filesystem->put_contents( $export_path . $file_name, $widget_data );
-								$files_to_zip[$zip_sanitized_name . "/" . $file_name] = $export_path . $file_name;
-							}
-							
-							// Create image assets
-							if ( isset( $this->migrator->images_collected ) ) {
-								
-								// if ( !$wp_filesystem->is_dir( $export_path . 'assets/' ) ) $wp_filesystem->mkdir( $export_path . 'assets/' );
-								// if ( !$wp_filesystem->is_dir( $export_path . 'assets/images/' ) ) $wp_filesystem->mkdir( $export_path . 'assets/images/' );
-								
-								foreach ( $this->migrator->images_collected as $image_collected ) {
-									
-									$image_pieces = explode( '/', $image_collected['url'] );
-									$file_name = $image_pieces[count($image_pieces)-1];
-									$files_to_zip["$zip_sanitized_name/assets/images/$file_name"] = $image_collected['path'];
-								}
-							}
-							
-							$wp_filesystem->delete( $export_path . $zip_sanitized_name . '.zip' );
-							$wp_filesystem->delete( $export_path . $zip_sanitized_name );
-							
-							//if true, good; if false, zip creation failed
-							$result = $this->create_zip( $files_to_zip, $export_path . $zip_sanitized_name . '.zip' );
-							
-							$wp_filesystem->delete( $export_path . 'stylekit.json' );
-							
-							$download_uri = $download_path . $zip_sanitized_name . '.zip';
-							?>
-						
-						</ul>
+						</div>
 					</div>
-					
-					<a class="layers-button btn-large btn-primary layers-pull-right-NOT" download="<?php echo $zip_sanitized_name ?>" href="<?php echo $download_uri ?>" >
-						<?php _e( 'Download StyleKit' , 'layerswp' ) ?>
-					</a>
-					
 				</div>
-			</div>
-		</div>
 		
 			</div>
 			<div class="layers-column layers-span-4 no-gutter">
@@ -1285,9 +1293,12 @@ echo esc_attr( json_encode( $stylekit_json ) );
 		
 		$ui = ob_get_clean();
 		
+		// Return
 		echo json_encode( array(
 			'download_uri' => $download_path . $zip_sanitized_name . '.zip',
 			'ui' => $ui,
+			'stylekit_json' => $stylekit_json,
+			'stylekit_json_pretty' => $this->prettyPrint( json_encode( $stylekit_json ) ),
 		) );
 		
 		die();
@@ -1733,8 +1744,18 @@ echo esc_attr( json_encode( $stylekit_json ) );
 	function layers_stylekit_import_ajax_step_1() {
 		
 		/**
+		 * @TODO backup the current settings so that can be rolled back.
+		 */
+		
+		$stylekit_json = ( isset( $_POST['layers-settings-stylekit'] ) ) ? stripslashes( $_POST['layers-settings-stylekit'] ) : '' ;
+	}
+	
+	function layers_stylekit_import_ajax_step_2() {
+		
+		/**
 		 * Modify Stylekit Json - so that only the chosen elements prevail.
 		 */
+		
 		
 		// Get and decode json.
 		$stylekit_json = ( isset( $_POST['layers-stylekit-import-stylekit'] ) ) ? stripslashes( $_POST['layers-stylekit-import-stylekit'] ) : '' ;
@@ -1811,7 +1832,7 @@ echo esc_attr( json_encode( $stylekit_json ) );
 		die();
 	}
 	
-	public function layers_stylekit_import_ajax_step_2() {
+	public function layers_stylekit_import_ajax_step_3() {
 		
 		$stylekit_json = ( isset( $_POST['stylekit_json'] ) ) ? $_POST['stylekit_json'] : array() ;
 		
@@ -1849,7 +1870,7 @@ echo esc_attr( json_encode( $stylekit_json ) );
 		die();
 	}
 	
-	public function layers_stylekit_import_ajax_step_3() {
+	public function layers_stylekit_import_ajax_step_4() {
 		
 		$stylekit_json = ( isset( $_POST['stylekit_json'] ) ) ? $_POST['stylekit_json'] : array() ;
 		
@@ -1922,7 +1943,7 @@ echo esc_attr( json_encode( $stylekit_json ) );
 		die();
 	}
 	
-	public function layers_stylekit_import_ajax_step_4() {
+	public function layers_stylekit_import_ajax_step_5() {
 		
 		$stylekit_json = ( isset( $_POST['stylekit_json'] ) ) ? $_POST['stylekit_json'] : array() ;
 		
@@ -1976,7 +1997,7 @@ echo esc_attr( json_encode( $stylekit_json ) );
 		die();
 	}
 	
-	public function layers_stylekit_import_ajax_step_5() {
+	public function layers_stylekit_import_ajax_step_6() {
 		
 		$stylekit_json = ( isset( $_POST['stylekit_json'] ) ) ? $_POST['stylekit_json'] : array() ;
 		

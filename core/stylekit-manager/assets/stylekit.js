@@ -41,7 +41,7 @@
 			// 	type: 'POST',
 			// 	dataType: 'json',
 			// 	url: ajaxurl,
-			// 	data: form_data.push({ action: 'layers_stylekit_import_ajax_step_1' }),
+			// 	data: form_data.push({ action: 'layers_stylekit_import_ajax_step_2' }),
 			// 	success: ajax_step_2,
 			// });
 
@@ -404,12 +404,12 @@
 			reported_image = 0;
 			
 			// Invoke the first step in the Ajax chain.
-			ajax_step_1();
+			layers_stylekit_import_ajax_step_2();
 			
 			return false;
 		});
 		
-		function ajax_step_1() {
+		function layers_stylekit_import_ajax_step_2() {
 			
 			// Get the user to Confirm this operation.
 			// if ( !window.confirm("This StyleKit Import will:\n\n- Change your settings.\n\n- Add 3 pages.\n\n- Add Custom CSS.") ) {
@@ -430,20 +430,20 @@
 			
 			// Collect the form data. Holds the user selections and the whole StyleKit json.
 			//var form_data = $( 'form.layers-stylekit-form-import' ).serializeArray();
-			var form_data = $( 'form.layers-stylekit-form-import' ).serialize() + '&action=layers_stylekit_import_ajax_step_1';
+			var form_data = $( 'form.layers-stylekit-form-import' ).serialize() + '&action=layers_stylekit_import_ajax_step_2';
 			
 			// Ajax
 			$.ajax({
 				type: 'POST',
 				dataType: 'json',
 				url: ajaxurl,
-				//data: form_data.push({ action: 'layers_stylekit_import_ajax_step_1' }),
+				//data: form_data.push({ action: 'layers_stylekit_import_ajax_step_2' }),
 				data: form_data,
-				success: ajax_step_2,
+				success: layers_stylekit_import_ajax_step_3,
 			});
 		}
 		
-		function ajax_step_2( response ) {
+		function layers_stylekit_import_ajax_step_3( response ) {
 			
 			// User Feedback
 			
@@ -464,10 +464,10 @@
 				dataType: 'json',
 				url: ajaxurl,
 				data: {
-					action: 'layers_stylekit_import_ajax_step_2',
+					action: 'layers_stylekit_import_ajax_step_3',
 					stylekit_json: response.stylekit_json,
 				},
-				success: ajax_step_3,
+				success: layers_stylekit_import_ajax_step_4,
 			});
 		}
 		
@@ -476,7 +476,7 @@
 		var reported_page = 0;
 		var page_success_function;
 
-		function ajax_step_3( response ) {
+		function layers_stylekit_import_ajax_step_4( response ) {
 			
 			current_page++;
 			total_pages = 0;
@@ -493,8 +493,8 @@
 			.queue( 800 );
 			
 			// This puts the page import into a loop.
-			if ( current_page >= total_pages ) page_success_function = ajax_step_4;
-			else page_success_function = ajax_step_3;
+			if ( current_page >= total_pages ) page_success_function = layers_stylekit_import_ajax_step_5;
+			else page_success_function = layers_stylekit_import_ajax_step_4;
 			
 			// Debugging
 			console.log( response );
@@ -506,7 +506,7 @@
 				dataType: 'json',
 				url: ajaxurl,
 				data: {
-					action: 'layers_stylekit_import_ajax_step_3',
+					action: 'layers_stylekit_import_ajax_step_4',
 					stylekit_json: response.stylekit_json,
 				},
 				success: page_success_function,
@@ -518,7 +518,7 @@
 		var reported_image = 0;
 		var image_success_function;
 		
-		function ajax_step_4( response ) {
+		function layers_stylekit_import_ajax_step_5( response ) {
 			
 			current_image++;
 			total_images = 0;
@@ -535,8 +535,8 @@
 			.queue( 800 );
 			
 			// This puts the page import into a loop.
-			if ( current_image >= total_images ) image_success_function = ajax_step_5;
-			else image_success_function = ajax_step_4;
+			if ( current_image >= total_images ) image_success_function = layers_stylekit_import_ajax_step_6;
+			else image_success_function = layers_stylekit_import_ajax_step_4;
 			
 			// Debugging
 			console.log( response );
@@ -548,14 +548,14 @@
 				dataType: 'json',
 				url: ajaxurl,
 				data: {
-					action: 'layers_stylekit_import_ajax_step_4',
+					action: 'layers_stylekit_import_ajax_step_5',
 					stylekit_json: response.stylekit_json,
 				},
 				success: image_success_function,
 			});
 		};
 		
-		function ajax_step_5( response ) {
+		function layers_stylekit_import_ajax_step_6( response ) {
 			
 			// User Feedback
 			$.layerswp
@@ -575,15 +575,15 @@
 				dataType: 'json',
 				url: ajaxurl,
 				data: {
-					action: 'layers_stylekit_import_ajax_step_5',
+					action: 'layers_stylekit_import_ajax_step_6',
 					stylekit_json: response.stylekit_json,
 				},
-				success: ajax_step_6,
+				success: layers_stylekit_import_ajax_step_7,
 			});
 		};
 		
 		
-		function ajax_step_6( response ) {
+		function layers_stylekit_import_ajax_step_7( response ) {
 			
 			// Sequence in the chnage of slides and showing of the loader.
 			$.layerswp
@@ -632,6 +632,11 @@
 					
 					$('.layers-stylekit-export-step-1 .layers-stylekit-slide-3').append( response.ui );
 					layers.slider.go_to_slide( 3, $exporter_slides );
+
+					// Debugging
+					console.log( response );
+					$('[name="layers-stylekit-export-stylekit-prettyprint"]').val( response.stylekit_json_pretty );
+
 				},
 				'json'
 			);
