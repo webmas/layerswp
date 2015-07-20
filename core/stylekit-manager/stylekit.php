@@ -17,6 +17,11 @@ class Layers_StyleKit_Exporter {
 	
 	private $controls_to_exclude;
 	
+	
+	private $check_image_locations;
+	
+	private $check_images;
+	
 	/**
 	*  Get Instance creates a singleton class that's cached to stop duplicate instances
 	*/
