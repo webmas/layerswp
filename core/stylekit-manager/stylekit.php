@@ -840,7 +840,7 @@ class Layers_StyleKit_Exporter {
 																		</label>
 																		
 																		<a class="layers-complex-action preview-page" target="blank" href="<?php echo $page_url; ?>">
-																			<span>Preview</span> <i class=" icon-display"></i>
+																			<span><?php _e( 'Preview' , 'layerwp' ) ?></span> <i class=" icon-display"></i>
 																		</a>
 																	</li>
 																	
@@ -2033,141 +2033,42 @@ echo esc_attr( json_encode( $stylekit_json ) );
 					
 					<div class="layers-panel layers-push-bottom">
 						<ul class="layers-list">
-					
+							
 							<?php
-							
-							$collect_results = array(
-								'settings' => array(),
-								'pages' => array(),
-								'css' => array(),
-							);
-							
-							/**
-							 * Settings
-							 */
-							
-							// If user has chosen some settings groups, and there are some settings in the StyleKit
-							if ( isset( $stylekit_json['settings'] ) && ( isset( $_POST['layers_settings_groups'] ) || isset( $_POST['layers-stylekit-import-all'] ) ) ) {
-								
-								// Get all the sections in the groups that the user chose.
-								$collect_sections_to_get = array();
-								foreach ( $this->control_groups as $control_group_key => $control_group ) {
-									if (
-											isset( $control_group['contains'] )
-											&&
-											( isset( $_POST['layers-stylekit-import-all'] ) || in_array( $control_group_key, $_POST['layers_settings_groups'] ) )
-										) {
-										$collect_sections_to_get = array_merge( $control_group['contains'], $collect_sections_to_get );
-									}
-								}
-								
-								// Get all the controls in the required sections.
-								$controls = $this->get_controls( array(
-									'sections' => $collect_sections_to_get,
-									'exclude_types' => $this->controls_to_exclude,
-								) );
+							if ( isset( $stylekit_json['settings'] ) ) {
 								?>
-								
 								<li class="tick ticked-all">
-								
-									Settings
-									
-									<?php
-									
-									// Loop through required controls and save value if it exists in StyleKit settings json.
-									foreach ( $controls as $control_key => $control ) {
-										if( isset( $stylekit_json['settings']['layers-' . $control_key]['value'] ) ){
-											
-											$title = $stylekit_json['settings']['layers-' . $control_key]['title'];
-											$value = $stylekit_json['settings']['layers-' . $control_key]['value'];
-											
-											// Set theme mod
-											set_theme_mod( $control_key, $value );
-											
-											// Collect result so we can display in report
-											$collect_results['settings'][] = '<span title="' . esc_attr( $value ) . '">' . $title . '</span>';
-										}
-									}
-									
-									//echo implode( ', ', $collect_results['settings'] ) . '<br /><br />';
-									?>
-								
+									<?php _e( 'Settings', 'layerswp' ) ?>
 								</li>
-								
 								<?php
 							}
 							
-							/**
-							 * Pages
-							 */
-							
-							// If there are pages in the StyleKit and user has chosen to import some.
-							if ( isset( $stylekit_json['pages'] ) && ( isset( $_POST['layers_pages'] ) || isset( $_POST['layers-stylekit-import-all'] ) ) ) {
-								
-								// Set locations to search for images during 'create_builder_page_from_preset'
-								$this->check_image_locations = array(
-									'path' => $temp_directory_path . 'assets/images/',
-									'url'  => $temp_directory_url . 'assets/images/',
-								);
-								add_filter( 'layers_check_image_locations', array( $this, 'check_image_locations' ) );
-								?>
-								
-								<?php
-								// Add the pages
-								$pages = $stylekit_json['pages'];
-								foreach ( $pages as $page_slug => $page_data ) {
-									if ( isset( $_POST['layers-stylekit-import-all'] ) || in_array( $page_slug, $_POST['layers_pages'] ) ) {
+							if ( isset( $stylekit_json['internal_data']['page_ids'] ) ) {
+								foreach ( $stylekit_json['internal_data']['page_ids'] as $page_id ) {
+									
+									$title = get_the_title( $page_id );
+									$permalink = get_permalink( $page_id );
+									?>
+									<li class="tick ticked-all layers-stylekit-link">
+										<em>"<?php echo $title ?>"</em> <?php _e( 'Page' , 'layerwp' ) ?>
 										
-										$title = ( isset( $page_data[ 'post_title' ] ) ) ? $page_data[ 'post_title' ] : NULL ;
-										$widget_data = ( isset( $page_data[ 'widget_data' ] ) ) ? json_decode( $page_data[ 'widget_data' ], TRUE ) : NULL ;
-										
-										// Import the page
-										$result = $this->migrator->create_builder_page_from_preset( array(
-											'post_title'                => $title,
-											'widget_data'               => $widget_data,
-											'create_new_image_if_name_exists' => TRUE,
-										) );
-										
-										$post_id = $result['post_id'];
-										$permalink = get_permalink( $post_id );
-										
-										// Collect result so we can display in report
-										$collect_results['pages'][] = '<li class="tick layers-stylekit-link">' . __( 'Page:' , 'layerwp' ) . ' <em>' . $title . '</em><a href="' . esc_url( $permalink ) . '" target="blank"><i class=" icon-display"></i></a></li>';
-									}
+										<a class="layers-complex-action preview-page" target="blank" href="<?php echo esc_url( $permalink ) ?>">
+											<span><?php _e( 'Preview' , 'layerwp' ) ?></span> <i class=" icon-display"></i>
+										</a>
+									</li>
+									<?php
 								}
-								echo implode( '', $collect_results['pages'] );
-								
 							}
 							
-							/**
-							 * Custom CSS
-							 */
-							
-							// If there are pages in the StyleKit and user has chosen to import some.
-							if ( isset( $stylekit_json['css'] ) && ( isset( $_POST['layers-stylekit-import-all'] ) || isset( $_POST['layers_css'] ) ) ) {
-								
+							if ( isset( $stylekit_json['css'] ) ) {
 								?>
-								
 								<li class="tick ticked-all">
 									<?php _e( 'Custom CSS', 'layerswp' ) ?>
-									<?php
-									
-									// Set theme mod
-									set_theme_mod( 'layers-custom-css', $stylekit_json['css'] );
-									
-									// Collect result so we can display in report
-									$collect_results['css'] = $stylekit_json['css'];
-									
-									//echo $collect_results['css'] . '<br /><br />';
-									?>
 								</li>
-								
 								<?php
-								
 							}
-							
 							?>
-				
+							
 						</ul>
 					</div>
 					

@@ -387,7 +387,8 @@
 		});
 
 		$( document ).on( 'click', '.layers-back-a-step', function(){
-
+			$('.layers-stylekit-slide-4 .layers-row').remove();
+			
 			layers.slider.go_to_slide( 2, $importer_slides );
 			return false;
 		});

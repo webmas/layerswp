@@ -1697,6 +1697,9 @@ li[id*='accordion-section-layers'] .customize-control.customize-control-image .a
         background: #1E8CBE;
         color: #fff;
     }
+    .btn-primary:focus{
+        color: #fff;
+    }
 
     /*-----------------------*/
     /*- SECONDARY BUTTON ----*/

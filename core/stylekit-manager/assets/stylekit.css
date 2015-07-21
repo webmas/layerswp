@@ -604,11 +604,12 @@ a.preview-page:hover span {
 	float: right;
 	text-decoration: none;
 	color: #E2E2E2;
-	line-height: 18px;
+	line-height: 14px;
 	/* background-color: red; */
 	padding: 10px;
 	margin: -10px -10px;
 	transition: .2s;
+	box-sizing: border-box;
 }
 .stylekit-statement .layers-stylekit-link a:hover{
 	color: #5B4F49;
@@ -630,6 +631,15 @@ a.preview-page:hover span {
 	background-color: #F5F5F5;
 	border: 1px solid rgba(0, 0, 0, 0.04);
 	border-radius: 3px;
+}
+
+.layers-back-a-step {
+    float: right;
+	
+    line-height: 28px;
+    /* background-color: red; */
+    text-decoration: none;
+    color: #B6B6B6;
 }
 
 
