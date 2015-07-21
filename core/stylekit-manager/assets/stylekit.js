@@ -437,7 +437,6 @@
 				type: 'POST',
 				dataType: 'json',
 				url: ajaxurl,
-				//data: form_data.push({ action: 'layers_stylekit_import_ajax_step_2' }),
 				data: form_data,
 				success: layers_stylekit_import_ajax_step_3,
 			});

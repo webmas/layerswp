@@ -1770,20 +1770,31 @@ echo esc_attr( json_encode( $stylekit_json ) );
 		// Modify json so only the chosen previal.
 		if ( isset( $stylekit_json['settings'] ) && ( isset( $_POST['layers_settings_groups'] ) || isset( $_POST['layers-stylekit-import-all'] ) ) ) {
 			
+			$get_sections = array();
+			foreach ( $this->control_groups as $control_group_key => $control_group ) {
+				
+				if (
+					( isset( $_POST['layers_settings_groups'] ) && in_array( $control_group_key, $_POST['layers_settings_groups'] ) )
+					||
+					isset( $_POST['layers-stylekit-import-all'] )
+				) {
+					$get_sections = array_merge( $control_group['contains'], $get_sections );
+				}
+			}
+			
+			$get_controls = $this->get_controls( array( 'sections' => $get_sections ) );
 			foreach ( $stylekit_json['settings'] as $setting_key => $setting ) {
-				if ( isset( $_POST['layers-stylekit-import-all'] ) || in_array( $setting_key, $_POST['layers_settings_groups'] ) ) {
+				if ( array_key_exists( str_replace( LAYERS_THEME_SLUG . '-', '', $setting_key ), $get_controls ) ) {
 					$filtered_settings[ $setting_key ] = $setting;
 				}
 			}
+			
+			$stylekit_json['settings'] = $filtered_settings;
 		}
 		
 		// Unset if none are chosen
-		if ( empty( $filtered_settings ) ){
-			unset( $stylekit_json['settings'] );
-		}
-		else {
-			$stylekit_json['settings'] = $filtered_settings;
-		}
+		if ( empty( $filtered_settings ) ) unset( $stylekit_json['settings'] );
+		
 		
 		/**
 		 * Pages
@@ -1800,15 +1811,13 @@ echo esc_attr( json_encode( $stylekit_json ) );
 					$filtered_pages[ $page_slug ] = $page_data;
 				}
 			}
+			
+			$stylekit_json['pages'] = $filtered_pages;
 		}
 		
 		// Unset if none are chosen
-		if ( empty( $filtered_pages ) ){
-			unset( $stylekit_json['pages'] );
-		}
-		else {
-			$stylekit_json['pages'] = $filtered_pages;
-		}
+		if ( empty( $filtered_pages ) ) unset( $stylekit_json['pages'] );
+		
 		
 		/**
 		 * Custom CSS
@@ -1821,7 +1830,6 @@ echo esc_attr( json_encode( $stylekit_json ) );
 			unset( $stylekit_json['css'] );
 		}
 		
-		$stylekit_json_pretty = $this->prettyPrint( json_encode( $stylekit_json ) );
 		
 		// Return the StyleKit json
 		echo json_encode( array(
@@ -1844,7 +1852,7 @@ echo esc_attr( json_encode( $stylekit_json ) );
 		if ( isset( $stylekit_json['settings'] ) ) {
 			
 			foreach ( $stylekit_json['settings'] as $setting_key => $setting ) {
-					
+				
 				// Set theme mod
 				set_theme_mod( $setting_key, $setting['value'] );
 			}
