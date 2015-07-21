@@ -346,9 +346,7 @@ class Layers_StyleKit_Exporter {
 				$response['attachment'] = array();
 				$response['attachment']['id'] = $id;
 				$response['attachment']['src'] = $src;
-				
 			}
-
 		}
 
 		echo json_encode( $response );
@@ -577,8 +575,10 @@ class Layers_StyleKit_Exporter {
 										global $wp_filesystem;
 										
 										include_once( ABSPATH . '/wp-admin/includes/class-wp-upgrader.php' ); // WordPress's
-										include_once( LAYERS_TEMPLATE_DIR . '/core/stylekit-manager/classes/class-stylekit-installer-skin.php' );
 										include_once( LAYERS_TEMPLATE_DIR . '/core/stylekit-manager/classes/class-stylekit-upgrader.php' );
+										
+										// New
+										include_once( LAYERS_TEMPLATE_DIR . '/core/stylekit-manager/classes/class-stylekit-unpack-new.php' );
 										
 										if ( isset( $_POST['layers-stylekit-source-path'] ) ) {
 											
@@ -1396,8 +1396,10 @@ echo esc_attr( json_encode( $stylekit_json ) );
 		//check_ajax_referer( 'updates' );
 		
 		include_once( ABSPATH . '/wp-admin/includes/class-wp-upgrader.php' );
-		include_once( LAYERS_TEMPLATE_DIR . '/core/stylekit-manager/classes/class-stylekit-installer-skin.php' );
 		include_once( LAYERS_TEMPLATE_DIR . '/core/stylekit-manager/classes/class-stylekit-upgrader.php' );
+		
+		// New
+		include_once( LAYERS_TEMPLATE_DIR . '/core/stylekit-manager/classes/class-stylekit-unpack-new.php' );
 		
 		// $current = get_site_transient( 'update_plugins' );
 		// if ( empty( $current ) ) {

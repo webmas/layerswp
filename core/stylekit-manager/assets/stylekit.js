@@ -4,92 +4,6 @@
 
 	// Check if udpates exists
 	if ( ! wp || ! wp.updates ) return;
-
-	/**
-	 * Send an Ajax request to the server to unpack StyleKit.
-	 * Adapted from WP's - updates.js - wp.updates.updatePlugin()
-	 */
-	wp.updates.updateStyleKit = function( plugin, slug ) {
-		
-		$.layerswp
-		.queue( function(){
-			layers.loader.show_loader();
-		})
-		.queue( 1000 )
-		.queue( function(){
-			layers.loader.add_loader_text( 'Unpacking StyleKit<br />Please wait...' );
-		})
-		.queue( 1000 )
-		.queue( function(){
-			
-			layers.loader.loader_progress( 100 );
-			
-			var data = {
-				package:         $('input[name="layers-stylekit-package"]').val(),
-				_ajax_nonce:     wp.updates.ajaxNonce,
-				plugin:          plugin,
-				slug:            slug,
-				username:        wp.updates.filesystemCredentials.ftp.username,
-				password:        wp.updates.filesystemCredentials.ftp.password,
-				hostname:        wp.updates.filesystemCredentials.ftp.hostname,
-				connection_type: wp.updates.filesystemCredentials.ftp.connectionType,
-				public_key:      wp.updates.filesystemCredentials.ssh.publicKey,
-				private_key:     wp.updates.filesystemCredentials.ssh.privateKey
-			};
-			
-			// $.ajax({
-			// 	type: 'POST',
-			// 	dataType: 'json',
-			// 	url: ajaxurl,
-			// 	data: form_data.push({ action: 'layers_stylekit_import_ajax_step_2' }),
-			// 	success: ajax_step_2,
-			// });
-
-			wp
-			.ajax
-			.post( 'layers_stylekit_unpack_ajax', data )
-			.done( function( response ){
-				
-				/**
-				 * On a StyleKit Unpack success, update the UI appropriately.
-				 * Adapted from WP's - updates.js - wp.updates.updateSuccess()
-				 */
-				
-				$.layerswp
-				.queue( 1000 )
-				.queue( function(){
-					layers.loader.hide_loader();
-				})
-				.queue( 1000 )
-				.queue( function(){
-					
-					$('.layers-stylekit-import-step-2 .layers-stylekit-slide-2').append( response.ui );
-					$('.layers-stylekit-form-import').prepend( response.ui2 );
-					
-					layers.slider.go_to_slide( 2, $importer_slides );
-					
-				});
-				
-			})
-			.fail( function( response ){
-				
-				/**
-				 * On a StyleKit Unpack error, update the UI appropriately.
-				 * Adapted from WP's - updates.js - wp.updates.updateError()
-				 */
-				
-				if ( response.errorCode && response.errorCode == 'unable_to_connect_to_filesystem' ) {
-					wp.updates.credentialError( response, 'update-plugin' );
-					return;
-				}
-				
-				// Feedback
-				$( '.layers-column.layers-span-8' ).append( 'StyleKit Unpack Failed :( <br />' );
-			});
-			
-		});
-	};
-	
 	
 
 	var layers = { loader : {} };
@@ -307,7 +221,80 @@
 
 		// STEP-2 - Unpack the StyleKit Zip
 		if ( $('input[name="layers-stylekit-package"]').val() ) {
-			wp.updates.updateStyleKit();
+			
+			$.layerswp
+			.queue( function(){
+				layers.loader.show_loader();
+			})
+			.queue( 1000 )
+			.queue( function(){
+				layers.loader.add_loader_text( 'Unpacking StyleKit<br />Please wait...' );
+			})
+			.queue( 1000 )
+			.queue( function(){
+				
+				layers.loader.loader_progress( 100 );
+				
+				// Break .zip package location (in the media library, added by the previous page)
+				var $package = $('input[name="layers-stylekit-package"]').val();
+				
+				// Break if no .zip package is location is posted.
+				//if ( '' == $package ) return false;
+				
+				var data = {
+					package:         $('input[name="layers-stylekit-package"]').val(),
+					_ajax_nonce:     wp.updates.ajaxNonce,
+					plugin:          null,
+					slug:            null,
+					username:        wp.updates.filesystemCredentials.ftp.username,
+					password:        wp.updates.filesystemCredentials.ftp.password,
+					hostname:        wp.updates.filesystemCredentials.ftp.hostname,
+					connection_type: wp.updates.filesystemCredentials.ftp.connectionType,
+					public_key:      wp.updates.filesystemCredentials.ssh.publicKey,
+					private_key:     wp.updates.filesystemCredentials.ssh.privateKey
+				};
+
+				wp.ajax
+				.post( 'layers_stylekit_unpack_ajax', data )
+				.done( function( response ){
+					
+					/**
+					 * On a StyleKit Unpack success, update the UI appropriately.
+					 * Adapted from WP's - updates.js - wp.updates.updateSuccess()
+					 */
+					
+					$.layerswp
+					.queue( 1000 )
+					.queue( function(){
+						layers.loader.hide_loader();
+					})
+					.queue( 1000 )
+					.queue( function(){
+						
+						$('.layers-stylekit-import-step-2 .layers-stylekit-slide-2').append( response.ui );
+						$('.layers-stylekit-form-import').prepend( response.ui2 );
+						
+						layers.slider.go_to_slide( 2, $importer_slides );
+						
+					});
+				})
+				.fail( function( response ){
+					
+					/**
+					 * On a StyleKit Unpack error, update the UI appropriately.
+					 * Adapted from WP's - updates.js - wp.updates.updateError()
+					 */
+					
+					if ( response.errorCode && response.errorCode == 'unable_to_connect_to_filesystem' ) {
+						wp.updates.credentialError( response, 'update-plugin' );
+						return;
+					}
+					
+					// Feedback
+					$( '.layers-column.layers-span-8' ).append( 'StyleKit Unpack Failed :( <br />' );
+				});
+				
+			});
 		}
 
 		// @TODO Implement file system access checking later
