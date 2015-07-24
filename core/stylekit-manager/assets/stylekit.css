@@ -67,7 +67,7 @@ p.layers-excerpt{
 	font-size: 16px;
 	line-height: 1.5;
 	border-radius: 2px;
-	background-color: #FCFCFC;
+	background-color: rgb(254, 254, 254);
 }
 
 .layers-list.layers-list-complex li label:hover input{
@@ -196,6 +196,9 @@ p.layers-excerpt{
 	background: #E7E7E7;
 	border: 1px solid #D3D3D3;
 	font-size: 13px;
+	opacity: .5;
+	z-index: 1000;
+	position: relative;
 }
 
 .layers-stylekit-select-group .page-block {
@@ -604,7 +607,7 @@ a.preview-page:hover span {
 	float: right;
 	text-decoration: none;
 	color: #E2E2E2;
-	line-height: 14px;
+	line-height: 18px;
 	/* background-color: red; */
 	padding: 10px;
 	margin: -10px -10px;

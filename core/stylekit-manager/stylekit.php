@@ -47,17 +47,16 @@ class Layers_StyleKit_Exporter {
 		
 		add_action( 'admin_enqueue_scripts', array( $this, 'stylekit_enqueue_script' ) );
 		
-		// Export
+		// Export:
 		add_action( 'wp_ajax_layers_stylekit_export_ajax', array( $this, 'layers_stylekit_export_ajax' ) );
 		
-		// Import - file drag&drop plupload interface
+		// Import:
+		// Drag&Drop plupload interface
 		add_action( 'admin_head', array( $this, 'file_upload_settings' ) );
-		add_action( 'wp_ajax_layers_stylekit_file_upload_ajax', array( $this, 'file_upload_ajax' ) );
-		
-		// Import - Unpack the zip
-		add_action( 'wp_ajax_layers_stylekit_unpack_ajax', array( $this, 'layers_stylekit_unpack_ajax' ) );
-		
-		// Import - Ajax for each step of the import process
+		add_action( 'wp_ajax_layers_stylekit_zip_upload_ajax', array( $this, 'layers_stylekit_zip_upload_ajax' ) );
+		// Unpack the zip
+		add_action( 'wp_ajax_layers_stylekit_zip_unpack_ajax', array( $this, 'layers_stylekit_zip_unpack_ajax' ) );
+		// Ajax for each step of the import process
 		add_action( 'wp_ajax_layers_stylekit_import_ajax_step_2', array( $this, 'layers_stylekit_import_ajax_step_2' ) );
 		add_action( 'wp_ajax_layers_stylekit_import_ajax_step_3', array( $this, 'layers_stylekit_import_ajax_step_3' ) );
 		add_action( 'wp_ajax_layers_stylekit_import_ajax_step_4', array( $this, 'layers_stylekit_import_ajax_step_4' ) );
@@ -293,12 +292,12 @@ class Layers_StyleKit_Exporter {
 			'multi_selection'   => true,
 			'multipart_params' => array(
 				'_ajax_nonce' => '',
-				'action'      => 'layers_stylekit_file_upload_ajax'
+				'action'      => 'layers_stylekit_zip_upload_ajax'
 			)
 		);
 		?>
 		<script type="text/javascript">
-			var global_uploader_options=<?php echo json_encode( $uploader_options ); ?>;
+			var layers_stylekit_uploader_options=<?php echo json_encode( $uploader_options ); ?>;
 		</script>
 		<?php
 	}
@@ -316,24 +315,21 @@ class Layers_StyleKit_Exporter {
 	 * File Upload Ajax
 	 */
 	
-	function file_upload_ajax() {
+	function layers_stylekit_zip_upload_ajax() {
 		// check ajax nonce
 		check_ajax_referer( __FILE__ );
 
 		if( current_user_can( 'upload_files' ) ) {
 			$response = array();
 			
+			// Allow uploading of .zip files
 			add_filter( 'upload_mimes', array( $this, 'add_allowed_mimes' ) );
 
 			// handle file upload
-			$id = media_handle_upload(
-			   'async-upload',
-			   0,
-			   array(
-				  'test_form' => true,
-				  'action' => 'layers_stylekit_file_upload_ajax',
-			   )
-			);
+			$id = media_handle_upload( 'async-upload', 0, array(
+				'test_form' => true,
+				'action'    => 'layers_stylekit_zip_upload_ajax',
+			) );
 
 			// send the file' url as response
 			if( is_wp_error( $id ) ) {
@@ -583,9 +579,9 @@ class Layers_StyleKit_Exporter {
 										if ( isset( $_POST['layers-stylekit-source-path'] ) ) {
 											
 											$file_upload = array(
-												'id' => $_POST['layers-stylekit-source-id'],
-												'package' => $_POST['layers-stylekit-source-path'],
-												'filename' => basename( $_POST['layers-stylekit-source-path'] ),
+												'id'       => $_POST['layers-stylekit-source-id'],					// "219"
+												'package'  => $_POST['layers-stylekit-source-path'],				// "C:\\wamp\\www\\layers/wp-content/uploads/sites/11/2015/07/layers10-1146.zip"
+												'filename' => basename( $_POST['layers-stylekit-source-path'] ),	// "layers10-1146.zip"
 											);
 											
 											$file_upload = (object) $file_upload;
@@ -1387,7 +1383,7 @@ echo esc_attr( json_encode( $stylekit_json ) );
 	 * @see Plugin_Upgrader
 	 */
 	
-	function layers_stylekit_unpack_ajax() {
+	function layers_stylekit_zip_unpack_ajax() {
 		
 		//return json_encode( array( 'test' => 'test' ) );
 		
@@ -1410,12 +1406,9 @@ echo esc_attr( json_encode( $stylekit_json ) );
 		$result = $upgrader->install( $package );
 		
 		if ( is_array( $result ) ) {
-			$unpack_results = $this->get_stylekit_import_advanced_ui( $result['source'] );
-			
-			if ( isset( $unpack_results['ui'] ) ) $result['ui'] = $unpack_results['ui'];
-			if ( isset( $unpack_results['ui2'] ) ) $result['ui2'] = $unpack_results['ui2'];
-			
-			wp_send_json_success( $result );
+			$unpack_results = $this->layers_stylekit_import_options_interface( $result['source'] );
+			$unpack_results = wp_parse_args( $unpack_results, $result );
+			wp_send_json_success( $unpack_results );
 		}
 		else if ( is_wp_error( $result ) ) {
 			$status['error'] = $result->get_error_message();
@@ -1428,7 +1421,7 @@ echo esc_attr( json_encode( $stylekit_json ) );
 		}
 	}
 	
-	function get_stylekit_import_advanced_ui( $source ) {
+	function layers_stylekit_import_options_interface( $source ) {
 		
 		global $wp_filesystem;
 		

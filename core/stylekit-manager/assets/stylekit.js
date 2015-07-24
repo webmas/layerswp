@@ -5,138 +5,6 @@
 	// Check if udpates exists
 	if ( ! wp || ! wp.updates ) return;
 	
-
-	var layers = { loader : {} };
-	
-	layers.loader.show_loader = function(){
-		
-		// Remove any legacy text.
-		layers.loader.remove_loader_text();
-		
-		var $loader_bar = $( '.layers-load-bar' );
-		//$loader_bar.parent().append( $loader_bar );
-		$loader_bar.removeClass( 'layers-hide' ).fadeIn();
-	};
-
-	layers.loader.hide_loader = function(){
-		
-		// Remove any legacy text.
-		layers.loader.remove_loader_text();
-		
-		var $loader = $( '.layers-load-bar' );
-		$('.layers-load-bar-floater').fadeOut(function(){
-			$loader.hide();
-		});
-	};
-	
-	layers.loader.loader_progress = function( $progress ){
-
-		var $loader = $('.layers-load-bar');
-
-		// If loaders hidden the un-hide it
-		if( $loader.hasClass('layers-load-bar-hide') ) {
-			$loader.removeClass('layers-load-bar-hide');
-		}
-
-		// Set the progress bar width
-		$loader.find('.layers-progress').removeClass('zero').css({ width: $progress + '%' });
-
-		// The first time the progress reaches 100% then mark it as done,
-		// and only in a few mili's so it has time to animate.
-		if ( !$loader.hasClass('done') && 100 == $progress ) {
-			setTimeout( function(){
-				$loader.addClass('done');
-			}, 500 );
-		}
-	};
-
-	layers.loader.add_loader_text = function( $text ){
-		
-		var $loader = $( '.layers-load-bar' );
-		var $old_load_text = $loader.find( '.loading-text' );
-		var $load_text = $( '<div class="loading-text loading-text-lead-in">' + $text + '</div>' );
-		
-		if ( $old_load_text.length != 0 ) {
-			$old_load_text.addClass('loading-text-lead-out');
-			setTimeout( function() {
-				$old_load_text.remove();
-			}, 500 );
-		}
-
-		if ( '' == $text || null == $text ) return;
-		
-		$loader.append( $load_text );
-		setTimeout( function() {
-			$load_text.removeClass('loading-text-lead-in');
-		}, 100 );
-
-	};
-
-	layers.loader.remove_loader_text = function(){
-		layers.loader.add_loader_text('');
-	};
-
-	
-
-	layers.slider = {};
-	
-	//layers.loader.loading_text_queue_collection = [];
-	
-	var $uploader_slides = [
-		'.layers-stylekit-import-step-1 .layers-stylekit-slide-1',
-		'.layers-stylekit-import-step-1 .layers-stylekit-slide-2',
-		'.layers-stylekit-import-step-1 .layers-stylekit-slide-3',
-	];
-
-	var $exporter_slides = [
-		'.layers-stylekit-export-step-1 .layers-stylekit-slide-1',
-		'.layers-stylekit-export-step-1 .layers-stylekit-slide-2',
-		'.layers-stylekit-export-step-1 .layers-stylekit-slide-3',
-	];
-
-	var $importer_slides = [
-		'.layers-stylekit-import-step-2 .layers-stylekit-slide-1',
-		'.layers-stylekit-import-step-2 .layers-stylekit-slide-2',
-		'.layers-stylekit-import-step-2 .layers-stylekit-slide-3',
-		'.layers-stylekit-import-step-2 .layers-stylekit-slide-4',
-	];
-
-	layers.slider.go_to_slide = function( $to_slide, $slides_array ){
-
-		var $slide_index = $to_slide - 1;
-		var $slides_array = $slides_array.slice();
-		var $slide_selector = $slides_array.splice( $slide_index, 1 ).join(', ');
-		var $other_slides_selectors = $slides_array.join(', ');
-		var $slide = $( $slide_selector );
-		var $other_slides = $( $other_slides_selectors );
-		var $container = $slide.parent();
-
-		// Bail is already the current slide
-		if ( $slide.hasClass('layers-stylekit-slide-current') ) return false;
-
-		//$container.css({ height: $container.outerHeight() });
-
-		// Fade Out all except current slide
-		$other_slides
-			.removeClass('layers-stylekit-slide-current')
-			.addClass('layers-stylekit-slide-inactive');
-
-		// Move destination slide to the front of the container and fade in
-		$slide
-			.removeClass('layers-stylekit-slide-inactive')
-			.addClass('layers-stylekit-slide-current');
-
-		/*
-		$container.animate({ height: $slide.outerHeight() }, { easing: 'layersEaseInOut', duration: 300, complete: function(){
-			$container.css({ height: ''});
-		}});
-		*/
-
-		// Scroll to top of page, incase of a long slide having been scrolled by user
-		$('html, body').animate({ scrollTop: 0 }, 200 );
-	}
-
-
 	// On document ready
 	$( function() {
 		
@@ -152,7 +20,7 @@
 			var options = false;
 			var container = $( '.layers-stylekit-drop-uploader-ui' );
 
-			options = JSON.parse( JSON.stringify( global_uploader_options ) );
+			options = JSON.parse( JSON.stringify( layers_stylekit_uploader_options ) );
 			options['multipart_params']['_ajax_nonce'] = container.find( '.ajaxnonce' ).attr( 'id' );
 
 			if( container.hasClass( 'multiple' ) ) {
@@ -162,14 +30,12 @@
 			var uploader = new plupload.Uploader( options );
 			uploader.init();
 
-			// EVENTS
-			// init
 			uploader.bind( 'Init', function( up ) {
+				// Init.
 				//console.log( 'Init', up );
-			} );
-
-			// file added
+			});
 			uploader.bind( 'FilesAdded', function( up, files ) {
+				// File added.
 				$.each( files, function( i, file ) {
 					//console.log( 'File Added', i, file );
 				} );
@@ -177,25 +43,21 @@
 				
 				$.layerswp
 				.queue( function(){
-					layers.slider.go_to_slide( 0, $uploader_slides );
-					layers.loader.show_loader();
-					layers.loader.add_loader_text( 'Uploading StyleKit<br />Please wait...' );
+					go_to_slide( 0, $uploader_slides );
+					show_loader();
+					add_loader_text( 'Uploading StyleKit<br />Please wait...' );
 				});
 
 				up.refresh();
 				up.start();
-			} );
-
-			// upload progress
+			});
 			uploader.bind( 'UploadProgress', function( up, file ) {
+				// Upload progress.
 				//console.log( 'Progress', up, file );
-				
-				layers.loader.loader_progress( file['percent'] );
-
-			} );
-
-			// file uploaded
+				loader_progress( file['percent'] );
+			});
 			uploader.bind( 'FileUploaded', function( up, file, response ) {
+				// File uploading done.
 				response = $.parseJSON( response.response );
 
 				if( response['status'] == 'success' ) {
@@ -207,7 +69,7 @@
 					$.layerswp
 					.queue( 1000 )
 					.queue( function(){
-						layers.loader.hide_loader();
+						hide_loader();
 						$('#layers-stylekit-plupload-info-form').submit();
 					});
 				}
@@ -215,8 +77,7 @@
 					//console.log( 'Error', up, file, response );
 				}
 
-			} );
-
+			});
 		}
 
 		// STEP-2 - Unpack the StyleKit Zip
@@ -224,16 +85,16 @@
 			
 			$.layerswp
 			.queue( function(){
-				layers.loader.show_loader();
+				show_loader();
 			})
 			.queue( 1000 )
 			.queue( function(){
-				layers.loader.add_loader_text( 'Unpacking StyleKit<br />Please wait...' );
+				add_loader_text( 'Unpacking StyleKit<br />Please wait...' );
 			})
 			.queue( 1000 )
 			.queue( function(){
 				
-				layers.loader.loader_progress( 100 );
+				loader_progress( 100 );
 				
 				// Break .zip package location (in the media library, added by the previous page)
 				var $package = $('input[name="layers-stylekit-package"]').val();
@@ -255,44 +116,44 @@
 				};
 
 				wp.ajax
-				.post( 'layers_stylekit_unpack_ajax', data )
-				.done( function( response ){
-					
-					/**
-					 * On a StyleKit Unpack success, update the UI appropriately.
-					 * Adapted from WP's - updates.js - wp.updates.updateSuccess()
-					 */
-					
-					$.layerswp
-					.queue( 1000 )
-					.queue( function(){
-						layers.loader.hide_loader();
+					.post( 'layers_stylekit_zip_unpack_ajax', data )
+					.done( function( response ){
+						
+						/**
+						 * On a StyleKit Unpack success, update the UI appropriately.
+						 * Adapted from WP's - updates.js - wp.updates.updateSuccess()
+						 */
+						
+						$.layerswp
+						.queue( 1000 )
+						.queue( function(){
+							hide_loader();
+						})
+						.queue( 1000 )
+						.queue( function(){
+							
+							$('.layers-stylekit-import-step-2 .layers-stylekit-slide-2').append( response.ui );
+							$('.layers-stylekit-form-import').prepend( response.ui2 );
+							
+							go_to_slide( 2, $importer_slides );
+							
+						});
 					})
-					.queue( 1000 )
-					.queue( function(){
+					.fail( function( response ){
 						
-						$('.layers-stylekit-import-step-2 .layers-stylekit-slide-2').append( response.ui );
-						$('.layers-stylekit-form-import').prepend( response.ui2 );
+						/**
+						 * On a StyleKit Unpack error, update the UI appropriately.
+						 * Adapted from WP's - updates.js - wp.updates.updateError()
+						 */
 						
-						layers.slider.go_to_slide( 2, $importer_slides );
+						if ( response.errorCode && response.errorCode == 'unable_to_connect_to_filesystem' ) {
+							wp.updates.credentialError( response, 'update-plugin' );
+							return;
+						}
 						
+						// Feedback
+						$( '.layers-column.layers-span-8' ).append( 'StyleKit Unpack Failed :( <br />' );
 					});
-				})
-				.fail( function( response ){
-					
-					/**
-					 * On a StyleKit Unpack error, update the UI appropriately.
-					 * Adapted from WP's - updates.js - wp.updates.updateError()
-					 */
-					
-					if ( response.errorCode && response.errorCode == 'unable_to_connect_to_filesystem' ) {
-						wp.updates.credentialError( response, 'update-plugin' );
-						return;
-					}
-					
-					// Feedback
-					$( '.layers-column.layers-span-8' ).append( 'StyleKit Unpack Failed :( <br />' );
-				});
 				
 			});
 		}
@@ -376,7 +237,7 @@
 		$( document ).on( 'click', '.layers-back-a-step', function(){
 			$('.layers-stylekit-slide-4 .layers-row').remove();
 			
-			layers.slider.go_to_slide( 2, $importer_slides );
+			go_to_slide( 2, $importer_slides );
 			return false;
 		});
 		
@@ -407,12 +268,12 @@
 			// Sequence in the chnage of slides and showing of the loader.
 			$.layerswp
 			.queue( function(){
-				layers.slider.go_to_slide( 3, $importer_slides );
+				go_to_slide( 3, $importer_slides );
 			})
 			.queue( 800 )
 			.queue( function(){
-				layers.loader.show_loader();
-				layers.loader.add_loader_text( 'Preparing StyleKit<br />Please wait...' );
+				show_loader();
+				add_loader_text( 'Preparing StyleKit<br />Please wait...' );
 			})
 			.queue( 800 );
 			
@@ -436,13 +297,13 @@
 			
 			$.layerswp
 			.queue( function(){
-				layers.loader.show_loader();
-				layers.loader.add_loader_text( 'Importing Settings & CSS<br />Please wait...' );
+				show_loader();
+				add_loader_text( 'Importing Settings & CSS<br />Please wait...' );
 			})
 			.queue( 800 );
 			
 			// Debugging
-			console.log( response );
+			//console.log( response );
 			$('[name="layers-stylekit-import-stylekit-prettyprint"]').val( response.stylekit_json_pretty );
 			
 			// Ajax
@@ -474,8 +335,8 @@
 			.queue( function(){
 				
 				reported_page++;
-				layers.loader.show_loader();
-				layers.loader.add_loader_text( 'Importing Page ' + reported_page + ' of ' + total_pages + '<br />Please wait...' );
+				show_loader();
+				add_loader_text( 'Importing Page ' + reported_page + ' of ' + total_pages + '<br />Please wait...' );
 			})
 			.queue( 800 );
 			
@@ -484,7 +345,7 @@
 			else page_success_function = layers_stylekit_import_ajax_step_4;
 			
 			// Debugging
-			console.log( response );
+			//console.log( response );
 			$('[name="layers-stylekit-import-stylekit-prettyprint"]').val( response.stylekit_json_pretty );
 			
 			// Ajax
@@ -516,8 +377,8 @@
 			.queue( function(){
 				
 				reported_image++;
-				layers.loader.show_loader();
-				layers.loader.add_loader_text( 'Importing Image ' + reported_image + ' of ' + total_images + '<br />Please wait...' );
+				show_loader();
+				add_loader_text( 'Importing Image ' + reported_image + ' of ' + total_images + '<br />Please wait...' );
 			})
 			.queue( 800 );
 			
@@ -526,7 +387,7 @@
 			else image_success_function = layers_stylekit_import_ajax_step_4;
 			
 			// Debugging
-			console.log( response );
+			//console.log( response );
 			$('[name="layers-stylekit-import-stylekit-prettyprint"]').val( response.stylekit_json_pretty );
 			
 			// Ajax
@@ -547,13 +408,13 @@
 			// User Feedback
 			$.layerswp
 			.queue( function(){
-				layers.loader.show_loader();
-				layers.loader.add_loader_text( 'Finishing<br />Thanks for waiting :)' );
+				show_loader();
+				add_loader_text( 'Finishing<br />Thanks for waiting :)' );
 			})
 			.queue( 800 );
 
 			// Debugging
-			console.log( response );
+			//console.log( response );
 			$('[name="layers-stylekit-import-stylekit-prettyprint"]').val( response.stylekit_json_pretty );
 			
 			// Ajax
@@ -576,16 +437,16 @@
 			$.layerswp
 			.queue( 800 )
 			.queue( function(){
-				layers.loader.hide_loader();
+				hide_loader();
 			})
 			.queue( 800 )
 			.queue( function(){
 				$( '.layers-stylekit-import-step-2 .layers-stylekit-slide-4' ).append( response.ui );
-				layers.slider.go_to_slide( 4, $importer_slides );
+				go_to_slide( 4, $importer_slides );
 			});
 			
 			// Debugging
-			console.log( response );
+			//console.log( response );
 			$('[name="layers-stylekit-import-stylekit-prettyprint"]').val( response.stylekit_json_pretty );
 		}
 
@@ -608,8 +469,8 @@
 				return false;
 			}
 			
-			layers.slider.go_to_slide( 2, $exporter_slides );
-			layers.loader.show_loader();
+			go_to_slide( 2, $exporter_slides );
+			show_loader();
 			
 			// Ajax to export StyleKit
 			$.post(
@@ -618,7 +479,7 @@
 				function( response ){
 					
 					$('.layers-stylekit-export-step-1 .layers-stylekit-slide-3').append( response.ui );
-					layers.slider.go_to_slide( 3, $exporter_slides );
+					go_to_slide( 3, $exporter_slides );
 
 					// Debugging
 					console.log( response );
@@ -630,7 +491,139 @@
 			
 			return false;
 		});
+		
+		
+		
+		/**
+		 * Loader functionality
+		 */
+		
+		function show_loader(){
+			
+			// Remove any legacy text.
+			remove_loader_text();
+			
+			var $loader_bar = $( '.layers-load-bar' );
+			//$loader_bar.parent().append( $loader_bar );
+			$loader_bar.removeClass( 'layers-hide' ).fadeIn();
+		};
 
+		function hide_loader(){
+			
+			// Remove any legacy text.
+			remove_loader_text();
+			
+			var $loader = $( '.layers-load-bar' );
+			$('.layers-load-bar-floater').fadeOut(function(){
+				$loader.hide();
+			});
+		};
+		
+		function loader_progress( $progress ){
+
+			var $loader = $('.layers-load-bar');
+
+			// If loaders hidden the un-hide it
+			if( $loader.hasClass('layers-load-bar-hide') ) {
+				$loader.removeClass('layers-load-bar-hide');
+			}
+
+			// Set the progress bar width
+			$loader.find('.layers-progress').removeClass('zero').css({ width: $progress + '%' });
+
+			// The first time the progress reaches 100% then mark it as done,
+			// and only in a few mili's so it has time to animate.
+			if ( !$loader.hasClass('done') && 100 == $progress ) {
+				setTimeout( function(){
+					$loader.addClass('done');
+				}, 500 );
+			}
+		};
+
+		function add_loader_text( $text ){
+			
+			var $loader = $( '.layers-load-bar' );
+			var $old_load_text = $loader.find( '.loading-text' );
+			var $load_text = $( '<div class="loading-text loading-text-lead-in">' + $text + '</div>' );
+			
+			if ( $old_load_text.length != 0 ) {
+				$old_load_text.addClass('loading-text-lead-out');
+				setTimeout( function() {
+					$old_load_text.remove();
+				}, 500 );
+			}
+
+			if ( '' == $text || null == $text ) return;
+			
+			$loader.append( $load_text );
+			setTimeout( function() {
+				$load_text.removeClass('loading-text-lead-in');
+			}, 100 );
+
+		};
+
+		function remove_loader_text(){
+			add_loader_text('');
+		};
+		
+		
+		/**
+		 * Slide Tools
+		 */
+		
+		var $uploader_slides = [
+			'.layers-stylekit-import-step-1 .layers-stylekit-slide-1',
+			'.layers-stylekit-import-step-1 .layers-stylekit-slide-2',
+			'.layers-stylekit-import-step-1 .layers-stylekit-slide-3',
+		];
+
+		var $exporter_slides = [
+			'.layers-stylekit-export-step-1 .layers-stylekit-slide-1',
+			'.layers-stylekit-export-step-1 .layers-stylekit-slide-2',
+			'.layers-stylekit-export-step-1 .layers-stylekit-slide-3',
+		];
+
+		var $importer_slides = [
+			'.layers-stylekit-import-step-2 .layers-stylekit-slide-1',
+			'.layers-stylekit-import-step-2 .layers-stylekit-slide-2',
+			'.layers-stylekit-import-step-2 .layers-stylekit-slide-3',
+			'.layers-stylekit-import-step-2 .layers-stylekit-slide-4',
+		];
+
+		function go_to_slide( $to_slide, $slides_array ){
+
+			var $slide_index = $to_slide - 1;
+			var $slides_array = $slides_array.slice();
+			var $slide_selector = $slides_array.splice( $slide_index, 1 ).join(', ');
+			var $other_slides_selectors = $slides_array.join(', ');
+			var $slide = $( $slide_selector );
+			var $other_slides = $( $other_slides_selectors );
+			var $container = $slide.parent();
+
+			// Bail is already the current slide
+			if ( $slide.hasClass('layers-stylekit-slide-current') ) return false;
+
+			//$container.css({ height: $container.outerHeight() });
+
+			// Fade Out all except current slide
+			$other_slides
+				.removeClass('layers-stylekit-slide-current')
+				.addClass('layers-stylekit-slide-inactive');
+
+			// Move destination slide to the front of the container and fade in
+			$slide
+				.removeClass('layers-stylekit-slide-inactive')
+				.addClass('layers-stylekit-slide-current');
+
+			/*
+			$container.animate({ height: $slide.outerHeight() }, { easing: 'layersEaseInOut', duration: 300, complete: function(){
+				$container.css({ height: ''});
+			}});
+			*/
+
+			// Scroll to top of page, incase of a long slide having been scrolled by user
+			$('html, body').animate({ scrollTop: 0 }, 200 );
+		}
 		
 	} );
 
