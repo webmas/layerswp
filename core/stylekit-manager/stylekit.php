@@ -570,20 +570,19 @@ class Layers_StyleKit_Exporter {
 										<?php
 										global $wp_filesystem;
 										
-										include_once( ABSPATH . '/wp-admin/includes/class-wp-upgrader.php' ); // WordPress's
+										//include_once( ABSPATH . '/wp-admin/includes/class-wp-upgrader.php' ); // WordPress's
+										//include_once( ABSPATH . '/wp-admin/includes/class-wp-upgrader-skins.php' );
+										include_once( LAYERS_TEMPLATE_DIR . '/core/stylekit-manager/classes/class-stylekit-upgrader-skin.php' );
 										include_once( LAYERS_TEMPLATE_DIR . '/core/stylekit-manager/classes/class-stylekit-upgrader.php' );
-										
-										// New
-										include_once( LAYERS_TEMPLATE_DIR . '/core/stylekit-manager/classes/class-stylekit-unpack-new.php' );
 										
 										if ( isset( $_POST['layers-stylekit-source-path'] ) ) {
 											
+											// Backup for those that don't support Plupload Drag&Drop
 											$file_upload = array(
 												'id'       => $_POST['layers-stylekit-source-id'],					// "219"
 												'package'  => $_POST['layers-stylekit-source-path'],				// "C:\\wamp\\www\\layers/wp-content/uploads/sites/11/2015/07/layers10-1146.zip"
 												'filename' => basename( $_POST['layers-stylekit-source-path'] ),	// "layers10-1146.zip"
 											);
-											
 											$file_upload = (object) $file_upload;
 										}
 										else {
@@ -1385,25 +1384,26 @@ echo esc_attr( json_encode( $stylekit_json ) );
 	
 	function layers_stylekit_zip_unpack_ajax() {
 		
-		//return json_encode( array( 'test' => 'test' ) );
-		
+		// Security
+		//check_ajax_referer( 'updates' );
+		// Get the location of the $package .zip
 		$package = urldecode( $_POST['package'] );
 		
-		//check_ajax_referer( 'updates' );
-		
-		include_once( ABSPATH . '/wp-admin/includes/class-wp-upgrader.php' );
+		//include_once( ABSPATH . '/wp-admin/includes/class-wp-upgrader.php' );
+		//include_once( ABSPATH . '/wp-admin/includes/class-wp-upgrader-skins.php' );
+		include_once( LAYERS_TEMPLATE_DIR . '/core/stylekit-manager/classes/class-stylekit-upgrader-skin.php' );
 		include_once( LAYERS_TEMPLATE_DIR . '/core/stylekit-manager/classes/class-stylekit-upgrader.php' );
-		
-		// New
-		include_once( LAYERS_TEMPLATE_DIR . '/core/stylekit-manager/classes/class-stylekit-unpack-new.php' );
 		
 		// $current = get_site_transient( 'update_plugins' );
 		// if ( empty( $current ) ) {
 		// 	wp_update_plugins();
 		// }
 		
-		$upgrader = new StyleKit_Importer_Upgrader( new Automatic_Upgrader_Skin() );
-		$result = $upgrader->install( $package );
+		$upgrader = new StyleKit_Importer_Upgrader();
+		
+		$result = $upgrader->install( $package, array(
+			'clear_update_cache' => true,
+		) );
 		
 		if ( is_array( $result ) ) {
 			$unpack_results = $this->layers_stylekit_import_options_interface( $result['source'] );
@@ -1446,7 +1446,7 @@ echo esc_attr( json_encode( $stylekit_json ) );
 
 		// A proper StyleKit should have at least a stylekit.json file in the single subdirectory.
 		if ( ! file_exists( $temp_directory_path . 'stylekit.json' ) ){
-			return new WP_Error( 'incompatible_stylekit_no_json', $this->strings['incompatible_archive'], __( 'The StyleKit is missing the stylekit.json file.', 'layerswp' ) );
+			return new WP_Error( 'incompatible_stylekit_no_json', __('The package could not be installed.'), __( 'The StyleKit is missing the stylekit.json file.', 'layerswp' ) );
 		}
 		
 		// Get StyleKit Json

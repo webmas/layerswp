@@ -40,7 +40,6 @@
 					//console.log( 'File Added', i, file );
 				} );
 				
-				
 				$.layerswp
 				.queue( function(){
 					go_to_slide( 0, $uploader_slides );
@@ -103,7 +102,7 @@
 				//if ( '' == $package ) return false;
 				
 				var data = {
-					package:         $('input[name="layers-stylekit-package"]').val(),
+					package:         $package,
 					_ajax_nonce:     wp.updates.ajaxNonce,
 					plugin:          null,
 					slug:            null,
