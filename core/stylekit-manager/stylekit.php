@@ -190,6 +190,36 @@ class Layers_StyleKit_Exporter {
 	}
 	
 	/**
+	* Recursively delete a directory
+	*
+	* @param string $dir Directory name
+	* @param boolean $deleteRootToo Delete specified top-level directory as well
+	*/
+	function delete_folder_recursive( $dir, $deleteRootToo = TRUE ) {
+		
+		if( !$dh = @opendir( $dir ) ) {
+			return;
+		}
+		while ( false !== ( $obj = readdir( $dh ) ) ) {
+			if( $obj == '.' || $obj == '..' ) {
+				continue;
+			}
+
+			if ( !@unlink( $dir . '/' . $obj ) ) {
+				unlinkRecursive( $dir.'/'.$obj, true );
+			}
+		}
+		
+		closedir($dh);
+		
+		if ( $deleteRootToo ) {
+			@rmdir( $dir );
+		}
+		
+		return;
+	}
+	
+	/**
 	 * Re-usable checking all interface to use in both Import/Export
 	 */
 	
@@ -1107,8 +1137,8 @@ class Layers_StyleKit_Exporter {
 									
 									// Prep stylekit.json
 									$json_file_name = "stylekit.json";
-									$wp_filesystem->put_contents( $export_path . $json_file_name, json_encode( $stylekit_json ) ); // Finally, store the file :)
-									$files_to_zip[$zip_name . "/" . $json_file_name] = $export_path . $json_file_name;
+									$wp_filesystem->put_contents( "{$export_path}{$json_file_name}", json_encode( $stylekit_json ) ); // Finally, store the file :)
+									$files_to_zip[ "{$zip_name}/{$json_file_name}" ] = "{$export_path}{$json_file_name}";
 									
 									// Prep pages .json's
 									foreach ( $page_presets as $page_preset_key => $page_preset_value ) {
@@ -1144,60 +1174,39 @@ class Layers_StyleKit_Exporter {
 									// If true, good; if false, zip creation failed
 									$zip_file = $this->create_zip( $files_to_zip, "{$export_path}{$zip_file_name}" );
 									
-									// Delete the temp files @TODO - clear out all the temp files
-									$wp_filesystem->delete( $export_path . 'stylekit.json' );
-									
-									
-									
-									
-									/**
-									 * Read the contents of the upload directory. We need the
-									 * path to copy the file and the URL for uploading the file.
-									 */
-									
-									$uploads = wp_upload_dir();
-									$uploads_dir = $uploads['path'];
-									$uploads_url = $uploads['url'];
-									
-									// Copy the file from the root directory to the uploads directory
-									//copy( $zip_file, trailingslashit( $uploads_dir ) . $zip_file_name );
-									
-									// Allow uploading of .zip files
-									add_filter( 'upload_mimes', array( $this, 'add_allowed_mimes' ) );
-									
-									/* Get the URL to the file and grab the file and load
-									 * it into WordPress (and the Media Library)
-									 */
-									$url = trailingslashit( $uploads_url ) . $zip_file_name;
-									
-									
 									// Fake files array
-									$files = array(
-										'async-upload' => array(
-											'name'     => $zip_file_name, //"layers10-NEW.zip"
-											'type'     => 'application/zip', //"application/octet-stream"
-											'tmp_name' => $zip_file, //"C:\wamp\tmp\php3978.tmp"
-											'error'    => 0,
-											'size'     => 100,
-										)
+									$file_array = array(
+										'name'     => $zip_file_name, //"layers10-NEW.zip"
+										'type'     => 'application/zip', //"application/octet-stream"
+										'tmp_name' => $zip_file, //"C:\wamp\tmp\php3978.tmp"
 									);
 									
-									//$zip_file = media_sideload_image( $url, FALSE, $zip_file_name ); // 0 is $post_id
+									$id = media_handle_sideload( $file_array, 0 );
 									
-									// // If there's an error, then we'll write it to the error log.
-									// if ( is_wp_error( $zip_file ) ) {
-									// 	error_log( print_r( $zip_file, true ) );
-									// }
+									// Delete the temp files @TODO - clear out all the temp files
+									//$wp_filesystem->delete( "{$export_path}" );
+									$this->delete_folder_recursive( "{$export_path}" );
+
+									// send the file' url as response
+									if( is_wp_error( $id ) ) {
+										$response['status'] = 'error';
+										$response['error'] = $id->get_error_messages();
+									} else {
+										$response['status'] = 'success';
+										
+										$src = get_attached_file( $id );
+										$response['attachment'] = array();
+										$response['attachment']['id'] = $id;
+										$response['attachment']['src'] = $src;
+									}
 									
-									// s( $zip_file );
-									
-									$download_uri = 'TEST'; //$zip_file; //$download_path . $zip_file_name;
+									$download_uri = wp_get_attachment_url( $id );
 									?>
 								
 								</ul>
 							</div>
 							
-							<a class="layers-button btn-large btn-primary layers-pull-right-NOT" download="<?php echo $zip_name ?>" href="<?php echo $download_uri ?>" >
+							<a class="layers-button btn-large btn-primary layers-pull-right-NOT" download="<?php echo $zip_file_name ?>" href="<?php echo $download_uri ?>" >
 								<?php _e( 'Download StyleKit' , 'layerswp' ) ?>
 							</a>
 							
@@ -1402,6 +1411,8 @@ echo esc_attr( json_encode( $stylekit_json ) );
 		
 		// Allow uploading of .zip files
 		add_filter( 'upload_mimes', array( $this, 'add_allowed_mimes' ) );
+		
+		//s( $_FILES );
 
 		// handle file upload
 		$id = media_handle_upload( 'async-upload', 0, array(
