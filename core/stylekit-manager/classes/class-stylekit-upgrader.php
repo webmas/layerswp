@@ -71,6 +71,9 @@ class StyleKit_Importer_Upgrader {
 	 */
 	public $update_current = 0;
 	
+	
+	public $options = array();
+	
 	/**
 	 * Construct the upgrader with a skin.
 	 *
@@ -109,126 +112,92 @@ class StyleKit_Importer_Upgrader {
 	 */
 	public function install( $package, $args = array() ) {
 		
-		$this->skin = new StyleKit_Importer_Skin();
+		//$this->skin = new StyleKit_Importer_Skin();
 		
 		// Init Upgrader Skin
-		$this->skin->set_upgrader( $this );
+		//$this->skin->set_upgrader( $this );
 		
-		$options = array(
+		$defaults = array(
 			'package' => $package,
 			'clear_working' => false,
 			'hook_extra' => array( // Pass any extra $hook_extra args here, this will be passed to any hooked filters.
-				'type' => 'stylekit',
-				'action' => 'install',
+			'type' => 'stylekit',
+			'action' => 'install',
 			),
 			'destination' => '', // And this
 			'clear_destination' => false,
 			'abort_if_destination_exists' => true, // Abort if the Destination directory exists, Pass clear_destination as false please
 		);
+		$args = wp_parse_args( $args, $defaults );
 		
 		// Header
-		$this->skin->header();
+		//$this->skin->header();
 
 		// Connect to the Filesystem first.
-		$res = $this->fs_connect( array( WP_CONTENT_DIR, $options['destination'] ) );
+		$res = $this->fs_connect( array( WP_CONTENT_DIR, $args['destination'] ) );
 		
 		// Mainly for non-connected filesystem.
 		if ( !$res ) {
-			$this->skin->footer();
+			//$this->skin->footer();
 			return false;
 		}
 
-		if ( is_wp_error($res) ) {
-			$this->skin->error($res);
-			$this->skin->footer();
+		if ( is_wp_error( $res ) ) {
+			//$this->skin->error($res);
+			//$this->skin->footer();
 			return $res;
 		}
-
-		//Download the package (Note, This just returns the filename of the file if the package is a local file)
-		$download = $this->download_package( $options['package'] );
-		if ( is_wp_error($download) ) {
-			$this->skin->error($download);
-			$this->skin->footer();
+		
+		// This first checks to make sure that the file is local and does not need to be downloaded.
+		// WP - Download the package (Note, This just returns the filename of the file if the package is a local file)
+		$download = $this->download_package( $args['package'] );
+		if ( is_wp_error( $download ) ) {
+			// $this->skin->error( $download );
+			// $this->skin->footer();
 			return $download;
 		}
-
-		$delete_package = ( $download != $options['package'] ); // Do not delete a "local" file
-
-		//Unzips the file into a temporary directory
+		
+		// Unzips the file into a temporary directory
+		// upgrade/StyleKitName
+		$delete_package = ( $download != $args['package'] ); // Do not delete a "local" file
 		$working_dir = $this->unpack_package( $download, $delete_package );
 		if ( is_wp_error($working_dir) ) {
-			$this->skin->error($working_dir);
-			$this->skin->footer();
+			// $this->skin->error($working_dir);
+			// $this->skin->footer();
 			return $working_dir;
 		}
-
-		//With the given options, this installs it to the destination directory.
+		
+		// This returns a list of what's in the folder, in StyleKit this is just the internal folder eg /StylkeitName/.
+		// WP - With the given options, this installs it to the destination directory.
 		$result = $this->install_package( array(
-			'source' => $working_dir,
-			'destination' => $options['destination'],
-			'clear_destination' => $options['clear_destination'],
-			'abort_if_destination_exists' => $options['abort_if_destination_exists'],
-			'clear_working' => $options['clear_working'],
-			'hook_extra' => $options['hook_extra']
+			'source'                      => $working_dir,
+			'destination'                 => $args['destination'],
+			'clear_destination'           => $args['clear_destination'],
+			'abort_if_destination_exists' => $args['abort_if_destination_exists'],
+			'clear_working'               => $args['clear_working'],
+			'hook_extra'                  => $args['hook_extra']
 		) );
 
-		$this->skin->set_result( $result );
+		//$this->skin->set_result( $result );
 		
 		if ( is_wp_error( $result ) ) {
-			$this->skin->error($result);
-			$this->skin->feedback('process_failed');
+			// $this->skin->error($result);
+			// $this->skin->feedback('process_failed');
+			return $result;
 		} else {
 			//Install Succeeded
-			$this->skin->feedback('process_success');
+			//$this->skin->feedback('process_success');
 		}
 		
 		/** This action is documented in wp-admin/includes/class-wp-upgrader.php */
-		do_action( 'upgrader_process_complete', $this, $options['hook_extra'] );
-		$this->skin->footer();
 		
-
-		if ( ! $this->result || is_wp_error($this->result) )
+		if ( !$this->result || is_wp_error($this->result) )
 			return $this->result;
 
 		// Refresh the Theme Update information
-		wp_clean_themes_cache( $args['clear_update_cache'] );
+		//wp_clean_themes_cache( $args['clear_update_cache'] );
 
 		return $result;
-	}
-	
-	/**
-	 * Run an upgrade/install.
-	 *
-	 * Attempts to download the package (if it is not a local file), unpack it, and
-	 * install it in the destination folder.
-	 *
-	 * @since 2.8.0
-	 *
-	 * @param array $options {
-	 *     Array or string of arguments for upgrading/installing a package.
-	 *
-	 *     @type string $package                     The full path or URI of the package to install.
-	 *                                               Default empty.
-	 *     @type string $destination                 The full path to the destination folder.
-	 *                                               Default empty.
-	 *     @type bool   $clear_destination           Whether to delete any files already in the
-	 *                                               destination folder. Default false.
-	 *     @type bool   $clear_working               Whether to delete the files form the working
-	 *                                               directory after copying to the destination.
-	 *                                               Default false.
-	 *     @type bool   $abort_if_destination_exists Whether to abort the installation if the destination
-	 *                                               folder already exists. When true, `$clear_destination`
-	 *                                               should be false. Default true.
-	 *     @type array  $hook_extra                  Extra arguments to pass to the filter hooks called by
-	 *                                               {@see WP_Upgrader::run()}.
-	 * }
-	 *
-	 * @return array|false|WP_error The result from self::install_package() on success, otherwise a WP_Error,
-	 *                              or false if unable to connect to the filesystem.
-	 */
-	public function run( $options ) {
-		
-		
 	}
 	
 	/**
@@ -244,18 +213,23 @@ class StyleKit_Importer_Upgrader {
 	 * @return bool|WP_Error True if able to connect, false or a {@see WP_Error} otherwise.
 	 */
 	public function fs_connect( $directories = array(), $allow_relaxed_file_ownership = false ) {
+		
 		global $wp_filesystem;
 
-		if ( false === ( $credentials = $this->skin->request_filesystem_credentials( false, $directories[0], $allow_relaxed_file_ownership ) ) ) {
+		if ( false === ( $credentials = $this->request_filesystem_credentials( false, $directories[0], $allow_relaxed_file_ownership ) ) ) {
 			return false;
 		}
 
 		if ( ! WP_Filesystem( $credentials, $directories[0], $allow_relaxed_file_ownership ) ) {
+			
 			$error = true;
+			
 			if ( is_object($wp_filesystem) && $wp_filesystem->errors->get_error_code() )
 				$error = $wp_filesystem->errors;
+			
 			// Failed to connect, Error and request again
-			$this->skin->request_filesystem_credentials( $error, $directories[0], $allow_relaxed_file_ownership );
+			$this->request_filesystem_credentials( $error, $directories[0], $allow_relaxed_file_ownership );
+			
 			return false;
 		}
 
@@ -292,6 +266,45 @@ class StyleKit_Importer_Upgrader {
 		return true;
 	}
 	
+	public function request_filesystem_credentials( $error = false, $context = '', $allow_relaxed_file_ownership = false ) {
+		
+		$args = array(
+			'url' => '',
+			'nonce' => '',
+			'title' => '',
+			'context' => false
+		);
+		
+		if ( $context ) {
+			$args['context'] = $context;
+		}
+		
+		// TODO: fix up request_filesystem_credentials(), or split it, to allow us to request a no-output version
+		// This will output a credentials form in event of failure, We don't want that, so just hide with a buffer
+		ob_start();
+		
+		$url = $args['url'];
+		
+		if ( ! $context ) {
+			$context = $args['context'];
+		}
+		if ( !empty($args['nonce']) ) {
+			$url = wp_nonce_url( $url, $args['nonce'] );
+		}
+
+		$extra_fields = array();
+		
+		//s($args);
+		
+		$result = request_filesystem_credentials( $url, '', $error, $context, $extra_fields, $allow_relaxed_file_ownership );
+		
+		//s($result);
+		
+		ob_end_clean();
+		
+		return $result;
+	}
+	
 	/**
 	 * Download a package.
 	 *
@@ -314,18 +327,19 @@ class StyleKit_Importer_Upgrader {
 		 * @param WP_Upgrader $this    The WP_Upgrader instance.
 		 */
 		$reply = apply_filters( 'upgrader_pre_download', false, $package, $this );
+		
 		if ( false !== $reply )
 			return $reply;
 
-		if ( ! preg_match('!^(http|https|ftp)://!i', $package) && file_exists($package) ) //Local file or remote?
+		if ( !preg_match('!^(http|https|ftp)://!i', $package) && file_exists($package) ) //Local file or remote?
 			return $package; //must be a local file..
 
 		if ( empty($package) )
 			return new WP_Error( 'no_package', __('StyleKit not available.', 'layerswp' ) );
 
-		$this->skin->feedback('downloading_package', $package);
+		//$this->skin->feedback('downloading_package', $package);
 
-		$download_file = download_url($package);
+		$download_file = download_url( $package );
 
 		if ( is_wp_error($download_file) )
 			return new WP_Error('download_failed', __('Download failed.'), $download_file->get_error_message());
@@ -346,7 +360,7 @@ class StyleKit_Importer_Upgrader {
 	public function unpack_package( $package, $delete_package = true ) {
 		global $wp_filesystem;
 
-		$this->skin->feedback('unpack_package');
+		//$this->skin->feedback('unpack_package');
 
 		$upgrade_folder = $wp_filesystem->wp_content_dir() . 'upgrade/';
 
@@ -425,7 +439,7 @@ class StyleKit_Importer_Upgrader {
 		if ( empty( $source ) ) {
 			return new WP_Error( 'bad_request', __('Invalid Data provided.') );
 		}
-		$this->skin->feedback( 'installing_package' );
+		//$this->skin->feedback( 'installing_package' );
 
 		/**
 		 * Filter the install response before the installation has started.
@@ -451,9 +465,11 @@ class StyleKit_Importer_Upgrader {
 		//Locate which directory to copy to the new folder, This is based on the actual folder holding the files.
 		if ( 1 == count( $source_files ) && $wp_filesystem->is_dir( trailingslashit( $args['source'] ) . $source_files[0] . '/' ) ) { //Only one folder? Then we want its contents.
 			$source = trailingslashit( $args['source'] ) . trailingslashit( $source_files[0] );
-		} elseif ( count( $source_files ) == 0 ) {
+		}
+		elseif ( count( $source_files ) == 0 ) {
 			return new WP_Error( 'incompatible_archive_empty', __('The package could not be installed.'), __('The StyleKit contains no files.', 'layerswp' ) ); // There are no files?
-		} else { //It's only a single file, the upgrader will use the foldername of this file as the destination folder. foldername is based on zip filename.
+		}
+		else { //It's only a single file, the upgrader will use the foldername of this file as the destination folder. foldername is based on zip filename.
 			$source = trailingslashit( $args['source'] );
 		}
 

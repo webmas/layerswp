@@ -264,91 +264,6 @@ class Layers_StyleKit_Exporter {
 		return $result;
 	}
 	
-	/**
-	 * File Upload Settings
-	 */
-	
-	function file_upload_settings() {
-		
-		$uploader_options = array(
-			'runtimes'          => 'html5,silverlight,flash,html4',
-			'browse_button'     => 'layers-stylekit-drop-uploader-ui-button',
-			'container'         => 'layers-stylekit-drop-uploader-ui',
-			'drop_element'      => 'layers-stylekit-drop-uploader-ui',
-			'file_data_name'    => 'async-upload',
-			'multiple_queues'   => true,
-			'max_file_size'     => wp_max_upload_size() . 'b',
-			'url'               => admin_url( 'admin-ajax.php' ),
-			'flash_swf_url'     => includes_url( 'js/plupload/plupload.flash.swf' ),
-			'silverlight_xap_url' => includes_url( 'js/plupload/plupload.silverlight.xap' ),
-			'filters'           => array(
-			   array(
-				  'title' => __( 'Allowed Files', 'layerswp' ),
-				  'extensions' => '*',
-			   )
-			),
-			'multipart'         => true,
-			'urlstream_upload'  => true,
-			'multi_selection'   => true,
-			'multipart_params' => array(
-				'_ajax_nonce' => '',
-				'action'      => 'layers_stylekit_zip_upload_ajax'
-			)
-		);
-		?>
-		<script type="text/javascript">
-			var layers_stylekit_uploader_options=<?php echo json_encode( $uploader_options ); ?>;
-		</script>
-		<?php
-	}
-	
-	/**
-	 * Change File Upload Mime Types
-	 */
-	
-	function add_allowed_mimes( $mimes ) {
-		$mimes['zip'] = 'application/zip';
-		return $mimes;
-	}
-	
-	/**
-	 * File Upload Ajax
-	 */
-	
-	function layers_stylekit_zip_upload_ajax() {
-		// check ajax nonce
-		check_ajax_referer( __FILE__ );
-
-		if( current_user_can( 'upload_files' ) ) {
-			$response = array();
-			
-			// Allow uploading of .zip files
-			add_filter( 'upload_mimes', array( $this, 'add_allowed_mimes' ) );
-
-			// handle file upload
-			$id = media_handle_upload( 'async-upload', 0, array(
-				'test_form' => true,
-				'action'    => 'layers_stylekit_zip_upload_ajax',
-			) );
-
-			// send the file' url as response
-			if( is_wp_error( $id ) ) {
-				$response['status'] = 'error';
-				$response['error'] = $id->get_error_messages();
-			} else {
-				$response['status'] = 'success';
-				
-				$src = get_attached_file( $id );
-				$response['attachment'] = array();
-				$response['attachment']['id'] = $id;
-				$response['attachment']['src'] = $src;
-			}
-		}
-
-		echo json_encode( $response );
-		exit;
-	}
-	
 	function layers_stylekit_manager_page() {
 		
 		$tabs = array(
@@ -467,7 +382,8 @@ class Layers_StyleKit_Exporter {
 														/** This action is documented in wp-admin/includes/media.php */
 														do_action( 'post-plupload-upload-ui' );
 														add_action( 'post-plupload-upload-ui', 'media_upload_flash_bypass' );
-													} else {
+													}
+													else {
 														/** This action is documented in wp-admin/includes/media.php */
 														do_action( 'post-plupload-upload-ui' );
 													}
@@ -572,7 +488,7 @@ class Layers_StyleKit_Exporter {
 										
 										//include_once( ABSPATH . '/wp-admin/includes/class-wp-upgrader.php' ); // WordPress's
 										//include_once( ABSPATH . '/wp-admin/includes/class-wp-upgrader-skins.php' );
-										include_once( LAYERS_TEMPLATE_DIR . '/core/stylekit-manager/classes/class-stylekit-upgrader-skin.php' );
+										//include_once( LAYERS_TEMPLATE_DIR . '/core/stylekit-manager/classes/class-stylekit-upgrader-skin.php' );
 										include_once( LAYERS_TEMPLATE_DIR . '/core/stylekit-manager/classes/class-stylekit-upgrader.php' );
 										
 										if ( isset( $_POST['layers-stylekit-source-path'] ) ) {
@@ -1039,7 +955,7 @@ class Layers_StyleKit_Exporter {
 								<h3 class="layers-heading">Your StyleKit is ready!</h3>
 							</div>
 							
-							<div class="layers-panel layers-push-bottom" style="display: none;">
+							<div class="layers-panel layers-push-bottom" style="/*display: none;*/">
 								<ul class="layers-list">
 									
 									<?php
@@ -1143,7 +1059,7 @@ class Layers_StyleKit_Exporter {
 										$creds = request_filesystem_credentials( site_url() . '/wp-admin/', '', false, false, array() );
 
 										/* initialize the API */
-										if ( ! WP_Filesystem($creds) ) {
+										if ( ! WP_Filesystem( $creds ) ) {
 											
 											/* any problems and we exit */
 											return false;
@@ -1159,7 +1075,8 @@ class Layers_StyleKit_Exporter {
 									}
 									
 									$zip_name = isset( $_POST[ 'layers-stylekit-name' ] ) ? $_POST[ 'layers-stylekit-name' ] : str_replace( ' ' , '-' , get_bloginfo( 'name' ) ) /* incase input is emptied by mistake */ ;
-									$zip_sanitized_name = sanitize_title_with_dashes( $zip_name );
+									$zip_name = sanitize_title_with_dashes( $zip_name );
+									$zip_file_name = "{$zip_name}.zip";
 									
 									
 									// Stash CSS in uploads directory
@@ -1188,12 +1105,12 @@ class Layers_StyleKit_Exporter {
 									// Prettyfy the JSON
 									//$stylekit_json = $this->prettyPrint( json_encode( $stylekit_json ) );
 									
-									// Compile stylekit.json, put it, then add it to the zip collection.
-									$file_name = "stylekit.json";
-									$wp_filesystem->put_contents( $export_path . $file_name, json_encode( $stylekit_json ) ); // Finally, store the file :)
-									$files_to_zip[$zip_sanitized_name . "/" . $file_name] = $export_path . $file_name;
+									// Prep stylekit.json
+									$json_file_name = "stylekit.json";
+									$wp_filesystem->put_contents( $export_path . $json_file_name, json_encode( $stylekit_json ) ); // Finally, store the file :)
+									$files_to_zip[$zip_name . "/" . $json_file_name] = $export_path . $json_file_name;
 									
-									
+									// Prep pages .json's
 									foreach ( $page_presets as $page_preset_key => $page_preset_value ) {
 										
 										// Prettyfy the JSON
@@ -1201,12 +1118,12 @@ class Layers_StyleKit_Exporter {
 										$widget_data = json_encode( $page_preset_value['widget_data'] );
 										
 										//post_title, widget_data
-										$file_name = $page_preset_key . ".json";
-										$wp_filesystem->put_contents( $export_path . $file_name, $widget_data );
-										$files_to_zip[$zip_sanitized_name . "/" . $file_name] = $export_path . $file_name;
+										$page_file_name = "{$page_preset_key}.json";
+										$wp_filesystem->put_contents( "{$export_path}{$page_file_name}", $widget_data );
+										$files_to_zip[ "{$zip_name}/{$page_file_name}" ] = "{$export_path}{$page_file_name}";
 									}
 									
-									// Create image assets
+									// Prep the image files
 									if ( isset( $this->migrator->images_collected ) ) {
 										
 										// if ( !$wp_filesystem->is_dir( $export_path . 'assets/' ) ) $wp_filesystem->mkdir( $export_path . 'assets/' );
@@ -1215,26 +1132,72 @@ class Layers_StyleKit_Exporter {
 										foreach ( $this->migrator->images_collected as $image_collected ) {
 											
 											$image_pieces = explode( '/', $image_collected['url'] );
-											$file_name = $image_pieces[count($image_pieces)-1];
-											$files_to_zip["$zip_sanitized_name/assets/images/$file_name"] = $image_collected['path'];
+											$image_file_name = $image_pieces[count($image_pieces)-1];
+											$files_to_zip["{$zip_name}/assets/images/{$image_file_name}"] = $image_collected['path'];
 										}
 									}
 									
-									$wp_filesystem->delete( $export_path . $zip_sanitized_name . '.zip' );
-									$wp_filesystem->delete( $export_path . $zip_sanitized_name );
+									// Clear older versions of this export
+									$wp_filesystem->delete( "{$export_path}{$zip_name}.zip" );
+									$wp_filesystem->delete( "{$export_path}{$zip_name}" );
 									
-									//if true, good; if false, zip creation failed
-									$result = $this->create_zip( $files_to_zip, $export_path . $zip_sanitized_name . '.zip' );
+									// If true, good; if false, zip creation failed
+									$zip_file = $this->create_zip( $files_to_zip, "{$export_path}{$zip_file_name}" );
 									
+									// Delete the temp files @TODO - clear out all the temp files
 									$wp_filesystem->delete( $export_path . 'stylekit.json' );
 									
-									$download_uri = $download_path . $zip_sanitized_name . '.zip';
+									
+									
+									
+									/**
+									 * Read the contents of the upload directory. We need the
+									 * path to copy the file and the URL for uploading the file.
+									 */
+									
+									$uploads = wp_upload_dir();
+									$uploads_dir = $uploads['path'];
+									$uploads_url = $uploads['url'];
+									
+									// Copy the file from the root directory to the uploads directory
+									//copy( $zip_file, trailingslashit( $uploads_dir ) . $zip_file_name );
+									
+									// Allow uploading of .zip files
+									add_filter( 'upload_mimes', array( $this, 'add_allowed_mimes' ) );
+									
+									/* Get the URL to the file and grab the file and load
+									 * it into WordPress (and the Media Library)
+									 */
+									$url = trailingslashit( $uploads_url ) . $zip_file_name;
+									
+									
+									// Fake files array
+									$files = array(
+										'async-upload' => array(
+											'name'     => $zip_file_name, //"layers10-NEW.zip"
+											'type'     => 'application/zip', //"application/octet-stream"
+											'tmp_name' => $zip_file, //"C:\wamp\tmp\php3978.tmp"
+											'error'    => 0,
+											'size'     => 100,
+										)
+									);
+									
+									//$zip_file = media_sideload_image( $url, FALSE, $zip_file_name ); // 0 is $post_id
+									
+									// // If there's an error, then we'll write it to the error log.
+									// if ( is_wp_error( $zip_file ) ) {
+									// 	error_log( print_r( $zip_file, true ) );
+									// }
+									
+									// s( $zip_file );
+									
+									$download_uri = 'TEST'; //$zip_file; //$download_path . $zip_file_name;
 									?>
 								
 								</ul>
 							</div>
 							
-							<a class="layers-button btn-large btn-primary layers-pull-right-NOT" download="<?php echo $zip_sanitized_name ?>" href="<?php echo $download_uri ?>" >
+							<a class="layers-button btn-large btn-primary layers-pull-right-NOT" download="<?php echo $zip_name ?>" href="<?php echo $download_uri ?>" >
 								<?php _e( 'Download StyleKit' , 'layerswp' ) ?>
 							</a>
 							
@@ -1290,7 +1253,7 @@ echo esc_attr( json_encode( $stylekit_json ) );
 		
 		// Return
 		echo json_encode( array(
-			'download_uri' => $download_path . $zip_sanitized_name . '.zip',
+			'download_uri' => $download_path . $zip_file_name,
 			'ui' => $ui,
 			'stylekit_json' => $stylekit_json,
 			'stylekit_json_pretty' => $this->prettyPrint( json_encode( $stylekit_json ) ),
@@ -1348,8 +1311,13 @@ echo esc_attr( json_encode( $stylekit_json ) );
 			//close the zip -- done!
 			$zip->close();
 			
-			//check to make sure the file exists
-			return file_exists( $destination );
+			if ( file_exists( $destination ) ) {
+				// if file exists then return it's location.
+				return $destination;
+			}
+			else{
+				return FALSE;
+			}
 		}
 		else {
 			return false;
@@ -1375,6 +1343,91 @@ echo esc_attr( json_encode( $stylekit_json ) );
 	 */
 	
 	/**
+	 * File Upload Settings
+	 */
+	
+	function file_upload_settings() {
+		
+		$uploader_options = array(
+			'runtimes'          => 'html5,silverlight,flash,html4',
+			'browse_button'     => 'layers-stylekit-drop-uploader-ui-button',
+			'container'         => 'layers-stylekit-drop-uploader-ui',
+			'drop_element'      => 'layers-stylekit-drop-uploader-ui',
+			'file_data_name'    => 'async-upload',
+			'multiple_queues'   => true,
+			'max_file_size'     => wp_max_upload_size() . 'b',
+			'url'               => admin_url( 'admin-ajax.php' ),
+			'flash_swf_url'     => includes_url( 'js/plupload/plupload.flash.swf' ),
+			'silverlight_xap_url' => includes_url( 'js/plupload/plupload.silverlight.xap' ),
+			'filters'           => array(
+			   array(
+				  'title' => __( 'Allowed Files', 'layerswp' ),
+				  'extensions' => '*',
+			   )
+			),
+			'multipart'         => true,
+			'urlstream_upload'  => true,
+			'multi_selection'   => true,
+			'multipart_params' => array(
+				'_ajax_nonce' => '',
+				'action'      => 'layers_stylekit_zip_upload_ajax'
+			)
+		);
+		?>
+		<script type="text/javascript">
+			var layers_stylekit_uploader_options=<?php echo json_encode( $uploader_options ); ?>;
+		</script>
+		<?php
+	}
+	
+	/**
+	 * Change File Upload Mime Types
+	 */
+	
+	function add_allowed_mimes( $mimes ) {
+		$mimes['zip'] = 'application/zip';
+		return $mimes;
+	}
+	
+	/**
+	 * File Upload Ajax
+	 */
+	
+	function layers_stylekit_zip_upload_ajax() {
+		
+		// check ajax nonce
+		check_ajax_referer( __FILE__ );
+
+		$response = array();
+		
+		// Allow uploading of .zip files
+		add_filter( 'upload_mimes', array( $this, 'add_allowed_mimes' ) );
+
+		// handle file upload
+		$id = media_handle_upload( 'async-upload', 0, array(
+			'test_form' => true,
+			'action'    => 'layers_stylekit_zip_upload_ajax',
+		) );
+
+		// send the file' url as response
+		if( is_wp_error( $id ) ) {
+			$response['status'] = 'error';
+			$response['error'] = $id->get_error_messages();
+		} else {
+			$response['status'] = 'success';
+			
+			$src = get_attached_file( $id );
+			$response['attachment'] = array();
+			$response['attachment']['id'] = $id;
+			$response['attachment']['src'] = $src;
+		}
+		
+		echo json_encode( $response );
+		
+		die();
+	}
+	
+	/**
 	 * AJAX handler for updating a plugin.
 	 *
 	 * @since 4.2.0
@@ -1391,7 +1444,7 @@ echo esc_attr( json_encode( $stylekit_json ) );
 		
 		//include_once( ABSPATH . '/wp-admin/includes/class-wp-upgrader.php' );
 		//include_once( ABSPATH . '/wp-admin/includes/class-wp-upgrader-skins.php' );
-		include_once( LAYERS_TEMPLATE_DIR . '/core/stylekit-manager/classes/class-stylekit-upgrader-skin.php' );
+		//include_once( LAYERS_TEMPLATE_DIR . '/core/stylekit-manager/classes/class-stylekit-upgrader-skin.php' );
 		include_once( LAYERS_TEMPLATE_DIR . '/core/stylekit-manager/classes/class-stylekit-upgrader.php' );
 		
 		// $current = get_site_transient( 'update_plugins' );
@@ -1407,15 +1460,17 @@ echo esc_attr( json_encode( $stylekit_json ) );
 		
 		if ( is_array( $result ) ) {
 			$unpack_results = $this->layers_stylekit_import_options_interface( $result['source'] );
-			$unpack_results = wp_parse_args( $unpack_results, $result );
-			wp_send_json_success( $unpack_results );
+			$result = wp_parse_args( $result, $unpack_results );
+			wp_send_json_success( $result );
 		}
 		else if ( is_wp_error( $result ) ) {
 			$status['error'] = $result->get_error_message();
 			wp_send_json_error( $status );
 		}
-		else if ( is_bool( $result ) && ! $result ) {
-			$status['errorCode'] = 'unable_to_connect_to_filesystem';
+		else if ( is_bool( $result ) && FALSE == $result ) {
+			
+			// A general error feedback to cover any case.
+			$status['errorCode'] = 'unable_to_connect_to_filesystem-NEW';
 			$status['error'] = __( 'Unable to connect to the filesystem. Please confirm your credentials.', 'layerswp' );
 			wp_send_json_error( $status );
 		}
