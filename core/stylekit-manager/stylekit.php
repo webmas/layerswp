@@ -193,9 +193,9 @@ class Layers_StyleKit_Exporter {
 	* Recursively delete a directory
 	*
 	* @param string $dir Directory name
-	* @param boolean $deleteRootToo Delete specified top-level directory as well
+	* @param boolean $delete_root_too Delete specified top-level directory as well
 	*/
-	function delete_folder_recursive( $dir, $deleteRootToo = TRUE ) {
+	function delete_recursive( $dir, $delete_root_too = TRUE ) {
 		
 		if( !$dh = @opendir( $dir ) ) {
 			return;
@@ -212,7 +212,7 @@ class Layers_StyleKit_Exporter {
 		
 		closedir($dh);
 		
-		if ( $deleteRootToo ) {
+		if ( $delete_root_too ) {
 			@rmdir( $dir );
 		}
 		
@@ -1108,15 +1108,14 @@ class Layers_StyleKit_Exporter {
 									$zip_name = sanitize_title_with_dashes( $zip_name );
 									$zip_file_name = "{$zip_name}.zip";
 									
+									// $upload_dir = wp_upload_dir(); // "wp-content/2015/07/"
+									// $upload_base_dir = trailingslashit( $upload_dir['basedir'] ); // "wp-content"
 									
-									// Stash CSS in uploads directory
-									//$upload_dir = wp_upload_dir(); // Grab uploads folder array
-									//$dir = trailingslashit( $upload_dir['basedir'] ) . 'some-folder/'; // Set storage directory path
+									$upload_base_dir = trailingslashit( WP_CONTENT_DIR );
 									
 									/* replace the 'direct' absolute path with the Filesystem API path */
 									$plugin_path = str_replace( ABSPATH, $wp_filesystem->abspath(), LAYERS_TEMPLATE_DIR );
-									$export_path = $plugin_path . '/export/';
-									$download_path = LAYERS_TEMPLATE_URI . '/export/';
+									$export_path = "{$upload_base_dir}/upgrade/{$zip_name}/";
 
 									/* Now we can use $plugin_path in all our Filesystem API method calls */
 									if( ! $wp_filesystem->is_dir( $export_path ) ) {
@@ -1168,8 +1167,8 @@ class Layers_StyleKit_Exporter {
 									}
 									
 									// Clear older versions of this export
-									$wp_filesystem->delete( "{$export_path}{$zip_name}.zip" );
-									$wp_filesystem->delete( "{$export_path}{$zip_name}" );
+									//$wp_filesystem->delete( "{$export_path}{$zip_name}.zip" );
+									//$wp_filesystem->delete( "{$export_path}{$zip_name}" );
 									
 									// If true, good; if false, zip creation failed
 									$zip_file = $this->create_zip( $files_to_zip, "{$export_path}{$zip_file_name}" );
@@ -1181,19 +1180,23 @@ class Layers_StyleKit_Exporter {
 										'tmp_name' => $zip_file, //"C:\wamp\tmp\php3978.tmp"
 									);
 									
+									// Allow uploading of .zip type files
+									add_filter( 'upload_mimes', array( $this, 'add_allowed_mimes' ) );
+									
+									// Upload the file
 									$id = media_handle_sideload( $file_array, 0 );
 									
 									// Delete the temp files @TODO - clear out all the temp files
 									//$wp_filesystem->delete( "{$export_path}" );
-									$this->delete_folder_recursive( "{$export_path}" );
+									$this->delete_recursive( "{$export_path}", TRUE );
 
 									// send the file' url as response
 									if( is_wp_error( $id ) ) {
 										$response['status'] = 'error';
 										$response['error'] = $id->get_error_messages();
-									} else {
+									}
+									else {
 										$response['status'] = 'success';
-										
 										$src = get_attached_file( $id );
 										$response['attachment'] = array();
 										$response['attachment']['id'] = $id;
@@ -1262,9 +1265,9 @@ echo esc_attr( json_encode( $stylekit_json ) );
 		
 		// Return
 		echo json_encode( array(
-			'download_uri' => $download_path . $zip_file_name,
-			'ui' => $ui,
-			'stylekit_json' => $stylekit_json,
+			'download_uri'         => $download_uri,
+			'ui'                   => $ui,
+			'stylekit_json'        => $stylekit_json,
 			'stylekit_json_pretty' => $this->prettyPrint( json_encode( $stylekit_json ) ),
 		) );
 		
