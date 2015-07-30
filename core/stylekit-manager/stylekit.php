@@ -478,12 +478,13 @@ class Layers_StyleKit_Exporter {
 									<!-- Your helpful tips go here -->
 									<ul class="layers-help-list">
 										<li>
-											StyleKits are standardised collections of settings, CSS and pages for Layers sites. You can export and import them into any other Layers installation. 										</li>
-										<li class="pro-tip">
-											StyleKits are an easy way of transferring the look of your site or selling it as a theme for others to use.
+											<?php _e( 'StyleKits are standardised collections of settings, CSS and pages for Layers sites. You can export and import them into any other Layers installation.', 'layerswp' ) ?>
 										</li>
 										<li class="pro-tip">
-											For more information and documentation, <a href="#">click here</a>.
+											<?php _e( 'StyleKits are an easy way of transferring the look of your site or selling it as a theme for others to use.', 'layerswp' ) ?>
+										</li>
+										<li class="pro-tip">
+											<?php _e( 'For more information and documentation, <a href="#">click here</a>.', 'layerswp' ) ?>
 										</li>
 									</ul>
 								</div>
@@ -585,10 +586,10 @@ class Layers_StyleKit_Exporter {
 										<!-- Your helpful tips go here -->
 										<ul class="layers-help-list">
 											<li>
-												If you're ever stuck or need help with your Layers site please visit our <a href="http://docs.layerswp.com" rel="nofollow">helpful documentation.</a>
+												<?php _e( 'If you\'re ever stuck or need help with your Layers site please visit our <a href="http://docs.layerswp.com" rel="nofollow">helpful documentation.</a>', 'layerswp' ) ?>
 											</li>
 											<li class="pro-tip">
-												For the Pros: Layers will automatically assign the tagline to Settings → General.
+												<?php _e( 'For the Pros: Layers will automatically assign the tagline to Settings → General.', 'layerswp' ) ?>
 											</li>
 										</ul>
 									</div>
@@ -638,7 +639,7 @@ class Layers_StyleKit_Exporter {
 													
 												<div class="layers-column layers-span-12 layers-content">
 													<div class="layers-section-title layers-small">
-														<h3 class="layers-heading">StyleKit Export</h3>
+														<h3 class="layers-heading"><?php _e( 'StyleKit Export', 'layerswp' ) ?></h3>
 														<p class="layers-excerpt">
 															<?php _e( 'Choose what will be exported in your StyleKit below.', 'layerswp' ); ?>
 														</p>
@@ -653,8 +654,8 @@ class Layers_StyleKit_Exporter {
 											<div class="layers-row">
 												
 												<div class="layers-column layers-span-4 layers-content">
-													<h3 class="layers-heading">Name</h3>
-													<p class="layers-excerpt">name your Stylit. You can leave it as you SiteName, or name it something like 'Happy Store'.</p>
+													<h3 class="layers-heading"><?php _e( 'Name', 'layerswp' ) ?></h3>
+													<p class="layers-excerpt"><?php _e( 'name your Stylit. You can leave it as you SiteName, or name it something like "Happy Store".', 'layerswp' ) ?></p>
 												</div>
 												
 												<div class="layers-column layers-span-8 layers-content">
@@ -671,8 +672,8 @@ class Layers_StyleKit_Exporter {
 											<div class="layers-row">
 												
 												<div class="layers-column layers-span-4 layers-content">
-													<h3 class="layers-heading">Settings</h3>
-													<p class="layers-excerpt">Select which Layers settings you'd like export with your StyleKit. These are set in the Customizer.</p>
+													<h3 class="layers-heading"><?php _e( 'Settings', 'layerswp' ) ?></h3>
+													<p class="layers-excerpt"><?php _e( 'Select which Layers settings you\'d like export with your StyleKit. These are set in the Customizer.', 'layerswp' ) ?></p>
 													<?php $this->check_all_ui(); ?>
 												</div>
 												
@@ -758,8 +759,8 @@ class Layers_StyleKit_Exporter {
 												<div class="layers-row">
 													
 													<div class="layers-column layers-span-4 layers-content">
-														<h3 class="layers-heading">Pages</h3>
-														<p class="layers-excerpt">Choose which Layers pages you'd like to export in your StyleKit.</p>
+														<h3 class="layers-heading"><?php _e( 'Pages', 'layerswp' ) ?></h3>
+														<p class="layers-excerpt"><?php _e( 'Choose which Layers pages you\'d like to export in your StyleKit.', 'layerswp' ) ?></p>
 														<?php $this->check_all_ui(); ?>
 													</div>
 													
@@ -801,8 +802,8 @@ class Layers_StyleKit_Exporter {
 											<div class="layers-row">
 												
 												<div class="layers-column layers-span-4 layers-content">
-													<h3 class="layers-heading">Custom CSS</h3>
-													<p class="layers-excerpt">Choose whether to export your custom CSS with your StyleKit.</p>
+													<h3 class="layers-heading"><?php _e( 'Custom CSS', 'layerswp' ) ?></h3>
+													<p class="layers-excerpt"><?php _e( 'Choose whether to export your custom CSS with your StyleKit.', 'layerswp' ) ?></p>
 													<?php $this->check_all_ui(); ?>
 												</div>
 												
@@ -814,7 +815,7 @@ class Layers_StyleKit_Exporter {
 															<li>
 																<label for="css-check" class="group-title">
 																	<input id="css-check" type="checkbox" checked="checked" name="layers_css" <?php if( isset( $_POST[ 'layers_css' ] ) ) checked( 'yes', $_POST[ 'layers_css' ], TRUE ); ?> value="yes">
-																	CSS
+																	<?php _e( 'CSS', 'layerswp' ) ?>
 																</label>
 															</li>
 														</ul>
@@ -848,11 +849,8 @@ class Layers_StyleKit_Exporter {
 											<!-- Your helpful tips go here -->
 											<ul class="layers-help-list">
 												<li>
-													If you ever need help with your Layers site please visit our <a href="http://docs.layerswp.com" rel="nofollow">helpful documentation.</a>
+													<?php _e( 'If you ever need help with your Layers site please visit our <a href="http://docs.layerswp.com" rel="nofollow">helpful documentation.</a>', 'layerswp' ) ?>
 												</li>
-												<!--<li class="pro-tip">-->
-												<!--	For the Pros: Layers will automatically assign the tagline to Settings → General.-->
-												<!--</li>-->
 											</ul>
 										</div>
 									</div>
@@ -886,10 +884,10 @@ class Layers_StyleKit_Exporter {
 											<!-- Your helpful tips go here -->
 											<ul class="layers-help-list">
 												<li>
-													If you're ever stuck or need help with your Layers site please visit our <a href="http://docs.layerswp.com" rel="nofollow">helpful documentation.</a>
+													<?php _e( 'If you\'re ever stuck or need help with your Layers site please visit our <a href="http://docs.layerswp.com" rel="nofollow">helpful documentation.</a>', 'layerswp' ) ?>
 												</li>
 												<li class="pro-tip">
-													For the Pros: Layers will automatically assign the tagline to Settings → General.
+													<?php _e( 'For the Pros: Layers will automatically assign the tagline to Settings → General.', 'layerswp' ) ?>
 												</li>
 											</ul>
 										</div>
@@ -1200,7 +1198,7 @@ class Layers_StyleKit_Exporter {
 						<div class="stylekit-statement">
 							
 							<div class="layers-section-title layers-small">
-								<h3 class="layers-heading">Your StyleKit is ready!</h3>
+								<h3 class="layers-heading"><?php _e( 'Your StyleKit is ready!', 'layerswp' ) ?></h3>
 							</div>
 							
 							<div class="layers-panel layers-push-bottom" style="/*display: none;*/">
@@ -1241,10 +1239,10 @@ class Layers_StyleKit_Exporter {
 					<!-- Your helpful tips go here -->
 					<ul class="layers-help-list">
 						<li>
-							If you're ever stuck or need help with your Layers site please visit our <a href="http://docs.layerswp.com" rel="nofollow">helpful documentation.</a>
+							<?php _e( 'If you\'re ever stuck or need help with your Layers site please visit our <a href="http://docs.layerswp.com" rel="nofollow">helpful documentation.</a>', 'layerswp' ) ?>
 						</li>
 						<li class="pro-tip">
-							For the Pros: Layers will automatically assign the tagline to Settings → General.
+							<?php _e( 'For the Pros: Layers will automatically assign the tagline to Settings → General.', 'layerswp' ) ?>
 						</li>
 					</ul>
 				</div>
@@ -1258,8 +1256,8 @@ class Layers_StyleKit_Exporter {
 			<div class="layers-row layers-push-top">
 				
 				<div class="layers-column layers-span-4 layers-content">
-					<h3>Your StyleKit is ready!</h3>
-					<p>Simply copy &amp; paste this StyleKit code into the StyleKit Import and proceed.</p>
+					<h3><?php _e( 'Your StyleKit is ready!', 'layerswp' ) ?></h3>
+					<p><?php _e( 'Simply copy &amp; paste this StyleKit code into the StyleKit Import and proceed.', 'layerswp' ) ?></p>
 				</div>
 				
 				<div class="layers-column layers-span-8 layers-content">
@@ -1614,8 +1612,8 @@ echo esc_attr( json_encode( $stylekit_json ) );
 						<div class="layers-row layers-push-top">
 							
 							<div class="layers-column layers-span-4 layers-content">
-								<h3 class="layers-heading">Settings</h3>
-								<p class="layers-excerpt">Be aware that unchecking these may chnange the intended look from this StyleKit</p>
+								<h3 class="layers-heading"><?php _e( 'Settings', 'layerswp' ) ?></h3>
+								<p class="layers-excerpt"><?php _e( 'Be aware that unchecking these may chnange the intended look from this StyleKit', 'layerswp' ) ?></p>
 								<?php $this->check_all_ui(); ?>
 							</div>
 							
@@ -1654,8 +1652,8 @@ echo esc_attr( json_encode( $stylekit_json ) );
 						<div class="layers-row layers-push-top">
 							
 							<div class="layers-column layers-span-4 layers-content">
-								<h3 class="layers-heading">Pages</h3>
-								<p class="layers-excerpt">These pages will be imported</p>
+								<h3 class="layers-heading"><?php _e( 'Pages', 'layerswp' ) ?></h3>
+								<p class="layers-excerpt"><?php _e( 'These pages will be imported', 'layerswp' ) ?></p>
 								<?php $this->check_all_ui(); ?>
 							</div>
 							
@@ -1757,7 +1755,7 @@ echo esc_attr( json_encode( $stylekit_json ) );
 					<div class="stylekit-statement">
 						
 						<div class="layers-section-title layers-small">
-							<h3 class="layers-heading">StyleKit <em>Three.zip</em></h3>
+							<h3 class="layers-heading"><?php _e( 'StyleKit <em>Three.zip</em>', 'layerswp' ) ?></h3>
 						</div>
 						
 						<div class="layers-panel layers-push-bottom">
@@ -1781,7 +1779,7 @@ echo esc_attr( json_encode( $stylekit_json ) );
 						<p class="layers-excerpt">
 							<label>
 								<input type="checkbox" name="layers-stylekit-import-all" value="yes" <?php checked( true, true ); ?> >
-								Confirm import all <span class="hidden-choice">or untick to customize</span>
+								<?php _e( 'Confirm import all <span class="hidden-choice">or untick to customize</span>', 'layerswp' ) ?>
 							</label>
 						</p>
 						
@@ -2126,7 +2124,7 @@ echo esc_attr( json_encode( $stylekit_json ) );
 				<div class="stylekit-statement">
 					
 					<div class="layers-section-title layers-small">
-						<h3 class="layers-heading">StyleKit Imported Successfully</h3>
+						<h3 class="layers-heading"><?php _e( 'StyleKit Imported Successfully', 'layerswp' ) ?></h3>
 					</div>
 					
 					<div class="layers-panel layers-push-bottom">
