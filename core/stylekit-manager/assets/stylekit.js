@@ -42,7 +42,7 @@
 				
 				$.layerswp
 				.queue( function(){
-					go_to_slide( 0, $uploader_slides );
+					go_to_slide( 2, $uploader_slides );
 					show_loader();
 					add_loader_text( 'Uploading StyleKit<br />Please wait...' );
 				});
@@ -74,6 +74,7 @@
 				}
 				else {
 					//console.log( 'Error', up, file, response );
+					go_to_slide( 1, $uploader_slides );
 				}
 
 			});
@@ -131,7 +132,7 @@
 						.queue( 1000 )
 						.queue( function(){
 							
-							$('.layers-stylekit-import-step-2 .layers-stylekit-slide-2').append( response.ui );
+							$('.layers-stylekit-import-slide-2').append( response.ui );
 							$('.layers-stylekit-form-import').prepend( response.ui2 );
 							
 							go_to_slide( 2, $importer_slides );
@@ -234,7 +235,7 @@
 		});
 
 		$( document ).on( 'click', '.layers-back-a-step', function(){
-			$('.layers-stylekit-slide-4 .layers-row').remove();
+			$('.layers-stylekit-import-slide-4 .layers-row').remove();
 			
 			go_to_slide( 2, $importer_slides );
 			return false;
@@ -252,12 +253,12 @@
 			reported_image = 0;
 			
 			// Invoke the first step in the Ajax chain.
-			layers_stylekit_import_ajax_step_2();
+			layers_stylekit_import_step_2_ajax();
 			
 			return false;
 		});
 		
-		function layers_stylekit_import_ajax_step_2() {
+		function layers_stylekit_import_step_2_ajax() {
 			
 			// Get the user to Confirm this operation.
 			// if ( !window.confirm("This StyleKit Import will:\n\n- Change your settings.\n\n- Add 3 pages.\n\n- Add Custom CSS.") ) {
@@ -278,7 +279,7 @@
 			
 			// Collect the form data. Holds the user selections and the whole StyleKit json.
 			//var form_data = $( 'form.layers-stylekit-form-import' ).serializeArray();
-			var form_data = $( 'form.layers-stylekit-form-import' ).serialize() + '&action=layers_stylekit_import_ajax_step_2';
+			var form_data = $( 'form.layers-stylekit-form-import' ).serialize() + '&action=layers_stylekit_import_step_2_ajax';
 			
 			// Ajax
 			$.ajax({
@@ -286,11 +287,11 @@
 				dataType: 'json',
 				url: ajaxurl,
 				data: form_data,
-				success: layers_stylekit_import_ajax_step_3,
+				success: layers_stylekit_import_step_3_ajax,
 			});
 		}
 		
-		function layers_stylekit_import_ajax_step_3( response ) {
+		function layers_stylekit_import_step_3_ajax( response ) {
 			
 			// User Feedback
 			
@@ -311,10 +312,10 @@
 				dataType: 'json',
 				url: ajaxurl,
 				data: {
-					action: 'layers_stylekit_import_ajax_step_3',
+					action: 'layers_stylekit_import_step_3_ajax',
 					stylekit_json: response.stylekit_json,
 				},
-				success: layers_stylekit_import_ajax_step_4,
+				success: layers_stylekit_import_step_4_ajax,
 			});
 		}
 		
@@ -323,7 +324,7 @@
 		var reported_page = 0;
 		var page_success_function;
 
-		function layers_stylekit_import_ajax_step_4( response ) {
+		function layers_stylekit_import_step_4_ajax( response ) {
 			
 			current_page++;
 			total_pages = 0;
@@ -340,8 +341,8 @@
 			.queue( 800 );
 			
 			// This puts the page import into a loop.
-			if ( current_page >= total_pages ) page_success_function = layers_stylekit_import_ajax_step_5;
-			else page_success_function = layers_stylekit_import_ajax_step_4;
+			if ( current_page >= total_pages ) page_success_function = layers_stylekit_import_step_5_ajax;
+			else page_success_function = layers_stylekit_import_step_4_ajax;
 			
 			// Debugging
 			//console.log( response );
@@ -353,7 +354,7 @@
 				dataType: 'json',
 				url: ajaxurl,
 				data: {
-					action: 'layers_stylekit_import_ajax_step_4',
+					action: 'layers_stylekit_import_step_4_ajax',
 					stylekit_json: response.stylekit_json,
 				},
 				success: page_success_function,
@@ -365,7 +366,7 @@
 		var reported_image = 0;
 		var image_success_function;
 		
-		function layers_stylekit_import_ajax_step_5( response ) {
+		function layers_stylekit_import_step_5_ajax( response ) {
 			
 			current_image++;
 			total_images = 0;
@@ -382,8 +383,8 @@
 			.queue( 800 );
 			
 			// This puts the page import into a loop.
-			if ( current_image >= total_images ) image_success_function = layers_stylekit_import_ajax_step_6;
-			else image_success_function = layers_stylekit_import_ajax_step_4;
+			if ( current_image >= total_images ) image_success_function = layers_stylekit_import_step_6_ajax;
+			else image_success_function = layers_stylekit_import_step_4_ajax;
 			
 			// Debugging
 			//console.log( response );
@@ -395,14 +396,14 @@
 				dataType: 'json',
 				url: ajaxurl,
 				data: {
-					action: 'layers_stylekit_import_ajax_step_5',
+					action: 'layers_stylekit_import_step_5_ajax',
 					stylekit_json: response.stylekit_json,
 				},
 				success: image_success_function,
 			});
 		};
 		
-		function layers_stylekit_import_ajax_step_6( response ) {
+		function layers_stylekit_import_step_6_ajax( response ) {
 			
 			// User Feedback
 			$.layerswp
@@ -422,7 +423,7 @@
 				dataType: 'json',
 				url: ajaxurl,
 				data: {
-					action: 'layers_stylekit_import_ajax_step_6',
+					action: 'layers_stylekit_import_step_6_ajax',
 					stylekit_json: response.stylekit_json,
 				},
 				success: layers_stylekit_import_ajax_step_7,
@@ -440,7 +441,7 @@
 			})
 			.queue( 800 )
 			.queue( function(){
-				$( '.layers-stylekit-import-step-2 .layers-stylekit-slide-4' ).append( response.ui );
+				$( '.layers-stylekit-import-slide-4' ).append( response.ui );
 				go_to_slide( 4, $importer_slides );
 			});
 			
@@ -448,6 +449,61 @@
 			//console.log( response );
 			$('[name="layers-stylekit-import-stylekit-prettyprint"]').val( response.stylekit_json_pretty );
 		}
+		
+		
+		// Restore Settings
+		$( document ).on( 'click', '.layers-stylekit-rollback', function(){
+			
+			go_to_slide( 2, $restore_slides );
+			
+			layers_stylekit_restore_settings();
+			
+			return false;
+		});
+		
+		function layers_stylekit_restore_settings( /*response*/ ) {
+			
+			$.layerswp
+			.queue( function(){
+				show_loader();
+				add_loader_text( 'Rolling back your settings<br />Please wait...' );
+			})
+			.queue( 800 );
+			
+			/*
+			// Debugging
+			//console.log( response );
+			$('[name="layers-stylekit-import-stylekit-prettyprint"]').val( response.stylekit_json_pretty );
+			*/
+			
+			// Ajax
+			$.ajax({
+				type: 'POST',
+				dataType: 'json',
+				url: ajaxurl,
+				data: {
+					action: 'layers_stylekit_settings_restore_ajax',
+				},
+				success: layers_stylekit_restore_settings_success,
+			});
+		}
+
+		function layers_stylekit_restore_settings_success( response ) {
+			
+			$.layerswp
+			.queue( 800 )
+			.queue( function(){
+				hide_loader();
+				go_to_slide( 1, $restore_slides );
+			})
+			.queue( 800 );
+		}
+
+		
+		$( document ).on( 'hover', '.layers-stylekit-rollback', function(){
+			$( '.layers-stylekit-history-container' ).toggleClass( 'hover-remove' );
+			return false;
+		});
 
 
 		/**
@@ -477,7 +533,7 @@
 				$( 'form.layers-stylekit-form-export' ).serialize() + '&action=layers_stylekit_export_ajax', // Convert form data to json
 				function( response ){
 					
-					$('.layers-stylekit-export-step-1 .layers-stylekit-slide-3').append( response.ui );
+					$('.layers-stylekit-export-slide-3').append( response.ui );
 					go_to_slide( 3, $exporter_slides );
 
 					// Debugging
@@ -567,26 +623,31 @@
 		
 		
 		/**
-		 * Slide Tools
+		 * Slides
 		 */
 		
 		var $uploader_slides = [
-			'.layers-stylekit-import-step-1 .layers-stylekit-slide-1',
-			'.layers-stylekit-import-step-1 .layers-stylekit-slide-2',
-			'.layers-stylekit-import-step-1 .layers-stylekit-slide-3',
+			'.layers-stylekit-upload-slide-1',
+			'.layers-stylekit-upload-slide-2',
+			'.layers-stylekit-upload-slide-3',
+		];
+		
+		var $restore_slides = [
+			'.layers-import-slide-1',
+			'.layers-import-slide-2',
+		];
+		
+		var $importer_slides = [
+			'.layers-stylekit-import-slide-1',
+			'.layers-stylekit-import-slide-2',
+			'.layers-stylekit-import-slide-3',
+			'.layers-stylekit-import-slide-4',
 		];
 
 		var $exporter_slides = [
-			'.layers-stylekit-export-step-1 .layers-stylekit-slide-1',
-			'.layers-stylekit-export-step-1 .layers-stylekit-slide-2',
-			'.layers-stylekit-export-step-1 .layers-stylekit-slide-3',
-		];
-
-		var $importer_slides = [
-			'.layers-stylekit-import-step-2 .layers-stylekit-slide-1',
-			'.layers-stylekit-import-step-2 .layers-stylekit-slide-2',
-			'.layers-stylekit-import-step-2 .layers-stylekit-slide-3',
-			'.layers-stylekit-import-step-2 .layers-stylekit-slide-4',
+			'.layers-stylekit-export-slide-1',
+			'.layers-stylekit-export-slide-2',
+			'.layers-stylekit-export-slide-3',
 		];
 
 		function go_to_slide( $to_slide, $slides_array ){

@@ -52,15 +52,18 @@ class Layers_StyleKit_Exporter {
 		// Import:
 		// Drag&Drop plupload interface
 		add_action( 'admin_head', array( $this, 'file_upload_settings' ) );
-		add_action( 'wp_ajax_layers_stylekit_zip_upload_ajax', array( $this, 'layers_stylekit_zip_upload_ajax' ) );
+		add_action( 'wp_ajax_layers_stylekit_upload_ajax', array( $this, 'layers_stylekit_upload_ajax' ) );
 		// Unpack the zip
 		add_action( 'wp_ajax_layers_stylekit_zip_unpack_ajax', array( $this, 'layers_stylekit_zip_unpack_ajax' ) );
 		// Ajax for each step of the import process
-		add_action( 'wp_ajax_layers_stylekit_import_ajax_step_2', array( $this, 'layers_stylekit_import_ajax_step_2' ) );
-		add_action( 'wp_ajax_layers_stylekit_import_ajax_step_3', array( $this, 'layers_stylekit_import_ajax_step_3' ) );
-		add_action( 'wp_ajax_layers_stylekit_import_ajax_step_4', array( $this, 'layers_stylekit_import_ajax_step_4' ) );
-		add_action( 'wp_ajax_layers_stylekit_import_ajax_step_5', array( $this, 'layers_stylekit_import_ajax_step_5' ) );
-		add_action( 'wp_ajax_layers_stylekit_import_ajax_step_6', array( $this, 'layers_stylekit_import_ajax_step_6' ) );
+		add_action( 'wp_ajax_layers_stylekit_import_step_2_ajax', array( $this, 'layers_stylekit_import_step_2_ajax' ) );
+		add_action( 'wp_ajax_layers_stylekit_import_step_3_ajax', array( $this, 'layers_stylekit_import_step_3_ajax' ) );
+		add_action( 'wp_ajax_layers_stylekit_import_step_4_ajax', array( $this, 'layers_stylekit_import_step_4_ajax' ) );
+		add_action( 'wp_ajax_layers_stylekit_import_step_5_ajax', array( $this, 'layers_stylekit_import_step_5_ajax' ) );
+		add_action( 'wp_ajax_layers_stylekit_import_step_6_ajax', array( $this, 'layers_stylekit_import_step_6_ajax' ) );
+		
+		// Restore:
+		add_action( 'wp_ajax_layers_stylekit_settings_restore_ajax', array( $this, 'layers_stylekit_settings_restore_ajax' ) );
 		
 		// Post type for collecting StyleKits.
 		$this->register_post_type();
@@ -295,6 +298,58 @@ class Layers_StyleKit_Exporter {
 		return $result;
 	}
 	
+	/**
+	 * Register StyleKit post type
+	 */
+	public function register_post_type() {
+		
+		register_post_type(
+			'layers_stylekits',
+			array(
+				'labels' => array(
+					'name' => 'StyleKits',
+					'singular_name' => 'StyleKit',
+					'add_new' => 'Add New',
+					'add_new_item' => 'Add New StyleKit',
+					'edit' => 'Edit',
+					'edit_item' => 'Edit StyleKit',
+					'new_item' => 'New StyleKit',
+					'view' => 'View',
+					'view_item' => 'View StyleKit',
+					'search_items' => 'Search StyleKits',
+					'not_found' => 'No StyleKits found',
+					'not_found_in_trash' => 'No StyleKits found in Trash',
+					'parent' => 'Parent StyleKit'
+				),
+				'public' => true,
+				'menu_position' => 15,
+				//'supports' => array( 'title', 'editor', 'comments', 'thumbnail', 'custom-fields' ),
+				'supports' => array( 'title', 'editor', 'custom-fields' ),
+				'taxonomies' => array(),
+				//'menu_icon' => plugins_url( 'images/image.png', __FILE__ ),
+				'has_archive' => true
+			)
+		);
+	}
+	
+	/**
+	 * ------------------------------------------------------------------
+	 *
+	 *
+	 *
+	 *
+	 *
+	 *
+	 *                          MAIN INTERFACE
+	 *
+	 *
+	 *
+	 *
+	 *
+	 *
+	 * ------------------------------------------------------------------
+	 */
+	
 	function layers_stylekit_manager_page() {
 		
 		$tabs = array(
@@ -358,7 +413,7 @@ class Layers_StyleKit_Exporter {
 					<!-- ------------------------------------
 					
 					
-								IMPORT : STEP-1
+								IMPORT: STEP-1
 					
 							
 					------------------------------------- -->
@@ -366,128 +421,153 @@ class Layers_StyleKit_Exporter {
 					<div class="layers-onboard-slider">
 						<div class="layers-onboard-slide layers-animate layers-onboard-slide-current layers-stylekit-import-step-1">
 							
-							<div class="layers-column layers-span-8">
-								<div class="layers-stylekit-form layers-stylekit-form-import">
+							<div class="layers-row">
+								
+								<div class="layers-column layers-span-8">
+								
+									<div class="layers-animate layers-stylekit-slide layers-stylekit-slide-current layers-import-slide-1">
+										
+										<div class="layers-stylekit-form layers-stylekit-form-import">
+										
+											<!-- WordPress Plupload drag&drop interface -->
+											<div id="layers-stylekit-drop-uploader-ui" class="layers-stylekit-drop-uploader-ui multiple">
+												
+												<div class="layers-animate layers-stylekit-slide layers-stylekit-slide-current layers-stylekit-upload-slide layers-stylekit-upload-slide-1">
+												
+													<!-- ------------------------------------
+															 IMPORT: STEP-1, SLIDE-1
+													------------------------------------- -->
+													
+													<div class="layers-plupload-inner">
+														
+														<span class="ajaxnonce" id="<?php echo wp_create_nonce( __FILE__ ); ?>"></span>
+												
+														<?php if ( ! _device_can_upload() ) : ?>
+															<h3 class="upload-instructions"><?php printf( __( 'The web browser on your device cannot be used to upload files.', 'layerswp' ) ); ?></h3>
+														<?php elseif ( is_multisite() && ! is_upload_space_available() ) : ?>
+															<h3 class="upload-instructions"><?php _e( 'Upload Limit Exceeded.', 'layerswp' ); ?></h3>
+															<?php
+															/** This action is documented in wp-admin/includes/media.php */
+															do_action( 'upload_ui_over_quota' );
+															?>
+														<?php else : ?>
+														
+															<div class="upload-ui">
+																<h3 class="upload-instructions drop-instructions"><?php _e( 'Drop a StyleKit here', 'layerswp' ); ?></h3>
+																<p class="upload-instructions drop-instructions"><?php _ex( 'or', 'Uploader: Drop files here - or - Select Files', 'layerswp' ); ?></p>
+																<a href="#" id="layers-stylekit-drop-uploader-ui-button" class="layers-stylekit-drop-uploader-ui-button browser button button-hero"><?php _e( 'Select StyleKit', 'layerswp' ); ?></a>
+															</div>
+
+															<div class="upload-inline-status"></div>
+
+															<div class="post-upload-ui">
+																<?php
+																/** This action is documented in wp-admin/includes/media.php */
+																do_action( 'pre-upload-ui' );
+																/** This action is documented in wp-admin/includes/media.php */
+																do_action( 'pre-plupload-upload-ui' );
+
+																if ( 10 === remove_action( 'post-plupload-upload-ui', 'media_upload_flash_bypass' ) ) {
+																	/** This action is documented in wp-admin/includes/media.php */
+																	do_action( 'post-plupload-upload-ui' );
+																	add_action( 'post-plupload-upload-ui', 'media_upload_flash_bypass' );
+																}
+																else {
+																	/** This action is documented in wp-admin/includes/media.php */
+																	do_action( 'post-plupload-upload-ui' );
+																}
+
+																$max_upload_size = wp_max_upload_size();
+																if ( ! $max_upload_size ) {
+																	$max_upload_size = 0;
+																}
+																?>
+
+																<p class="max-upload-size">
+																	<?php printf( __( 'Maximum upload file size: %s.', 'layerswp' ), esc_html( size_format( $max_upload_size ) ) ); ?>
+																</p>
+																
+																<?php
+																/** This action is documented in wp-admin/includes/media.php */
+																do_action( 'post-upload-ui' ); ?>
+															</div>
+															
+															<!-- Get uploaded info from pupload and pass to next page -->
+															<form id="layers-stylekit-plupload-info-form" method="post" action="<?php echo add_query_arg( array( 'page' => 'layers_stylekit_export', 'step' => 'layers-stylekit-import-step-2' ), get_admin_url() . 'admin.php' ) ?>">
+																<input type="hidden" name="layers-stylekit-source-path">
+																<input type="hidden" name="layers-stylekit-source-id" >
+															</form>
+															
+														<?php endif; ?>
+														
+													</div>
+												
+												</div>
+											
+												<div class="layers-animate layers-stylekit-slide layers-stylekit-slide-inactive layers-stylekit-upload-slide layers-stylekit-upload-slide-2">
+													
+													<!-- ------------------------------------
+															 IMPORT: STEP-1, SLIDE-2
+													------------------------------------- -->
+													
+													<div class="layers-load-bar layers-load-bar-floater layers-stylekit-load-bar layers-hide">
+														<span class="layers-progress zero"></span>
+													</div>
+													
+												</div>
+												
+												<div class="layers-animate layers-stylekit-slide layers-stylekit-slide-inactive layers-stylekit-upload-slide layers-stylekit-upload-slide-3">
+													
+													<!-- ------------------------------------
+															IMPORT: STEP-1, SLIDE-3
+													------------------------------------- -->
+													
+												</div>
+											
+											</div>
+											<!-- /WordPress Plupload -->
+											
+											<!-- Old-school browser file upload -->
+											<form method="post" enctype="multipart/form-data" class="layers-stylekit-form-uploader-ui wp-upload-form layers-push-bottom" action="<?php echo add_query_arg( array( 'page' => 'layers_stylekit_export', 'step' => 'layers-stylekit-import-step-2' ), get_admin_url() . 'admin.php' ) ?>">
+												<?php wp_nonce_field( 'layers-stylekit-import'); ?>
+												<input type="file" name="layers-stylekit-themezip" />
+												<?php submit_button( __( 'Import StyleKit', 'layerswp' ), 'button', 'layers-stylekit-submit', false, array( 'class' => 'button button-primary button-large' ) ); ?>
+											</form>
+											<!-- /Old School -->
+											
+										</div>
+										
+									</div>
+									<div class="layers-animate layers-stylekit-slide layers-stylekit-slide-inactive layers-import-slide-2">
 									
-									<!-- WordPress Plupload drag&drop interface -->
-									<div id="layers-stylekit-drop-uploader-ui" class="layers-stylekit-drop-uploader-ui multiple">
+										<!-- ------------------------------------
+												 RESTORE: SLIDE-1
+										------------------------------------- -->
 										
 										<div class="layers-load-bar layers-load-bar-floater layers-stylekit-load-bar layers-hide">
 											<span class="layers-progress zero"></span>
 										</div>
 										
-										<div class="layers-animate layers-stylekit-slide layers-stylekit-slide-current layers-stylekit-slide-1">
-										
-											<!-- ------------------------------------
-													 IMPORT : STEP-1, SLIDE-1
-											------------------------------------- -->
-											
-											<span class="ajaxnonce" id="<?php echo wp_create_nonce( __FILE__ ); ?>"></span>
-									
-											<?php if ( ! _device_can_upload() ) : ?>
-												<h3 class="upload-instructions"><?php printf( __( 'The web browser on your device cannot be used to upload files.', 'layerswp' ) ); ?></h3>
-											<?php elseif ( is_multisite() && ! is_upload_space_available() ) : ?>
-												<h3 class="upload-instructions"><?php _e( 'Upload Limit Exceeded.', 'layerswp' ); ?></h3>
-												<?php
-												/** This action is documented in wp-admin/includes/media.php */
-												do_action( 'upload_ui_over_quota' );
-												?>
-											<?php else : ?>
-											
-												<div class="upload-ui">
-													<h3 class="upload-instructions drop-instructions"><?php _e( 'Drop a StyleKit here', 'layerswp' ); ?></h3>
-													<p class="upload-instructions drop-instructions"><?php _ex( 'or', 'Uploader: Drop files here - or - Select Files', 'layerswp' ); ?></p>
-													<a href="#" id="layers-stylekit-drop-uploader-ui-button" class="layers-stylekit-drop-uploader-ui-button browser button button-hero"><?php _e( 'Select StyleKit', 'layerswp' ); ?></a>
-												</div>
-
-												<div class="upload-inline-status"></div>
-
-												<div class="post-upload-ui">
-													<?php
-													/** This action is documented in wp-admin/includes/media.php */
-													do_action( 'pre-upload-ui' );
-													/** This action is documented in wp-admin/includes/media.php */
-													do_action( 'pre-plupload-upload-ui' );
-
-													if ( 10 === remove_action( 'post-plupload-upload-ui', 'media_upload_flash_bypass' ) ) {
-														/** This action is documented in wp-admin/includes/media.php */
-														do_action( 'post-plupload-upload-ui' );
-														add_action( 'post-plupload-upload-ui', 'media_upload_flash_bypass' );
-													}
-													else {
-														/** This action is documented in wp-admin/includes/media.php */
-														do_action( 'post-plupload-upload-ui' );
-													}
-
-													$max_upload_size = wp_max_upload_size();
-													if ( ! $max_upload_size ) {
-														$max_upload_size = 0;
-													}
-													?>
-
-													<p class="max-upload-size">
-														<?php printf( __( 'Maximum upload file size: %s.', 'layerswp' ), esc_html( size_format( $max_upload_size ) ) ); ?>
-													</p>
-													
-													<?php
-													/** This action is documented in wp-admin/includes/media.php */
-													do_action( 'post-upload-ui' ); ?>
-												</div>
-												
-												<!-- Get uploaded info from pupload and pass to next page -->
-												<form id="layers-stylekit-plupload-info-form" method="post" action="<?php echo add_query_arg( array( 'page' => 'layers_stylekit_export', 'step' => 'layers-stylekit-import-step-2' ), get_admin_url() . 'admin.php' ) ?>">
-													<input type="hidden" name="layers-stylekit-source-path">
-													<input type="hidden" name="layers-stylekit-source-id" >
-												</form>
-												
-											<?php endif; ?>
-										
-										</div>
-									
-										<div class="layers-animate layers-stylekit-slide layers-stylekit-slide-2 layers-stylekit-slide-inactive">
-											
-											<!-- ------------------------------------
-													 IMPORT : STEP-1, SLIDE-2
-											------------------------------------- -->
-											
-										</div>
-										
-										<div class="layers-animate layers-stylekit-slide layers-stylekit-slide-3 layers-stylekit-slide-inactive">
-											
-											<!-- ------------------------------------
-													IMPORT : STEP-1, SLIDE-3
-											------------------------------------- -->
-											
-										</div>
-									
 									</div>
-									<!-- /WordPress Plupload -->
-									
-									<!-- Old-school browser file upload -->
-									<form method="post" enctype="multipart/form-data" class="layers-stylekit-form-uploader-ui wp-upload-form layers-push-bottom" action="<?php echo add_query_arg( array( 'page' => 'layers_stylekit_export', 'step' => 'layers-stylekit-import-step-2' ), get_admin_url() . 'admin.php' ) ?>">
-										<?php wp_nonce_field( 'layers-stylekit-import'); ?>
-										<input type="file" name="layers-stylekit-themezip" />
-										<?php submit_button( __( 'Import StyleKit', 'layerswp' ), 'button', 'layers-stylekit-submit', false, array( 'class' => 'button button-primary button-large' ) ); ?>
-									</form>
-									<!-- /Old School -->
 									
 								</div>
-							</div>
-							<div class="layers-column layers-span-4 no-gutter">
-								<div class="layers-content">
-									<!-- Your helpful tips go here -->
-									<ul class="layers-help-list">
-										<li>
-											<?php _e( 'StyleKits are standardised collections of settings, CSS and pages for Layers sites. You can export and import them into any other Layers installation.', 'layerswp' ) ?>
-										</li>
-										<li class="pro-tip">
-											<?php _e( 'StyleKits are an easy way of transferring the look of your site or selling it as a theme for others to use.', 'layerswp' ) ?>
-										</li>
-										<li class="pro-tip">
-											<?php _e( 'For more information and documentation, <a href="#">click here</a>.', 'layerswp' ) ?>
-										</li>
-									</ul>
+								<div class="layers-column layers-span-4 no-gutter">
+									<div class="layers-content">
+										<!-- Your helpful tips go here -->
+										<ul class="layers-help-list">
+											<li>
+												<?php _e( 'StyleKits are standardised collections of settings, CSS and pages for Layers sites. You can export and import them into any other Layers installation.', 'layerswp' ) ?>
+											</li>
+											<li class="pro-tip">
+												<?php _e( 'StyleKits are an easy way of transferring the look of your site or selling it as a theme for others to use.', 'layerswp' ) ?>
+											</li>
+											<li class="pro-tip">
+												<?php _e( 'For more information and documentation, <a href="#">click here</a>.', 'layerswp' ) ?>
+											</li>
+										</ul>
+									</div>
 								</div>
+								
 							</div>
 							
 						</div>
@@ -498,7 +578,7 @@ class Layers_StyleKit_Exporter {
 					<!-- ------------------------------------
 					
 					
-								IMPORT : STEP-2
+								IMPORT: STEP-2
 								
 								
 					------------------------------------- -->
@@ -507,12 +587,13 @@ class Layers_StyleKit_Exporter {
 						<div class="layers-onboard-slide layers-animate layers-onboard-slide-current layers-stylekit-import-step-2">
 							
 							<div class="layers-row">
+								
 								<div class="layers-column layers-span-8 layers-panel">
 								
-									<div class="layers-animate layers-stylekit-slide layers-stylekit-slide-1 layers-stylekit-slide-current">
+									<div class="layers-animate layers-stylekit-slide layers-stylekit-slide-current layers-stylekit-import-slide-1">
 								
 										<!-- ------------------------------------
-												 IMPORT : STEP-2, SLIDE-1
+												 IMPORT: STEP-2, SLIDE-1
 										------------------------------------- -->
 										
 										<?php
@@ -551,27 +632,27 @@ class Layers_StyleKit_Exporter {
 										<div class="layers-hold-open"></div>
 										
 									</div>
-									<div class="layers-animate layers-stylekit-slide layers-stylekit-slide-2 layers-stylekit-slide-inactive">
+									<div class="layers-animate layers-stylekit-slide layers-stylekit-slide-inactive layers-stylekit-import-slide-2">
 									
 										<!-- ------------------------------------
-												IMPORT : STEP-2, SLIDE-2
+												IMPORT: STEP-2, SLIDE-2
 										------------------------------------- -->
 										
 									
 									</div>
-									<div class="layers-animate layers-stylekit-slide layers-stylekit-slide-3 layers-stylekit-slide-inactive">
+									<div class="layers-animate layers-stylekit-slide layers-stylekit-slide-inactive layers-stylekit-import-slide-3">
 									
 										<!-- ------------------------------------
-												IMPORT : STEP-2, SLIDE-3
+												IMPORT: STEP-2, SLIDE-3
 										------------------------------------- -->
 									
 										<div class="layers-hold-open"></div>
 										
 									</div>
-									<div class="layers-animate layers-stylekit-slide layers-stylekit-slide-4 layers-stylekit-slide-inactive">
+									<div class="layers-animate layers-stylekit-slide layers-stylekit-slide-inactive layers-stylekit-import-slide-4">
 										
 										<!-- ------------------------------------
-												IMPORT : STEP-2, SLIDE-4
+												IMPORT: STEP-2, SLIDE-4
 										------------------------------------- -->
 									
 									</div>
@@ -623,10 +704,10 @@ class Layers_StyleKit_Exporter {
 						
 						<div class="layers-onboard-slide layers-animate layers-onboard-slide-current layers-stylekit-export-step-1">
 							
-							<div class="layers-animate layers-stylekit-slide layers-stylekit-slide-1 layers-stylekit-slide-current">
+							<div class="layers-animate layers-stylekit-slide layers-stylekit-slide-current layers-stylekit-export-slide-1">
 								
 								<!-- ------------------------------------
-										 EXPORT : STEP-1, SLIDE-1
+										 EXPORT: STEP-1, SLIDE-1
 								------------------------------------- -->
 								
 								<div class="layers-row">
@@ -858,10 +939,10 @@ class Layers_StyleKit_Exporter {
 								</div>
 					
 							</div>
-							<div class="layers-animate layers-stylekit-slide layers-stylekit-slide-2 layers-stylekit-slide-inactive">
+							<div class="layers-animate layers-stylekit-slide layers-stylekit-slide-inactive layers-stylekit-export-slide-2">
 								
 								<!-- ------------------------------------
-										EXPORT : STEP-1, SLIDE-2
+										EXPORT: STEP-1, SLIDE-2
 								------------------------------------- -->
 								
 								<div class="layers-row">
@@ -896,10 +977,10 @@ class Layers_StyleKit_Exporter {
 								</div>
 								
 							</div>
-							<div class="layers-animate layers-stylekit-slide layers-stylekit-slide-3 layers-stylekit-slide-inactive">
+							<div class="layers-animate layers-stylekit-slide layers-stylekit-slide-inactive layers-stylekit-export-slide-3">
 								
 								<!-- ------------------------------------
-										EXPORT : STEP-1, SLIDE-3
+										EXPORT: STEP-1, SLIDE-3
 								------------------------------------- -->
 					
 							</div>
@@ -919,6 +1000,8 @@ class Layers_StyleKit_Exporter {
 					</div>
 					
 				<?php endif; ?>
+				
+				<?php $this->history_interface(); ?>
 				
 			</div>
 		</div>
@@ -953,64 +1036,8 @@ class Layers_StyleKit_Exporter {
 		//if( !check_ajax_referer( 'layers-backup-pages', 'layers_backup_pages_nonce', false ) ) die( 'You threw a Nonce exception' ); // Nonce
 		//if( ! isset( $_POST[ 'pageid' ] ) ) wp_die( __( 'You shall not pass' , 'layerswp' ) );
 		
-		$backup_settings_only = isset( $_POST['backup_settings_only'] );
-		
-		// Ready for us to be able to access filestytem and grab the images.
-		$this->migrator->init_filesystem();
-		
-		$stylekit_json = array();
-		
-		/**
-		 * Settings
-		 */
-		
-		if ( isset( $_POST['layers_settings_groups'] ) || $backup_settings_only ) {
-			
-			$sections_to_get = array();
-			
-			if ( $backup_settings_only ) {
-				
-				foreach ( $this->control_groups as $control_group_key => $control_group ) {
-					$sections_to_get = array_merge( $control_group[ 'contains' ], $sections_to_get );
-				}
-			}
-			elseif ( isset( $_POST['layers_settings_groups'] ) ) {
-				
-				$chosen_settings_groups = $_POST['layers_settings_groups'];
-			
-				foreach ( $chosen_settings_groups as $chosen_settings_group ) {
-					$sections_to_get = array_merge( $this->control_groups[ $chosen_settings_group ][ 'contains' ], $sections_to_get );
-				}
-			}
-			
-			$controls = $this->get_controls( array(
-				'sections' => $sections_to_get,
-				'exclude_types' => $this->controls_to_exclude,
-			) );
-			
-			if ( !empty( $controls ) ) {
-				
-				$stylekit_json['settings'] = array();
-				
-				foreach ( $controls as $control_key => $control ) {
-					
-					// @TODO: write a get field data function that does all this
-					// @TODO: perhaps also a get_field_name that looks at type and gets either the lable or subtitle as a result
-					
-					$name = '';
-					if ( isset( $control['subtitle'] ) ) $name = $control['subtitle'];
-					if ( '' == $name && isset(  $control['label'] ) ) $name = $control['label'];
-					
-					$stylekit_json['settings'][ LAYERS_THEME_SLUG . '-' . $control_key ] = array(
-						'title'   => $name,
-						'type'    => $control['type'],
-						'value'   => layers_get_theme_mod( $control_key, FALSE ),
-						'default' => layers_get_default( $control_key ),
-					);
-				}
-			}
-			
-		}
+		// Get the settings json.
+		$stylekit_json = $this->prepare_settings_json();
 		
 		/**
 		 * Pages
@@ -1042,14 +1069,8 @@ class Layers_StyleKit_Exporter {
 			}
 		}
 		
-		/**
-		 * CSS
-		 */
-		
-		if ( isset( $_POST['layers_css'] ) || $backup_settings_only ) {
-			
-			$stylekit_json['css'] = layers_get_theme_mod( 'custom-css' );
-		}
+		// Ready for us to be able to access filestytem and grab the images.
+		$this->migrator->init_filesystem();
 		
 		// Check that the user has write permission on a folder
 		$access_type = get_filesystem_method();
@@ -1189,7 +1210,7 @@ class Layers_StyleKit_Exporter {
 					<div class="layers-column layers-span-4 layers-content">
 							
 						<div class="stylekit-statement-holder">
-							<i class="layers-button-icon-dashboard"></i>
+							<i class="layers-button-icon-dashboard layers-stylekit-icon"></i>
 						</div>
 						
 					</div>
@@ -1288,6 +1309,76 @@ echo esc_attr( json_encode( $stylekit_json ) );
 		) );
 		
 		die();
+	}
+	
+	public function prepare_settings_json( $backup_all_settings = FALSE ){
+		
+		// Start preset page bucket
+		$stylekit_json = array();
+		
+		/**
+		 * Settings
+		 */
+		
+		if ( isset( $_POST['layers_settings_groups'] ) || $backup_all_settings ) {
+			
+			$sections_to_get = array();
+			
+			if ( $backup_all_settings ) {
+				
+				foreach ( $this->control_groups as $control_group_key => $control_group ) {
+					$sections_to_get = array_merge( $control_group[ 'contains' ], $sections_to_get );
+				}
+			}
+			elseif ( isset( $_POST['layers_settings_groups'] ) ) {
+				
+				$chosen_settings_groups = $_POST['layers_settings_groups'];
+			
+				foreach ( $chosen_settings_groups as $chosen_settings_group ) {
+					$sections_to_get = array_merge( $this->control_groups[ $chosen_settings_group ][ 'contains' ], $sections_to_get );
+				}
+			}
+			
+			$controls = $this->get_controls( array(
+				'sections' => $sections_to_get,
+				'exclude_types' => $this->controls_to_exclude,
+			) );
+			
+			if ( !empty( $controls ) ) {
+				
+				$stylekit_json['settings'] = array();
+				
+				foreach ( $controls as $control_key => $control ) {
+					
+					// @TODO: write a get field data function that does all this
+					// @TODO: perhaps also a get_field_name that looks at type and gets either the lable or subtitle as a result
+					
+					$name = '';
+					if ( isset( $control['subtitle'] ) ) $name = $control['subtitle'];
+					if ( '' == $name && isset(  $control['label'] ) ) $name = $control['label'];
+					
+					$stylekit_json['settings'][ LAYERS_THEME_SLUG . '-' . $control_key ] = array(
+						'title'   => $name,
+						'type'    => $control['type'],
+						'value'   => layers_get_theme_mod( $control_key, FALSE ),
+						'default' => layers_get_default( $control_key ),
+					);
+				}
+			}
+			
+		}
+		
+		/**
+		 * CSS
+		 */
+		
+		if ( isset( $_POST['layers_css'] ) || $backup_all_settings ) {
+			
+			$stylekit_json['css'] = layers_get_theme_mod( 'custom-css' );
+		}
+		
+		// Return the json.
+		return $stylekit_json;
 	}
 	
 	/**
@@ -1398,7 +1489,7 @@ echo esc_attr( json_encode( $stylekit_json ) );
 			'multi_selection'   => true,
 			'multipart_params' => array(
 				'_ajax_nonce' => '',
-				'action'      => 'layers_stylekit_zip_upload_ajax'
+				'action'      => 'layers_stylekit_upload_ajax'
 			)
 		);
 		?>
@@ -1421,7 +1512,7 @@ echo esc_attr( json_encode( $stylekit_json ) );
 	 * File Upload Ajax
 	 */
 	
-	function layers_stylekit_zip_upload_ajax() {
+	function layers_stylekit_upload_ajax() {
 		
 		// check ajax nonce
 		check_ajax_referer( __FILE__ );
@@ -1430,13 +1521,11 @@ echo esc_attr( json_encode( $stylekit_json ) );
 		
 		// Allow uploading of .zip files
 		add_filter( 'upload_mimes', array( $this, 'add_allowed_mimes' ) );
-		
-		//s( $_FILES );
 
 		// handle file upload
 		$id = media_handle_upload( 'async-upload', 0, array(
 			'test_form' => true,
-			'action'    => 'layers_stylekit_zip_upload_ajax',
+			'action'    => 'layers_stylekit_upload_ajax',
 		) );
 
 		// send the file' url as response
@@ -1469,12 +1558,10 @@ echo esc_attr( json_encode( $stylekit_json ) );
 		
 		// Security
 		//check_ajax_referer( 'updates' );
+		
 		// Get the location of the $package .zip
 		$package = urldecode( $_POST['package'] );
 		
-		//include_once( ABSPATH . '/wp-admin/includes/class-wp-upgrader.php' );
-		//include_once( ABSPATH . '/wp-admin/includes/class-wp-upgrader-skins.php' );
-		//include_once( LAYERS_TEMPLATE_DIR . '/core/stylekit-manager/classes/class-stylekit-upgrader-skin.php' );
 		include_once( LAYERS_TEMPLATE_DIR . '/core/stylekit-manager/classes/class-stylekit-upgrader.php' );
 		
 		// $current = get_site_transient( 'update_plugins' );
@@ -1746,7 +1833,7 @@ echo esc_attr( json_encode( $stylekit_json ) );
 				<div class="layers-column layers-span-4 layers-content">
 					
 					<div class="stylekit-statement-holder">
-						<i class="layers-button-icon-dashboard"></i>
+						<i class="layers-button-icon-dashboard layers-stylekit-icon"></i>
 					</div>
 					
 				</div>
@@ -1798,7 +1885,7 @@ echo esc_attr( json_encode( $stylekit_json ) );
 				<div class="layers-column layers-span-4 layers-content">
 					
 					<div class="stylekit-statement-holder">
-						<i class="layers-button-icon-dashboard"></i>
+						<i class="layers-button-icon-dashboard layers-stylekit-icon"></i>
 					</div>
 					
 				</div>
@@ -1827,7 +1914,7 @@ echo esc_attr( json_encode( $stylekit_json ) );
 		);
 	}
 	
-	function layers_stylekit_import_ajax_step_1() {
+	function layers_stylekit_import_step_1_ajax() {
 		
 		/**
 		 * @TODO backup the current settings so that can be rolled back.
@@ -1836,12 +1923,13 @@ echo esc_attr( json_encode( $stylekit_json ) );
 		$stylekit_json = ( isset( $_POST['layers-settings-stylekit'] ) ) ? stripslashes( $_POST['layers-settings-stylekit'] ) : '' ;
 	}
 	
-	function layers_stylekit_import_ajax_step_2() {
-		
-		/**
-		 * Modify Stylekit Json - so that only the chosen elements prevail.
-		 */
-		
+	/**
+	 * Import - Modify / Filter the stylkit json
+	 *
+	 * Receives the the posted stylekit json and the chosen options from that
+	 * stylekit and filters it so that only the chosen options prevail.
+	 */
+	function layers_stylekit_import_step_2_ajax() {
 		
 		// Get and decode json.
 		$stylekit_json = ( isset( $_POST['layers-stylekit-import-stylekit'] ) ) ? stripslashes( $_POST['layers-stylekit-import-stylekit'] ) : '' ;
@@ -1926,34 +2014,21 @@ echo esc_attr( json_encode( $stylekit_json ) );
 		die();
 	}
 	
-	public function layers_stylekit_import_ajax_step_3() {
+	/**
+	 * Import - Settings & Custom CSS
+	 *
+	 * Receives the the posted stylekit json and saves the settings and custom css.
+	 */
+	public function layers_stylekit_import_step_3_ajax() {
 		
-		$stylekit_json = ( isset( $_POST['stylekit_json'] ) ) ? $_POST['stylekit_json'] : array() ;
+		// Get and decode json.
+		$stylekit_json = isset( $_POST['stylekit_json'] ) ? $_POST['stylekit_json'] : array() ;
 		
-		/**
-		 * Settings
-		 */
+		// Backup current settings.
+		$this->layers_stylekit_backup_current_settings();
 		
-		// Import the Settings
-		if ( isset( $stylekit_json['settings'] ) ) {
-			
-			foreach ( $stylekit_json['settings'] as $setting_key => $setting ) {
-				
-				// Set theme mod
-				set_theme_mod( $setting_key, $setting['value'] );
-			}
-		}
-		
-		/**
-		 * Custom CSS
-		 */
-		
-		// Import the CSS
-		if ( isset( $stylekit_json['css'] ) ) {
-			
-			// Set theme mod
-			set_theme_mod( 'layers-custom-css', $stylekit_json['css'] );
-		}
+		// Save the Settings & CSS.
+		$stylekit_json = $this->import_stylekit( $stylekit_json );
 		
 		// Return the StyleKit JSON
 		echo json_encode( array(
@@ -1964,7 +2039,27 @@ echo esc_attr( json_encode( $stylekit_json ) );
 		die();
 	}
 	
-	public function layers_stylekit_import_ajax_step_4() {
+	public function layers_stylekit_backup_current_settings(  ) {
+		
+		// Get the current settings json so we can back it up.
+		$current_setings_json = $this->prepare_settings_json( TRUE );
+		
+		// Create a post with the current settings backed up in it's meta.
+		$post_id = wp_insert_post( array(
+			'post_content'  => $this->prettyPrint( json_encode( $current_setings_json ) ),
+			'post_title'    => 'Settings',
+			'post_status'   => 'publish',
+			'post_type'     => 'layers_stylekits',
+		) );
+		
+		// Save the settings json to the post.
+		update_post_meta( $post_id, 'settings_json', $current_setings_json );
+		
+		// Save that Type that lets us knwo this is a backup.
+		update_post_meta( $post_id, 'type', 'backup' );
+	}
+	
+	public function layers_stylekit_import_step_4_ajax() {
 		
 		$stylekit_json = ( isset( $_POST['stylekit_json'] ) ) ? $_POST['stylekit_json'] : array() ;
 		
@@ -2037,7 +2132,7 @@ echo esc_attr( json_encode( $stylekit_json ) );
 		die();
 	}
 	
-	public function layers_stylekit_import_ajax_step_5() {
+	public function layers_stylekit_import_step_5_ajax() {
 		
 		$stylekit_json = ( isset( $_POST['stylekit_json'] ) ) ? $_POST['stylekit_json'] : array() ;
 		
@@ -2091,31 +2186,18 @@ echo esc_attr( json_encode( $stylekit_json ) );
 		die();
 	}
 	
-	public function layers_stylekit_import_ajax_step_6() {
+	public function layers_stylekit_import_step_6_ajax() {
 		
 		$stylekit_json = ( isset( $_POST['stylekit_json'] ) ) ? $_POST['stylekit_json'] : array() ;
 		
-		// Set the post ID so that we know the post was created successfully
-		$post_id = wp_insert_post( array(
-			//'post_author' => $author_id,
-			//'post_name'   => $slug,
-			'post_content'  => json_encode( $stylekit_json ),
-			'post_title'    => $stylekit_json['internal_data']['zip_folder_name'],
-			'post_status'   => 'publish',
-			'post_type'     => 'layers_stylekits',
-		) );
-		
 		ob_start();
-		
-		if ( TRUE ) :
 		?>
-		
 		<div class="layers-row">
 			
 			<div class="layers-column layers-span-4 layers-content">
 					
 				<div class="stylekit-statement-holder">
-					<i class="layers-button-icon-dashboard"></i>
+					<i class="layers-button-icon-dashboard layers-stylekit-icon"></i>
 				</div>
 				
 			</div>
@@ -2185,10 +2267,7 @@ echo esc_attr( json_encode( $stylekit_json ) );
 			</div>
 		
 		</div>
-		
 		<?php
-		
-		endif ;
 		
 		$ui = ob_get_clean();
 		
@@ -2200,6 +2279,36 @@ echo esc_attr( json_encode( $stylekit_json ) );
 		) );
 		
 		die();
+	}
+	
+	public function import_stylekit( $stylekit_json ) {
+		
+		/**
+		 * Settings
+		 */
+		
+		// Import the Settings
+		if ( isset( $stylekit_json['settings'] ) ) {
+			
+			foreach ( $stylekit_json['settings'] as $setting_key => $setting ) {
+				
+				// Set theme mod
+				set_theme_mod( $setting_key, $setting['value'] );
+			}
+		}
+		
+		/**
+		 * Custom CSS
+		 */
+		
+		// Import the CSS
+		if ( isset( $stylekit_json['css'] ) ) {
+			
+			// Set theme mod
+			set_theme_mod( 'layers-custom-css', $stylekit_json['css'] );
+		}
+		
+		return $stylekit_json;
 	}
 	
 	public function search_and_replace_images( $widgets, $page_id ) {
@@ -2223,34 +2332,78 @@ echo esc_attr( json_encode( $stylekit_json ) );
 		return $locations;
 	}
 	
-	public function register_post_type() {
-		register_post_type(
-			'layers_stylekits',
-			array(
-				'labels' => array(
-					'name' => 'StyleKits',
-					'singular_name' => 'StyleKit',
-					'add_new' => 'Add New',
-					'add_new_item' => 'Add New StyleKit',
-					'edit' => 'Edit',
-					'edit_item' => 'Edit StyleKit',
-					'new_item' => 'New StyleKit',
-					'view' => 'View',
-					'view_item' => 'View StyleKit',
-					'search_items' => 'Search StyleKits',
-					'not_found' => 'No StyleKits found',
-					'not_found_in_trash' => 'No StyleKits found in Trash',
-					'parent' => 'Parent StyleKit'
-				),
-				'public' => true,
-				'menu_position' => 15,
-				//'supports' => array( 'title', 'editor', 'comments', 'thumbnail', 'custom-fields' ),
-				'supports' => array( 'title', 'editor', 'custom-fields' ),
-				'taxonomies' => array(),
-				//'menu_icon' => plugins_url( 'images/image.png', __FILE__ ),
-				'has_archive' => true
-			)
-		);
+	
+	/**
+	 * ------------------------------------------------------------------
+	 *
+	 *
+	 *
+	 *
+	 *
+	 *
+	 *                           RESTORE
+	 *
+	 *
+	 *
+	 *
+	 *
+	 *
+	 * ------------------------------------------------------------------
+	 */
+	
+	
+	public function history_interface() {
+		
+		?>
+		<div class="layers-row layers-middled layers-stylekit-history">
+			<div class="layers-column layers-span-12">
+				<!-- <i class="layers-button-icon-dashboard layers-stylekit-icon"></i> -->
+				<span class="layers-stylekit-history-container">
+					<span class="layers-stylekit-current">
+						<small class="layers-label label-secondary">Current StyleKit</small>&nbsp; <strong>Pinkerkit</strong> - Settings &bull;&bull;&bull;, 3 Pages &uarr;, Custom CSS.
+					</span>
+					<a href="#" class="layers-stylekit-rollback"><span class="layers-stylekit-rollback-times">&times;</span>Remove</a>
+					<div class="layers-stylekit-previous">
+						<small class="layers-label label-secondary">Replace with previous</small>&nbsp; <strong>Pinkerkit</strong> - Settings &bull;&bull;&bull;, 3 Pages &uarr;, Custom CSS.
+					</div>
+				</span>
+			</div>
+		</div>
+		<?php
+	}
+	
+	
+	/**
+	 * Restore Ajax
+	 */
+	public function layers_stylekit_settings_restore_ajax() {
+		
+		// ssss
+		$posts = get_posts( array(
+			'posts_per_page' => 1,
+			'post_type'      => 'layers_stylekits',
+			'post_status'    => array( 'publish' ),
+			'meta_key'       => 'type',
+			'meta_value'     => 'backup',
+			'orderby'        => 'date',
+			'order'          => 'DESC',
+		) );
+		
+		foreach( $posts as $post ) :
+			setup_postdata( $post );
+			$stylekit_json = get_post_meta( $post->ID, 'settings_json', TRUE );
+		endforeach;
+		
+		$this->import_stylekit( $stylekit_json );
+		
+		// Return the StyleKit JSON
+		echo json_encode( array(
+			// 'stylekit_json' => $stylekit_json,
+			// 'stylekit_json_pretty' => $this->prettyPrint( json_encode( $stylekit_json ) ),
+			// 'ui' => $ui,
+		) );
+		
+		die();
 	}
 	
 }
