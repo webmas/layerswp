@@ -321,7 +321,7 @@ class Layers_StyleKit_Exporter {
 					'not_found_in_trash' => 'No StyleKits found in Trash',
 					'parent' => 'Parent StyleKit'
 				),
-				'public' => true,
+				'public' => false,
 				'menu_position' => 15,
 				//'supports' => array( 'title', 'editor', 'comments', 'thumbnail', 'custom-fields' ),
 				'supports' => array( 'title', 'editor', 'custom-fields' ),
