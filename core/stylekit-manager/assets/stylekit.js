@@ -367,7 +367,7 @@
 		var image_success_function;
 		
 		function layers_stylekit_import_step_5_ajax( response ) {
-			
+
 			current_image++;
 			total_images = 0;
 			for ( var property in response.stylekit_json.internal_data.images_in_widgets ) if ( response.stylekit_json.internal_data.images_in_widgets.hasOwnProperty( property ) ) total_images++;
@@ -384,7 +384,7 @@
 			
 			// This puts the page import into a loop.
 			if ( current_image >= total_images ) image_success_function = layers_stylekit_import_step_6_ajax;
-			else image_success_function = layers_stylekit_import_step_4_ajax;
+			else image_success_function = layers_stylekit_import_step_5_ajax;
 			
 			// Debugging
 			//console.log( response );
@@ -452,7 +452,7 @@
 		
 		
 		// Restore Settings
-		$( document ).on( 'click', '.layers-stylekit-rollback', function(){
+		$( document ).on( 'click', '.layers-stylekit-remove-stylekit-button', function(){
 			
 			go_to_slide( 2, $restore_slides );
 			
@@ -482,7 +482,7 @@
 				dataType: 'json',
 				url: ajaxurl,
 				data: {
-					action: 'layers_stylekit_settings_restore_ajax',
+					action: 'layers_stylekit_remove_ajax',
 				},
 				success: layers_stylekit_restore_settings_success,
 			});
@@ -500,10 +500,10 @@
 		}
 
 		
-		$( document ).on( 'hover', '.layers-stylekit-rollback', function(){
-			$( '.layers-stylekit-history-container' ).toggleClass( 'hover-remove' );
-			return false;
-		});
+// 		$( document ).on( 'hover', '.layers-stylekit-rollback', function(){
+// 			$( '.layers-stylekit-history-container' ).toggleClass( 'hover-remove' );
+// 			return false;
+// 		});
 
 
 		/**
@@ -633,8 +633,8 @@
 		];
 		
 		var $restore_slides = [
-			'.layers-import-slide-1',
-			'.layers-import-slide-2',
+			'.layers-restore-slide-1',
+			'.layers-restore-slide-2',
 		];
 		
 		var $importer_slides = [

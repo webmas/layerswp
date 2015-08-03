@@ -428,10 +428,10 @@ class Layers_Widget_Migrator {
 					$validated_data[ $option ] = stripslashes( $option_data );
 				}
 				
-				if( is_object( $wp_filesystem ) && isset( $validated_data[ $option ] ) && '' != $validated_data[ $option ] ) {
+				if( isset( $validated_data[ $option ] ) && '' != $validated_data[ $option ] ) {
 					$this->images_collected[] = array(
 						'url' => $validated_data[ $option ],
-						'path'  => str_replace( trailingslashit( WP_CONTENT_URL ), $wp_filesystem->wp_content_dir(), $validated_data[ $option ] ),
+						'path'  => str_replace( trailingslashit( WP_CONTENT_URL ), trailingslashit( WP_CONTENT_DIR ), $validated_data[ $option ] ),
 					);
 				}
 				

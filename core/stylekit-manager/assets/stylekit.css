@@ -58,6 +58,9 @@ p.layers-excerpt{
 .tick.ticked-none {
 	background-image: url( ../../assets/images/stylekit/ticked-none.png ) !important;
 }
+.tick.crossed {
+	background-image: url( ../../assets/images/stylekit/crossed.png ) !important;
+}
 
 .layers-stylekit-onboard-wrapper input[type="text"]{
 	width: 100%;
