@@ -102,6 +102,13 @@ class Layers_StyleKit_Exporter {
 									'site-colors',
 								),
 							),
+			'site-settings' => array(
+								'title'    => 'Site Settings',
+								'desc'     => 'Settings from the fonts etc',
+								'contains' => array(
+									'fonts',
+								),
+							),
 		);
 		
 		// Exclude controls of these types while Export/Import
@@ -321,7 +328,7 @@ class Layers_StyleKit_Exporter {
 					'not_found_in_trash' => 'No StyleKits found in Trash',
 					'parent' => 'Parent StyleKit'
 				),
-				'public' => true,
+				'public' => FALSE,
 				'menu_position' => 15,
 				//'supports' => array( 'title', 'editor', 'comments', 'thumbnail', 'custom-fields' ),
 				'supports' => array( 'title', 'editor', 'custom-fields' ),
