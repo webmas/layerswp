@@ -504,6 +504,8 @@ class Layers_Widget_Migrator {
 
 				if( NULL != $check_for_image ) {
 					$get_image_id = $check_for_image;
+				} elseif ( FALSE == $args['download_images'] ) {
+					$get_image_id = $check_for_image;
 				} else {
 					// @TODO: Try improve the image loading
 					$import_image = media_sideload_image( $option_data , 0 );
@@ -569,7 +571,9 @@ class Layers_Widget_Migrator {
 		
 		$status = array( $file_name );
 		
-		if ( $db_image && $args['create_new_image_if_name_exists'] ) {
+		
+		
+		if ( $args['create_new_image_if_name_exists'] ) {
 			if ( isset( $this->images_in_widgets[$file_name]['url'] ) ) {
 				$status[] = 'Have previously uploaded image from disk';
 				$disk_image = $this->images_in_widgets[$file_name]['url'];
@@ -592,6 +596,8 @@ class Layers_Widget_Migrator {
 				}
 			}
 		}
+		
+		
 		
 		// Find which image to use?
 		$found_image = NULL;

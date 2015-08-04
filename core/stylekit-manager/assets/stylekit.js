@@ -79,6 +79,8 @@
 
 			});
 		}
+		
+		var $stylkeit_json = [];
 
 		// STEP-2 - Unpack the StyleKit Zip
 		if ( $('input[name="layers-stylekit-package"]').val() ) {
@@ -135,8 +137,11 @@
 							$('.layers-stylekit-import-slide-2').append( response.ui );
 							$('.layers-stylekit-form-import').prepend( response.ui2 );
 							
-							go_to_slide( 2, $importer_slides );
+							$stylkeit_json = response.stylekit_json;
 							
+							console.log( $stylkeit_json );
+							
+							go_to_slide( 2, $importer_slides );
 						});
 					})
 					.fail( function( response ){
@@ -278,7 +283,19 @@
 			.queue( 800 );
 			
 			// Collect the form data. Holds the user selections and the whole StyleKit json.
-			//var form_data = $( 'form.layers-stylekit-form-import' ).serializeArray();
+			// var form_data = $( 'form.layers-stylekit-form-import' ).serializeArray();
+			
+			// var $data = {
+			// 	'action'        : 'layers_stylekit_import_step_2_ajax',
+			// 	'stylekit_json' : $stylkeit_json,
+			// 	'form_data'     : $.param( form_data ),
+			// };
+			
+			// form_data.push({ name: 'stylekit_json', value: $( $stylkeit_json ).serializeArray() });
+			// form_data.push({ name: 'action', value: 'layers_stylekit_import_step_2_ajax' });
+			
+			// console.log( $.param( form_data ) );
+			
 			var form_data = $( 'form.layers-stylekit-form-import' ).serialize() + '&action=layers_stylekit_import_step_2_ajax';
 			
 			// Ajax
@@ -304,7 +321,9 @@
 			
 			// Debugging
 			//console.log( response );
-			$('[name="layers-stylekit-import-stylekit-prettyprint"]').val( response.stylekit_json_pretty );
+			if( response.stylekit_json_pretty ) {
+				$('[name="layers-stylekit-import-stylekit-prettyprint"]').val( response.stylekit_json_pretty );
+			}
 			
 			// Ajax
 			$.ajax({
@@ -313,7 +332,7 @@
 				url: ajaxurl,
 				data: {
 					action: 'layers_stylekit_import_step_3_ajax',
-					stylekit_json: response.stylekit_json,
+					//stylekit_json: response.stylekit_json,
 				},
 				success: layers_stylekit_import_step_4_ajax,
 			});
@@ -346,7 +365,9 @@
 			
 			// Debugging
 			//console.log( response );
-			$('[name="layers-stylekit-import-stylekit-prettyprint"]').val( response.stylekit_json_pretty );
+			if( response.stylekit_json_pretty ) {
+				$('[name="layers-stylekit-import-stylekit-prettyprint"]').val( response.stylekit_json_pretty );
+			}
 			
 			// Ajax
 			$.ajax({
@@ -355,7 +376,7 @@
 				url: ajaxurl,
 				data: {
 					action: 'layers_stylekit_import_step_4_ajax',
-					stylekit_json: response.stylekit_json,
+					//stylekit_json: response.stylekit_json,
 				},
 				success: page_success_function,
 			});
@@ -388,7 +409,9 @@
 			
 			// Debugging
 			//console.log( response );
-			$('[name="layers-stylekit-import-stylekit-prettyprint"]').val( response.stylekit_json_pretty );
+			if( response.stylekit_json_pretty ) {
+				$('[name="layers-stylekit-import-stylekit-prettyprint"]').val( response.stylekit_json_pretty );
+			}
 			
 			// Ajax
 			$.ajax({
@@ -397,7 +420,7 @@
 				url: ajaxurl,
 				data: {
 					action: 'layers_stylekit_import_step_5_ajax',
-					stylekit_json: response.stylekit_json,
+					//stylekit_json: response.stylekit_json,
 				},
 				success: image_success_function,
 			});
@@ -415,7 +438,9 @@
 
 			// Debugging
 			//console.log( response );
-			$('[name="layers-stylekit-import-stylekit-prettyprint"]').val( response.stylekit_json_pretty );
+			if( response.stylekit_json_pretty ) {
+				$('[name="layers-stylekit-import-stylekit-prettyprint"]').val( response.stylekit_json_pretty );
+			}
 			
 			// Ajax
 			$.ajax({
@@ -424,7 +449,7 @@
 				url: ajaxurl,
 				data: {
 					action: 'layers_stylekit_import_step_6_ajax',
-					stylekit_json: response.stylekit_json,
+					//stylekit_json: response.stylekit_json,
 				},
 				success: layers_stylekit_import_ajax_step_7,
 			});
@@ -447,7 +472,9 @@
 			
 			// Debugging
 			//console.log( response );
-			$('[name="layers-stylekit-import-stylekit-prettyprint"]').val( response.stylekit_json_pretty );
+			if( response.stylekit_json_pretty ) {
+				$('[name="layers-stylekit-import-stylekit-prettyprint"]').val( response.stylekit_json_pretty );
+			}
 		}
 		
 		
@@ -473,7 +500,9 @@
 			/*
 			// Debugging
 			//console.log( response );
-			$('[name="layers-stylekit-import-stylekit-prettyprint"]').val( response.stylekit_json_pretty );
+			if( response.stylekit_json_pretty ) {
+							$('[name="layers-stylekit-import-stylekit-prettyprint"]').val( response.stylekit_json_pretty );
+			}
 			*/
 			
 			// Ajax

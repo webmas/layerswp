@@ -321,7 +321,7 @@ class Layers_StyleKit_Exporter {
 					'not_found_in_trash' => 'No StyleKits found in Trash',
 					'parent' => 'Parent StyleKit'
 				),
-				'public' => false,
+				'public' => true,
 				'menu_position' => 15,
 				//'supports' => array( 'title', 'editor', 'comments', 'thumbnail', 'custom-fields' ),
 				'supports' => array( 'title', 'editor', 'custom-fields' ),
@@ -964,9 +964,13 @@ echo esc_attr( json_encode( $stylekit_json ) );
 			WP_Filesystem();
 		}
 		
+		$source = str_replace( '\\', '/', $args['source'] );
+		$wp_content_dir = str_replace('\\', '/', trailingslashit( WP_CONTENT_DIR ) );
+		$wp_content_url = str_replace('\\', '/', trailingslashit( WP_CONTENT_URL ) );
+		
 		// Get the Path and URL of the Temp directory
-		$temp_directory_path = str_replace( $wp_filesystem->wp_content_dir(), trailingslashit( WP_CONTENT_DIR ), $args['source'] );
-		$temp_directory_url = str_replace( $wp_filesystem->wp_content_dir(), trailingslashit( WP_CONTENT_URL ), $args['source'] );
+		$temp_directory_path = $source;
+		$temp_directory_url = str_replace( $wp_content_dir, $wp_content_url, $source );
 		
 		// Check if the above str_replace works.
 		if ( ! is_dir( $temp_directory_path ) ) {
@@ -1033,6 +1037,9 @@ echo esc_attr( json_encode( $stylekit_json ) );
 		
 		// Put the file information in.
 		$stylekit_json['internal_data']['zip_folder_name'] = $args['name'];
+		
+		
+		$post_id = $this->layers_stylekit_save_over_stylekit( $stylekit_json, 'processing' );
 		
 		
 		/**
@@ -1159,13 +1166,13 @@ echo esc_attr( json_encode( $stylekit_json ) );
 			</div>
 			
 			<!-- Required Textarea -->
-			<div class="layers-row layers-push-top layers-hide">
+			<!-- <div class="layers-row layers-push-top layers-hide">
 				<div class="layers-column layers-span-12 layers-content">
 					<div class="json-code">
 						<textarea name="layers-stylekit-import-stylekit"><?php echo json_encode( $stylekit_json ); ?></textarea>
 					</div>
 				</div>
-			</div>
+			</div> -->
 			
 		</form>
 		
@@ -1224,7 +1231,7 @@ echo esc_attr( json_encode( $stylekit_json ) );
 							</label>
 						</p>
 						
-						<input type="hidden" name="layers-stylekit-temp-directory" value="<?php echo $source; ?>">
+						<!-- <input type="hidden" name="layers-stylekit-temp-directory" value="<?php echo $source; ?>"> -->
 						
 					</div>
 				
@@ -1263,18 +1270,10 @@ echo esc_attr( json_encode( $stylekit_json ) );
 		$ui2 = ob_get_clean();
 		
 		return array(
-			'ui' => $ui,
-			'ui2' => $ui2,
+			'ui'            => $ui,
+			'ui2'           => $ui2,
+			'stylekit_json' => $stylekit_json,
 		);
-	}
-	
-	function layers_stylekit_import_step_1_ajax() {
-		
-		/**
-		 * @TODO backup the current settings so that can be rolled back.
-		 */
-		
-		$stylekit_json = ( isset( $_POST['layers-settings-stylekit'] ) ) ? stripslashes( $_POST['layers-settings-stylekit'] ) : '' ;
 	}
 	
 	/**
@@ -1286,8 +1285,12 @@ echo esc_attr( json_encode( $stylekit_json ) );
 	function layers_stylekit_import_step_2_ajax() {
 		
 		// Get and decode json.
-		$stylekit_json = ( isset( $_POST['layers-stylekit-import-stylekit'] ) ) ? stripslashes( $_POST['layers-stylekit-import-stylekit'] ) : '' ;
-		$stylekit_json = json_decode( $stylekit_json, TRUE );
+		// $stylekit_json = ( isset( $_POST['layers-stylekit-import-stylekit'] ) ) ? stripslashes( $_POST['layers-stylekit-import-stylekit'] ) : '' ;
+		// $stylekit_json = json_decode( $stylekit_json, TRUE );
+		
+		//$stylekit_json = ( isset( $_POST['stylekit_json'] ) ) ? $_POST['stylekit_json'] : array() ;
+		
+		$stylekit_json = $this->layers_stylekit_get_processing_stylekit();
 		
 		/**
 		 * Settings
@@ -1359,6 +1362,9 @@ echo esc_attr( json_encode( $stylekit_json ) );
 		}
 		
 		
+		$post_id = $this->layers_stylekit_save_over_stylekit( $stylekit_json, 'processing' );
+		
+		
 		// Return the StyleKit json
 		echo json_encode( array(
 			'stylekit_json' => $stylekit_json,
@@ -1376,13 +1382,20 @@ echo esc_attr( json_encode( $stylekit_json ) );
 	public function layers_stylekit_import_step_3_ajax() {
 		
 		// Get and decode json.
-		$stylekit_json = isset( $_POST['stylekit_json'] ) ? $_POST['stylekit_json'] : array() ;
+		//$stylekit_json = isset( $_POST['stylekit_json'] ) ? $_POST['stylekit_json'] : array() ;
+		$stylekit_json = $this->layers_stylekit_get_processing_stylekit();
 		
 		// Backup current settings.
-		$this->layers_stylekit_backup_current_settings();
+		// Get the current settings json so we can back it up.
+		$current_setings_json = $this->get_settings_json( TRUE );
+		$this->layers_stylekit_save_stylekit( $current_setings_json, 'backup' );
 		
 		// Save the Settings & CSS.
 		$stylekit_json = $this->import_stylekit( $stylekit_json );
+		
+		
+		$post_id = $this->layers_stylekit_save_over_stylekit( $stylekit_json, 'processing' );
+		
 		
 		// Return the StyleKit JSON
 		echo json_encode( array(
@@ -1393,29 +1406,10 @@ echo esc_attr( json_encode( $stylekit_json ) );
 		die();
 	}
 	
-	public function layers_stylekit_backup_current_settings(  ) {
-		
-		// Get the current settings json so we can back it up.
-		$current_setings_json = $this->get_settings_json( TRUE );
-		
-		// Create a post with the current settings backed up in it's meta.
-		$post_id = wp_insert_post( array(
-			'post_content'  => $this->prettyPrint( json_encode( $current_setings_json ) ),
-			'post_title'    => 'Settings',
-			'post_status'   => 'publish',
-			'post_type'     => 'layers_stylekits',
-		) );
-		
-		// Save the settings json to the post.
-		update_post_meta( $post_id, 'settings_json', $current_setings_json );
-		
-		// Save that Type that lets us knwo this is a backup.
-		update_post_meta( $post_id, 'type', 'backup' );
-	}
-	
 	public function layers_stylekit_import_step_4_ajax() {
 		
-		$stylekit_json = ( isset( $_POST['stylekit_json'] ) ) ? $_POST['stylekit_json'] : array() ;
+		//$stylekit_json = ( isset( $_POST['stylekit_json'] ) ) ? $_POST['stylekit_json'] : array() ;
+		$stylekit_json = $this->layers_stylekit_get_processing_stylekit();
 		
 		/**
 		 * Pages
@@ -1458,7 +1452,7 @@ echo esc_attr( json_encode( $stylekit_json ) );
 				}
 			}
 			
-			// Poplulate data into stylekit for next step - importing images
+			// Populate data into stylekit for next step - importing images
 			if ( !empty( $this->migrator->images_in_widgets ) ){
 				
 				// Get the existing images_in_widgets.
@@ -1472,10 +1466,14 @@ echo esc_attr( json_encode( $stylekit_json ) );
 			}
 			
 			if ( !empty( $this->migrator->images_report ) ){
-				$stylekit_json['internal_data']['images_report'] = $this->migrator->images_report;
+				//$stylekit_json['internal_data']['images_report'] = $this->migrator->images_report;
 			}
 			
 		}
+		
+		
+		$post_id = $this->layers_stylekit_save_over_stylekit( $stylekit_json, 'processing' );
+		
 		
 		// Return the StyleKit JSON
 		echo json_encode( array(
@@ -1488,7 +1486,8 @@ echo esc_attr( json_encode( $stylekit_json ) );
 	
 	public function layers_stylekit_import_step_5_ajax() {
 		
-		$stylekit_json = ( isset( $_POST['stylekit_json'] ) ) ? $_POST['stylekit_json'] : array() ;
+		//$stylekit_json = ( isset( $_POST['stylekit_json'] ) ) ? $_POST['stylekit_json'] : array() ;
+		$stylekit_json = $this->layers_stylekit_get_processing_stylekit();
 		
 		/**
 		 * Import Images
@@ -1500,6 +1499,9 @@ echo esc_attr( json_encode( $stylekit_json ) );
 			
 		// Loop images
 		foreach ( $images_in_widgets as $image_name => $image_array ) {
+			
+			// Debug disable.
+			//$stylekit_json['internal_data']['images_on_disk'][$image_name]['status'] = 'done';
 			
 			if( array_key_exists( $image_name, $images_on_disk ) && !isset( $stylekit_json['internal_data']['images_on_disk'][$image_name]['status'] ) ){
 				
@@ -1531,9 +1533,13 @@ echo esc_attr( json_encode( $stylekit_json ) );
 			}
 		}
 		
+		
+		$post_id = $this->layers_stylekit_save_over_stylekit( $stylekit_json, 'processing' );
+		
+		
 		// Return the StyleKit JSON
 		echo json_encode( array(
-			'stylekit_json' => $stylekit_json,
+			'stylekit_json'        => $stylekit_json,
 			'stylekit_json_pretty' => $this->prettyPrint( json_encode( $stylekit_json ) ),
 		) );
 		
@@ -1542,7 +1548,8 @@ echo esc_attr( json_encode( $stylekit_json ) );
 	
 	public function layers_stylekit_import_step_6_ajax() {
 		
-		$stylekit_json = ( isset( $_POST['stylekit_json'] ) ) ? $_POST['stylekit_json'] : array() ;
+		//$stylekit_json = ( isset( $_POST['stylekit_json'] ) ) ? $_POST['stylekit_json'] : array() ;
+		$stylekit_json = $this->layers_stylekit_get_processing_stylekit();
 		
 		// Get the most recent stylekit backup - this one we created earlier on in this process.
 		$posts = get_posts( array(
@@ -1659,6 +1666,10 @@ echo esc_attr( json_encode( $stylekit_json ) );
 		
 		$ui = ob_get_clean();
 		
+		
+		$post_id = $this->layers_stylekit_save_over_stylekit( $stylekit_json, 'processing' );
+		
+		
 		// Return the StyleKit JSON
 		echo json_encode( array(
 			'stylekit_json' => $stylekit_json,
@@ -1667,6 +1678,75 @@ echo esc_attr( json_encode( $stylekit_json ) );
 		) );
 		
 		die();
+	}
+	
+	public function layers_stylekit_save_stylekit( $stylekit_json = array(), $stylekit_type = 'backup', $post_id = FALSE ) {
+		
+		$post = array(
+			'post_content' => $this->prettyPrint( json_encode( $stylekit_json ) ),
+			'post_title'   => 'Processing...',
+			'post_status'  => 'publish',
+			'post_type'    => 'layers_stylekits',
+		);
+		
+		// If a $post_id was passed then the post will be updated.
+		if ( $post_id ) $post['ID'] = $post_id;
+		
+		// Create a post with the current settings backed up in it's meta.
+		$post_id = wp_insert_post( $post );
+		
+		// Save the settings json to the post.
+		update_post_meta( $post_id, 'settings_json', $stylekit_json );
+		
+		// Save that Type that lets us knwo this is a backup.
+		update_post_meta( $post_id, 'type', $stylekit_type );
+		
+		return $post_id;
+	}
+	
+	public function layers_stylekit_save_over_stylekit( $stylekit_json = array(), $stylekit_type = 'processing' ) {
+		
+		// Get the most recent stylekit backup - this one we created earlier on in this process.
+		$posts = get_posts( array(
+			'posts_per_page' => 1,
+			'post_type'      => 'layers_stylekits',
+			'post_status'    => array( 'publish' ),
+			'meta_key'       => 'type',
+			'meta_value'     => $stylekit_type,
+			'orderby'        => 'date',
+			'order'          => 'DESC',
+		) );
+		
+		$post_id = FALSE;
+		
+		foreach( $posts as $post ) :
+			setup_postdata( $post );
+			$post_id = $post->ID;
+		endforeach;
+		
+		return $this->layers_stylekit_save_stylekit( $stylekit_json, $stylekit_type, $post_id );
+	}
+	
+	public function layers_stylekit_get_processing_stylekit() {
+		
+		// Get the most recent stylekit backup - this one we created earlier on in this process.
+		$posts = get_posts( array(
+			'posts_per_page' => 1,
+			'post_type'      => 'layers_stylekits',
+			'post_status'    => array( 'publish' ),
+			'meta_key'       => 'type',
+			'meta_value'     => 'processing',
+			'orderby'        => 'date',
+			'order'          => 'DESC',
+		) );
+		
+		foreach( $posts as $post ) :
+			setup_postdata( $post );
+			$stylekit_json = get_post_meta( $post->ID, 'settings_json', TRUE );
+			$post_id = $post->ID;
+		endforeach;
+		
+		return $stylekit_json;
 	}
 	
 	public function import_stylekit( $stylekit_json ) {
