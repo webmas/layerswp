@@ -62,7 +62,7 @@
 													<li class="tick crossed layers-stylekit-link">
 														<em>"<?php echo $title ?>"</em> <?php _e( 'Page' , 'layerwp' ) ?> - <em><?php _e( 'will be deleted' , 'layerwp' ) ?></em>
 														
-														<a class="layers-complex-action preview-page" target="blank" href="<?php echo esc_url( $permalink ) ?>">
+														<a class="layers-complex-action preview-page" target="_blank" href="<?php echo esc_url( $permalink ) ?>">
 															<span><?php _e( 'Preview' , 'layerwp' ) ?></span> <i class=" icon-display"></i>
 														</a>
 													</li>
@@ -82,7 +82,7 @@
 										</ul>
 									</div>
 									
-									<a class="layers-button btn-primary layers-stylekit-remove-stylekit-button" target="blank" href="#">
+									<a class="layers-button btn-primary layers-stylekit-remove-stylekit-button" target="_blank" href="#">
 										<?php _e( 'Remove StyleKit' , 'layerswp' ) ?>
 									</a>
 									

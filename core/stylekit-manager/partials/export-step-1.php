@@ -172,7 +172,7 @@
 															<?php echo $page_title ?>
 														</label>
 														
-														<a class="layers-complex-action preview-page" target="blank" href="<?php echo $page_url; ?>">
+														<a class="layers-complex-action preview-page" target="_blank" href="<?php echo $page_url; ?>">
 															<span><?php _e( 'Preview' , 'layerwp' ) ?></span> <i class=" icon-display"></i>
 														</a>
 													</li>
@@ -222,7 +222,7 @@
 										<input type="checkbox" name="layers-stylekit-export-confirm-permission" />
 										Please confirm you have permission to distribute images enclosed in your StyleKit
 									</label>
-									<a class="more-info" href="#" target="blank">(more info)</a>
+									<a class="more-info" href="#" target="_blank">(more info)</a>
 								</span>
 									
 							</div>
