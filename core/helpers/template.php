@@ -384,6 +384,16 @@ if( !function_exists( 'layers_apply_customizer_styles' ) ) {
 
 		// Opacity
 		$bg_opacity = ( layers_get_theme_mod( 'header-overlay') ) ? .5 : 1 ;
+		$bg_image = get_header_image();
+
+		// Apply header Background
+		if( '' != $bg_image ){
+			layers_inline_styles( '.header-site, .header-site.header-sticky', 'css', array(
+					'css' => 'background-size: cover;
+					background-attachment: fixed;
+					background-image: url(\'' . get_header_image() .'\');'
+				));
+		}
 
 		// Apply the BG Color
 		if( '' != $header_color ) {
@@ -760,7 +770,7 @@ if( !function_exists( 'layers_get_theme_mod' ) ) {
 	function layers_get_theme_mod( $name = '', $allow_empty = TRUE ) {
 
 		global $layers_customizer_defaults;
-		
+
 		// Set theme option default
 		$default = layers_get_default( $name );
 
@@ -788,25 +798,25 @@ if( !function_exists( 'layers_get_theme_mod' ) ) {
  */
 if( !function_exists( 'layers_get_default' ) ) {
 	function layers_get_default( $name = '' ) {
-		
+
 		global $layers_customizer_defaults;
-		
+
 		$name = LAYERS_THEME_SLUG . '-' . $name;
 
 		// Set theme option default
 		$default = ( isset( $layers_customizer_defaults[ $name ][ 'value' ] ) ? $layers_customizer_defaults[ $name ][ 'value' ] : FALSE );
-		
+
 		// If color control always return a value
 		/*
 		@TODO: Bring this back in at a later date, if necessary
-		
-		
+
+
 					$default = '';
 		}
 		 */
-		
+
 		return $default;
-		
+
 	}
 }
 
