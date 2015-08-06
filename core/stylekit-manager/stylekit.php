@@ -494,9 +494,6 @@ class Layers_StyleKit_Exporter {
 		$stylekit_json[ 'info' ][ 'php-version' ] = phpversion();
 		$stylekit_json[ 'info' ][ 'wp-version' ] = $wp_version;
 		
-		// Prettyfy the JSON
-		//$stylekit_json = $this->prettyPrint( json_encode( $stylekit_json ) );
-		
 		// Prep stylekit.json
 		$json_file_name = "stylekit.json";
 		$wp_filesystem->put_contents( "{$export_path}{$json_file_name}", json_encode( $stylekit_json ) ); // Finally, store the file :)
@@ -520,9 +517,6 @@ class Layers_StyleKit_Exporter {
 		// Prep image files
 		if ( isset( $this->migrator->images_collected ) ) {
 			
-			// if ( !$wp_filesystem->is_dir( $export_path . 'assets/' ) ) $wp_filesystem->mkdir( $export_path . 'assets/' );
-			// if ( !$wp_filesystem->is_dir( $export_path . 'assets/images/' ) ) $wp_filesystem->mkdir( $export_path . 'assets/images/' );
-			
 			foreach ( $this->migrator->images_collected as $image_collected ) {
 				
 				$image_pieces = explode( '/', $image_collected['url'] );
@@ -530,10 +524,6 @@ class Layers_StyleKit_Exporter {
 				$files_to_zip["{$zip_name}/assets/images/{$image_file_name}"] = $image_collected['path'];
 			}
 		}
-		
-		// Clear older versions of this export
-		//$wp_filesystem->delete( "{$export_path}{$zip_name}.zip" );
-		//$wp_filesystem->delete( "{$export_path}{$zip_name}" );
 		
 		// If true, good; if false, zip creation failed
 		$zip_file = $this->create_zip( $files_to_zip, "{$export_path}{$zip_file_name}" );
