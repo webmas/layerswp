@@ -593,9 +593,9 @@ jQuery(function($) {
 
 			// If is a Customize Control then hide the whole control.
 			if ( $target_element.hasClass('layers-customize-control') ){
-				$target_element = $target_element.parent('.customize-control');
+				$target_element = $target_element.closest('.customize-control');
 			} else {
-				$target_element = $target_element.parent('.layers-form-item');
+				$target_element = $target_element.closest('.layers-form-item');
 			}
 
 			if( $target_element_value.indexOf( $source_element_value ) > -1 ){
@@ -784,7 +784,7 @@ jQuery(function($) {
 			$rte_active_html_button = $(this).find( '.active[data-cmd="html"]' );
 			$rte_textarea = $(this).siblings('textarea');
 			if ( 0 < $rte_active_html_button.length && 0 < $rte_textarea.length ){
-				$rte_textarea.editable( 'exec', 'html' );
+				//$rte_textarea.editable( 'exec', 'html' );
 			}
 
 			// Then hide the toolbar
@@ -808,12 +808,12 @@ jQuery(function($) {
 	* to allow for just-in-time init instead of massive bulk init.
 	*/
 
-	$( document ).on( 'mousedown', '.customize-control-widget_form .widget-top', function(e){
+	$( '.customize-control-widget_form .widget-top' ).click( function(e){
 
-		// Use of 'mousedown' is integral and allows us to fire events before WP expand,
-		// so we can do things like Highlighting the Widget Title, display 'LOADING' text,
-		// so in the case of a JS hang-up we have given the user feedback so they
-		// know what is going on.
+		// Attach 'click' event that we will re-order, in the next step, to occur
+		// before WP click, so we can do things like Highlighting the Widget Title,
+		// display 'LOADING' text, so in the case of a JS hang-up we have given the
+		// user feedback so they know what is going on.
 
 		var $widget_li = $(this).closest('.customize-control-widget_form');
 		var $widget = $widget_li.find('.widget');
@@ -821,11 +821,21 @@ jQuery(function($) {
 		layers_expand_widget( $widget_li, $widget, e );
 	});
 
-	$( document ).on( 'expand', '.customize-control-widget_form', function(e){
+	$('.customize-control-widget_form .widget-top').each( function( index, element ){
+
+		// Switch the order that the 'click' event occur so ours happens before WP
+		if ( typeof $._data === 'function' ) $._data( element, 'events' ).click.reverse();
+		else $( element ).data('events').click.reverse();
+	});
+
+	$( document ).on( 'expand collapse collapsed', '.customize-control-widget_form', function(e){
+
 		var $widget_li = $(this);
 		var $widget = $widget_li.find( '.widget' );
 
-		// duplicate call to 'layers_expand_widget' in-case 'mousedown' is not triggered
+		if( 'expand' == e.type ){
+
+			// duplicate call to 'layers_expand_widget' in-case 'click' is not triggered
 		// eg 'shift-click' on widget in customizer-preview.
 		layers_expand_widget( $widget_li, $widget, e );
 
@@ -839,23 +849,19 @@ jQuery(function($) {
 		setTimeout(function(){
 		$widget_li.removeClass( 'layers-loading' );
 		}, 1100 );
-	});
 
-	$( document ).on( 'collapse', '.customize-control-widget_form', function(e){
-		var $widget_li = $(this);
-		var $widget = $widget_li.find( '.widget' );
+		} else if( 'collapse' == e.type ){
 
 		$widget_li.removeClass('layers-focussed');
 
 		// Used for animation of the widget closing
 		$widget_li.addClass('layers-collapsing');
-	});
 
-	$( document ).on( 'collapsed', '.customize-control-widget_form', function(e){
-		var $widget_li = $(this);
-		var $widget = $widget_li.find( '.widget' );
+		} else if( 'collapsed' == e.type ){
 
 		$widget_li.removeClass('layers-collapsing');
+
+		}
 	});
 
 	$( document ).on( 'layers-interface-init', '.widget, .layers-accordions', function( e ){
@@ -868,7 +874,7 @@ jQuery(function($) {
 		// Instant user feedback
 		$widget_li.addClass('layers-focussed');
 
-		// Instantly remove other
+		// Instantly remove other classes
 		$('.layers-focussed').not( $widget_li ).removeClass('layers-focussed layers-loading');
 
 		// Handle the first time Init of a widget.
@@ -877,14 +883,13 @@ jQuery(function($) {
 			$widget_li.addClass('layers-loading');
 			$widget_li.addClass( 'layers-initialized' );
 
-			if ( 'mousedown' === e.type ) {
-				// If event is 'mousedown' it's our early invoked event so we can do things before all the WP things
+			if ( 'click' === e.type ) {
+				// If event is 'click' it's our early invoked event so we can do things before all the WP things
 				setTimeout(function(){
 					$widget.trigger( 'layers-interface-init' );
 				}, 50 );
-			}
-			else {
-				// If event is 'expand' it's a WP invoked event that we use as backup if the 'mousedown' was not used.
+			} else {
+				// If event is 'expand' it's a WP invoked event that we use as backup if the 'click' was not used.
 				// eg 'shift-click' on widget in customizer-preview
 				$widget.trigger( 'layers-interface-init' );
 			}
