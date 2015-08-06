@@ -305,6 +305,12 @@ class Layers_StyleKit_Exporter {
 		return $result;
 	}
 	
+	function auto_page_title( $string = '' ) {
+		$string  = str_replace( '-', ' ', $string );
+		$string = ucwords( $string );
+		return $string;
+	}
+	
 	/**
 	 * Register StyleKit post type
 	 */
@@ -419,12 +425,19 @@ class Layers_StyleKit_Exporter {
 			foreach ( $builder_pages as $page ) {
 				if ( in_array( $page->ID, $chosen_pages ) ) {
 					
-					//$preset_name = $theme_name . '-' . $page->post_name;
-					//$post_title = esc_html( get_bloginfo( 'name' ) . '-' . esc_attr( $page->post_title ) );
+					// Get the widget data.
+					$widget_data = $this->migrator->export_data( $page );
+					
+					// Get the first page key so we can add to the data.
+					reset( $widget_data ); // Ensure that we're at the first element
+					$key = key( $widget_data ); // Get the first page key.
+					
+					// Add special page-info to the data. to be used ont he import.
+					$widget_data[$key]['layers-page-info']['page-title'] = $page->post_title;
 					
 					$stylekit_pages[ $page->post_name ] = array(
-						'post_title' => esc_html( get_bloginfo( 'name' ) . '-' . esc_attr( $page->post_title ) ),
-						'widget_data' => $this->migrator->export_data( $page ),
+						'post_title'  => esc_html( get_bloginfo( 'name' ) . '-' . esc_attr( $page->post_title ) ),
+						'widget_data' => $widget_data,
 					);
 				}
 			}
@@ -905,7 +918,7 @@ class Layers_StyleKit_Exporter {
 		$reserved_files = array( 'stylekit.json' );
 		
 		foreach ( $files as $file ) {
-			if ( is_file( $temp_directory_path . $file ) && !in_array( $file, $reserved_files ) &&  rtrim( $file, '.json' ) !== $file ) {
+			if ( is_file( $temp_directory_path . $file ) && !in_array( $file, $reserved_files ) && rtrim( $file, '.json' ) !== $file ) {
 				$page_files[ rtrim( $file, '.json' ) ] = array( 'page-data' => json_decode( file_get_contents( $temp_directory_path . $file ), TRUE ) );
 			}
 		}
@@ -1126,16 +1139,35 @@ class Layers_StyleKit_Exporter {
 				
 				if( !isset( $stylekit_json['pages'][$page_slug]['status'] ) ){
 					
-					// Import the page
+					// Get a page title incase there is no layers-page-info.
+					$page_title = $this->auto_page_title( $page_slug );
+					
+					// Get the first page key so we can get data.
+					reset( $page_array['page-data'] ); // Ensure that we're at the first element
+					$page_key = key( $page_array['page-data'] ); // Get the first page key.
+					
+					// Get page-info then remove/unset it to clean it out.
+					if( isset( $page_array['page-data'][$page_key]['layers-page-info'] ) ) {
+						
+						$page_info = $page_array['page-data'][$page_key]['layers-page-info'];
+						unset( $page_array['page-data'][$page_key]['layers-page-info'] );
+						
+						// Do things with the page_info.
+						if ( isset( $page_info['page-title'] ) ) $page_title = $page_info['page-title'];
+					}
+					
+					// Import the page.
 					$result = $this->migrator->create_builder_page_from_preset( array(
-						'post_title'                      => $page_slug,
+						'post_title'                      => $page_title,
 						'widget_data'                     => $page_array['page-data'],
 						'create_new_image_if_name_exists' => TRUE,
 						'download_images'                 => FALSE,
 					) );
 					
+					//Record that this page has been done/imported.
 					$stylekit_json['pages'][$page_slug]['status'] = 'done';
 					
+					// Store the id of the pages that were created.
 					$stylekit_json['internal_data']['page_ids'][] = $result['post_id'];
 					
 					break;

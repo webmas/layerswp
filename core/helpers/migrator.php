@@ -983,6 +983,9 @@ class Layers_Widget_Migrator {
 			// Loop widgets
 			foreach ( $sidebar_data as $widget_instance_id => $widget ) {
 				
+				// Incase a layers-page-info block makes it this far. It is not a widget, is a way for us to pass info about the page.
+				if( 'layers-page-info' === $widget_instance_id ) continue;
+				
 				// Check for and import images
 				foreach ( $widget as $option => $widget_data ){
 					$widget[ $option ] = $this->import_images( $widget_data, $args );

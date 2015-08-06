@@ -124,8 +124,21 @@ if ( isset( $stylekit_json['settings'] ) || isset( $stylekit_json['pages'] ) || 
 									<?php foreach( $stylekit_json['pages'] as $page_slug => $page ) { ?>
 										<li>
 											<label>
+												<?php
+												// Set the page_title as the page slug incase we don't have layers-page-info to get it from.
+												$page_title = $this->auto_page_title( $page_slug );
+												
+												// Get the key of the page in the data.
+												reset( $page['page-data'] );
+												$page_key = key( $page['page-data'] );
+												
+												// Check if the page-info exists, and if does then grab the page title
+												if ( isset( $page['page-data'][$page_key]['layers-page-info'] ) ) {
+													$page_title = $page['page-data'][$page_key]['layers-page-info']['page-title'];
+												}
+												?>
 												<input id="page-<?php echo $page_slug ?>" type="checkbox" checked="checked" name="layers_pages[]" value="<?php echo $page_slug ?>" >
-												<?php echo $page_slug ?>
+												<?php echo $page_title ?>
 											</label>
 										</li>
 									<?php } ?>
