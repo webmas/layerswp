@@ -110,7 +110,7 @@ class Layers_Customizer_Config {
 
 		$default_controls[ 'header_textcolor' ] = array(
 									'section' => 'site-colors',
-									'priority' => 100
+									'priority' => 170
 								);
 
 		return apply_filters( 'layers_customizer_default_controls', $default_controls );
@@ -129,8 +129,8 @@ class Layers_Customizer_Config {
 													'panel' => 'site-settings'
 												);
 		$default_sections[ 'header_image' ] = array(
-									'panel' => 'site-settings',
-									'priority' => 55,
+									'panel' => 'header',
+									'priority' => 100,
 								);
 
 		$default_sections[ 'colors' ] = array(
