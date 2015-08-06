@@ -384,16 +384,6 @@ if( !function_exists( 'layers_apply_customizer_styles' ) ) {
 
 		// Opacity
 		$bg_opacity = ( layers_get_theme_mod( 'header-overlay') ) ? .5 : 1 ;
-		$bg_image = get_header_image();
-
-		// Apply header Background
-		if( '' != $bg_image ){
-			layers_inline_styles( '.header-site, .header-site.header-sticky', 'css', array(
-					'css' => 'background-size: cover;
-					background-attachment: fixed;
-					background-image: url(\'' . get_header_image() .'\');'
-				));
-		}
 
 		// Apply the BG Color
 		if( '' != $header_color ) {

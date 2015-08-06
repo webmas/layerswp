@@ -58,7 +58,6 @@ class Layers_Customizer_Regsitrar {
 
 		// Move default sections into Layers Panels
 
-		$this->move_default_controls( $this->config->default_controls );
 		$this->move_default_sections( $this->config->default_sections );
 
 		// Change 'Widgets' panel title to 'Edit Layout'
@@ -399,35 +398,6 @@ class Layers_Customizer_Regsitrar {
 			$control_priority++;
 
 		} // foreach controls panel_section_key
-	}
-
-	/**
-	* Move Default Controls
-	*/
-
-	public function move_default_controls( $controls = array() ){
-
-		foreach( $controls as $control_key => $control_data ){
-
-			// Get the current section
-			$control = $this->customizer->get_control( $control_key );
-
-			// Move this section to a specific panel
-			if( isset( $control_data[ 'section' ] ) ) {
-				$control->section = $this->prefix . $control_data[ 'section' ];
-			}
-
-			// Prioritize this section
-			if( isset( $control_data[ 'title' ] ) ) {
-				$control->title = $control_data[ 'title' ];
-			}
-
-			// Prioritize this section
-			if( isset( $control_data[ 'priority' ] ) ) {
-				$control->priority = $control_data[ 'priority' ];
-			}
-		}
-
 	}
 
 	/**

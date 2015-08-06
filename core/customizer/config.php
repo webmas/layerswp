@@ -46,9 +46,6 @@ class Layers_Customizer_Config {
 		$this->panels = $this->panels();
 
 		// Init and store default_sections
-		$this->default_controls = $this->default_controls();
-
-		// Init and store default_sections
 		$this->default_sections = $this->default_sections();
 
 		// Init and store sections
@@ -99,23 +96,6 @@ class Layers_Customizer_Config {
 
 		return apply_filters( 'layers_customizer_panels', $panels );
 	}
-
-	/**
-	* WordPress Default Controls
-	*
-	* @return   array 			Controls to be moved around the customzier
-	*/
-
-	private function default_controls(){
-
-		$default_controls[ 'header_textcolor' ] = array(
-									'section' => 'site-colors',
-									'priority' => 170
-								);
-
-		return apply_filters( 'layers_customizer_default_controls', $default_controls );
-	}
-
 	/**
 	* WordPress Default Sections
 	*
@@ -128,10 +108,6 @@ class Layers_Customizer_Config {
 													'title' => __( 'Logo &amp; Title' , 'layerswp' ),
 													'panel' => 'site-settings'
 												);
-		$default_sections[ 'header_image' ] = array(
-									'panel' => 'header',
-									'priority' => 100,
-								);
 
 		$default_sections[ 'colors' ] = array(
 									'title' => 'Header Colors',
