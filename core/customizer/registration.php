@@ -8,15 +8,15 @@
  */
 
 class Layers_Customizer_Regsitrar {
-	
+
 	public $customizer;
 
 	public $config;
 
 	public $prefix;
-	
+
     private static $instance; // stores singleton class
-    
+
     /**
     *  Get Instance creates a singleton class that's cached to stop duplicate instances
     */
@@ -37,10 +37,10 @@ class Layers_Customizer_Regsitrar {
     /**
     *  Init behaves like, and replaces, construct
     */
-    
+
     public function init() {
 		global $wp_customize;
-		
+
 		// Get the wp_customize
 		$this->customizer = $wp_customize;
 
@@ -49,16 +49,17 @@ class Layers_Customizer_Regsitrar {
 
 		// Get the customizer config
 		$this->config = Layers_Customizer_Config::get_instance();
-		
+
 		// Register Panels
 		$this->register_panels( $this->config->panels );
-		
+
 		// Register Sections
 		$this->register_sections ( $this->config->sections );
 
 		// Move default sections into Layers Panels
+
 		$this->move_default_sections( $this->config->default_sections );
-		
+
 		// Change 'Widgets' panel title to 'Edit Layout'
 		$wp_customize->add_panel(
 			'widgets', array(

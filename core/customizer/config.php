@@ -96,11 +96,10 @@ class Layers_Customizer_Config {
 
 		return apply_filters( 'layers_customizer_panels', $panels );
 	}
-
 	/**
-	* Layers Customiser Sections
+	* WordPress Default Sections
 	*
-	* @return   array 			Sections to be registered in the customizer
+	* @return   array 			Sections to be moved around the customzier
 	*/
 
 	private function default_sections(){
@@ -111,10 +110,11 @@ class Layers_Customizer_Config {
 												);
 
 		$default_sections[ 'colors' ] = array(
-											'title' => __( 'Colors' , 'layerswp' ),
-											'panel' => 'site-settings',
-											'priority' => 55,
-										);
+									'title' => 'Header Colors',
+									'panel' => 'site-settings',
+									'priority' => 55,
+								);
+
 		$default_sections[ 'background_image' ] = array(
 											'panel' => 'site-settings',
 											'priority' => 55,

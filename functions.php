@@ -102,6 +102,7 @@ if( ! function_exists( 'layers_setup' ) ) {
 		 * Add support for HTML5
 		 */
 		add_theme_support('html5');
+
 		/**
 		 * Add support for Title Tags
 		 */

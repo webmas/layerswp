@@ -760,7 +760,7 @@ if( !function_exists( 'layers_get_theme_mod' ) ) {
 	function layers_get_theme_mod( $name = '', $allow_empty = TRUE ) {
 
 		global $layers_customizer_defaults;
-		
+
 		// Set theme option default
 		$default = layers_get_default( $name );
 
@@ -788,25 +788,25 @@ if( !function_exists( 'layers_get_theme_mod' ) ) {
  */
 if( !function_exists( 'layers_get_default' ) ) {
 	function layers_get_default( $name = '' ) {
-		
+
 		global $layers_customizer_defaults;
-		
+
 		$name = LAYERS_THEME_SLUG . '-' . $name;
 
 		// Set theme option default
 		$default = ( isset( $layers_customizer_defaults[ $name ][ 'value' ] ) ? $layers_customizer_defaults[ $name ][ 'value' ] : FALSE );
-		
+
 		// If color control always return a value
 		/*
 		@TODO: Bring this back in at a later date, if necessary
-		
-		
+
+
 					$default = '';
 		}
 		 */
-		
+
 		return $default;
-		
+
 	}
 }
 
