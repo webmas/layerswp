@@ -135,7 +135,6 @@
 						.queue( function(){
 							
 							$('.layers-stylekit-import-slide-2').append( response.ui );
-							$('.layers-stylekit-form-import').prepend( response.ui2 );
 							
 							$stylkeit_json = response.stylekit_json;
 							
@@ -281,20 +280,6 @@
 				add_loader_text( 'Preparing StyleKit<br />Please wait...' );
 			})
 			.queue( 800 );
-			
-			// Collect the form data. Holds the user selections and the whole StyleKit json.
-			// var form_data = $( 'form.layers-stylekit-form-import' ).serializeArray();
-			
-			// var $data = {
-			// 	'action'        : 'layers_stylekit_import_step_2_ajax',
-			// 	'stylekit_json' : $stylkeit_json,
-			// 	'form_data'     : $.param( form_data ),
-			// };
-			
-			// form_data.push({ name: 'stylekit_json', value: $( $stylkeit_json ).serializeArray() });
-			// form_data.push({ name: 'action', value: 'layers_stylekit_import_step_2_ajax' });
-			
-			// console.log( $.param( form_data ) );
 			
 			var form_data = $( 'form.layers-stylekit-form-import' ).serialize() + '&action=layers_stylekit_import_step_2_ajax';
 			

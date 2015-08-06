@@ -48,11 +48,11 @@
 			
 		<?php elseif ( 'layers-stylekit-import' == $current_tab ) : ?>
 		
-			<?php include( get_template_directory() . '/core/stylekit-manager/partials/import.php' ); ?>
+			<?php include( get_template_directory() . '/core/stylekit-manager/partials/import-step-1.php' ); ?>
 		
 		<?php elseif ( 'layers-stylekit-export' == $current_tab ) : ?>
 			
-			<?php include( get_template_directory() . '/core/stylekit-manager/partials/export.php' ); ?>
+			<?php include( get_template_directory() . '/core/stylekit-manager/partials/export-step-1.php' ); ?>
 		
 		<?php elseif ( 'layers-stylekit-remove' == $current_tab ) : ?>
 			

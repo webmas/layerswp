@@ -328,7 +328,7 @@ class Layers_StyleKit_Exporter {
 					'not_found_in_trash' => 'No StyleKits found in Trash',
 					'parent' => 'Parent StyleKit'
 				),
-				'public' => FALSE,
+				'public' => TRUE,
 				'menu_position' => 15,
 				//'supports' => array( 'title', 'editor', 'comments', 'thumbnail', 'custom-fields' ),
 				'supports' => array( 'title', 'editor', 'custom-fields' ),
@@ -560,104 +560,9 @@ class Layers_StyleKit_Exporter {
 		
 		// Collect the interface.
 		ob_start();
-		?>
 		
-		<div class="layers-row">
-			
-			<div class="layers-column layers-span-8 layers-panel">
-			
-				<div class="layers-row">
-					
-					<div class="layers-column layers-span-4 layers-content">
-							
-						<div class="stylekit-statement-holder">
-							<i class="layers-button-icon-dashboard layers-stylekit-icon"></i>
-						</div>
-						
-					</div>
-					<div class="layers-column layers-span-8 layers-content">
-						
-						<div class="stylekit-statement">
-							
-							<div class="layers-section-title layers-small">
-								<h3 class="layers-heading"><?php _e( 'Your StyleKit is ready!', 'layerswp' ) ?></h3>
-							</div>
-							
-							<div class="layers-panel layers-push-bottom" style="/*display: none;*/">
-								<ul class="layers-list">
-									<?php
-									if ( isset( $stylekit_json['settings'] ) ) {
-										?>
-										<li class="tick ticked-all"><?php _e( 'Settings', 'layerswp' ) ?></li>
-										<?php
-									}
-									
-									if ( !empty( $stylekit_pages ) ) {
-										?>
-										<li class="tick ticked-all"><?php count( $stylekit_pages ) ?> <?php echo esc_html( __( 'Pages', 'layerswp' ) ); ?></li>
-										<?php
-									}
-									
-									if ( isset( $stylekit_json['css'] ) ) {
-										?>
-										<li class="tick ticked-all"><?php _e( 'Custom CSS', 'layerswp' ); ?></li>
-										<?php
-									}
-									?>
-								</ul>
-							</div>
-							
-							<a class="layers-button btn-large btn-primary layers-pull-right-NOT" download="<?php echo $zip_file_name ?>" href="<?php echo $download_uri ?>" >
-								<?php _e( 'Download StyleKit' , 'layerswp' ) ?>
-							</a>
-							
-						</div>
-					</div>
-				</div>
-		
-			</div>
-			<div class="layers-column layers-span-4 no-gutter">
-				<div class="layers-content">
-					<!-- Your helpful tips go here -->
-					<ul class="layers-help-list">
-						<li>
-							<?php _e( 'If you\'re ever stuck or need help with your Layers site please visit our <a href="http://docs.layerswp.com" rel="nofollow">helpful documentation.</a>', 'layerswp' ) ?>
-						</li>
-						<li class="pro-tip">
-							<?php _e( 'For the Pros: Layers will automatically assign the tagline to Settings → General.', 'layerswp' ) ?>
-						</li>
-					</ul>
-				</div>
-			</div>
-		
-		</div>
-		
-		<?php if ( FALSE ) : ?>
-		<form id="layers-stylekit-export-json-results" class="layers-stylekit-form" action=""  method="post">
-			
-			<div class="layers-row layers-push-top">
-				
-				<div class="layers-column layers-span-4 layers-content">
-					<h3><?php _e( 'Your StyleKit is ready!', 'layerswp' ) ?></h3>
-					<p><?php _e( 'Simply copy &amp; paste this StyleKit code into the StyleKit Import and proceed.', 'layerswp' ) ?></p>
-				</div>
-				
-				<div class="layers-column layers-span-8 layers-content">
-			
-					<div class="json-code">
-<textarea>
-<?php
-if ( !empty( $stylekit_json ) ) {
-echo esc_attr( json_encode( $stylekit_json ) );
-}
-?></textarea>
-					</div>
-					
-				</div>
-			</div>
-		</form>
-		<?php
-		endif;
+		// include interface.
+		include( get_template_directory() . '/core/stylekit-manager/partials/export-step-2.php' );
 		
 		$ui = ob_get_clean();
 		
@@ -1048,237 +953,15 @@ echo esc_attr( json_encode( $stylekit_json ) );
 		
 		$post_id = $this->layers_stylekit_save_over_stylekit( $stylekit_json, 'processing' );
 		
-		
-		/**
-		 * Get Advanced Options UI. the seocnd one.
-		 */
-		
 		ob_start();
-		?>
 		
-		<form class="layers-stylekit-form layers-stylekit-form-import" method="post" action="<?php echo add_query_arg( array( 'page' => 'layers_stylekit_manager', 'step' => 'layers-stylekit-import-step-3' ), get_admin_url() . 'admin.php' ) ?>">
-			
-			<div class="layers-stylekit-import-choices">
-			
-				<div class="layers-stylekit-import-choices-holder">
-				
-					<?php if ( isset( $stylekit_json['settings'] ) ) { ?>
-					
-						<div class="layers-row layers-push-top">
-							
-							<div class="layers-column layers-span-4 layers-content">
-								<h3 class="layers-heading"><?php _e( 'Settings', 'layerswp' ) ?></h3>
-								<p class="layers-excerpt"><?php _e( 'Be aware that unchecking these may chnange the intended look from this StyleKit', 'layerswp' ) ?></p>
-								<?php $this->check_all_ui(); ?>
-							</div>
-							
-							<div class="layers-column layers-span-8 layers-content">
-								
-								<div class="layers-panel layers-no-push-bottom layers-stylekit-select-group">
-									
-									<ul class="layers-list layers-list-complex layers-list-stylekit-settings" data-layers-link="tick-settings" >
-										
-										<?php
-										foreach ( $this->control_groups as $control_group_key => $control_group ) {
-											?>
-											<li>
-												<label>
-													<input id="<?php echo $control_group_key; ?>" type="checkbox" checked="checked" name="layers_settings_groups[]" <?php if( isset( $_POST[ 'layers_settings_groups' ] ) ) checked( in_array( $control_group_key, $_POST[ 'layers_settings_groups' ] ), TRUE ); ?> value="<?php echo $control_group_key; ?>" >
-													<?php echo $control_group['title']; ?>
-												</label>
-											</li>
-											<?php
-										}
-										?>
-									
-									</ul>
-									
-								</div>
-							</div>
-						</div>
-					
-					<?php } ?>
-					
-					<?php
-					// Create builder pages dropdown.
-					if ( isset( $stylekit_json['pages'] ) ) {
-						?>
-						
-						<div class="layers-row layers-push-top">
-							
-							<div class="layers-column layers-span-4 layers-content">
-								<h3 class="layers-heading"><?php _e( 'Pages', 'layerswp' ) ?></h3>
-								<p class="layers-excerpt"><?php _e( 'These pages will be imported', 'layerswp' ) ?></p>
-								<?php $this->check_all_ui(); ?>
-							</div>
-							
-							<div class="layers-column layers-span-8 layers-content">
-								<div class="layers-panel layers-no-push-bottom layers-stylekit-select-group">
-								
-									<ul class="layers-list layers-list-complex layers-list-stylekit-pages"  data-layers-link="tick-pages">
-										<?php foreach( $stylekit_json['pages'] as $page_slug => $page ) { ?>
-											<li>
-												<label>
-													<input id="page-<?php echo $page_slug ?>" type="checkbox" checked="checked" name="layers_pages[]" value="<?php echo $page_slug ?>" >
-													<?php echo $page_slug ?>
-												</label>
-											</li>
-										<?php } ?>
-									</ul>
-								
-								</div>
-							</div>
-							
-						</div>
-						
-					<?php }	?>
-					
-					<?php if ( isset( $stylekit_json['css'] ) ) { ?>
-					
-						<div class="layers-row layers-push-top">
-							
-							<div class="layers-column layers-span-4 layers-content">
-								<h3 class="layers-heading"><?php _e( 'CSS', 'layerswp' ) ?></h3>
-								<p class="layers-excerpt"><?php _e( "This will add your CSS in a commented block of it's own dedicated to StyleKits, and will be overwritten by any other StyleKit you import. So your you hand coded initial CSS is protected at all time.", 'layerswp' ) ?></p>
-								<?php $this->check_all_ui(); ?>
-							</div>
-							
-							<div class="layers-column layers-span-8 layers-content">
-								<div class="layers-panel layers-no-push-bottom layers-stylekit-select-group">
-								
-									<ul class="layers-list layers-list-complex layers-list-stylekit-css" data-layers-link="tick-css" >
-										
-										<li>
-											<label>
-												<input id="css-check" type="checkbox" checked="checked" name="layers_css" value="yes">
-												<?php _e( 'CSS', 'layerswp' ) ?>
-											</label>
-										</li>
-									
-									</ul>
-									
-								</div>
-							</div>
-							
-						</div>
-						
-					<?php } ?>
-				
-				</div>
-				
-			</div>
-			
-			<div class="layers-button-well">
-				<input type="submit" class="layers-button btn-large btn-primary layers-pull-right layers-stylekit-import-step-2-submit" value="Import StyleKit" >
-			</div>
-			
-			<!-- Required Textarea -->
-			<!-- <div class="layers-row layers-push-top layers-hide">
-				<div class="layers-column layers-span-12 layers-content">
-					<div class="json-code">
-						<textarea name="layers-stylekit-import-stylekit"><?php echo json_encode( $stylekit_json ); ?></textarea>
-					</div>
-				</div>
-			</div> -->
-			
-		</form>
+		// include interface.
+		include( get_template_directory() . '/core/stylekit-manager/partials/import-step-2.php' );
 		
-		<?php
 		$ui = ob_get_clean();
-		
-		
-		/**
-		 * Get Adviced Options UI. the first one.
-		 */
-		
-		ob_start();
-		?>
-		
-		<?php if ( isset( $stylekit_json['settings'] ) || isset( $stylekit_json['pages'] ) || isset( $stylekit_json['css'] ) ) { ?>
-		
-			<div class="layers-row layers-stylekit-import-main-graphic">
-			
-				<div class="layers-column layers-span-4 layers-content">
-					
-					<div class="stylekit-statement-holder">
-						<i class="layers-button-icon-dashboard layers-stylekit-icon"></i>
-					</div>
-					
-				</div>
-				<div class="layers-column layers-span-8 layers-content">
-					
-					<div class="stylekit-statement">
-						
-						<div class="layers-section-title layers-small">
-							<h3 class="layers-heading"><?php _e( 'StyleKit <em>Three.zip</em>', 'layerswp' ) ?></h3>
-						</div>
-						
-						<div class="layers-panel layers-push-bottom">
-							<ul class="layers-list">
-								
-								<?php if ( isset( $stylekit_json['settings'] ) ) { ?>
-									<li class="tick ticked-all" id="tick-settings">Settings</li>
-								<?php } ?>
-								
-								<?php if ( isset( $stylekit_json['pages'] ) ) { ?>
-									<li class="tick ticked-all" id="tick-pages"><?php echo count( $stylekit_json['pages'] ); ?> Pages</li>
-								<?php } ?>
-								
-								<?php if ( isset( $stylekit_json['css'] ) ) { ?>
-									<li class="tick ticked-all" id="tick-css">Custom CSS</li>
-								<?php } ?>
-								
-							</ul>
-						</div>
-						
-						<p class="layers-excerpt">
-							<label>
-								<input type="checkbox" name="layers-stylekit-import-all" value="yes" <?php checked( true, true ); ?> >
-								<?php _e( 'Confirm import all <span class="hidden-choice">or untick to customize</span>', 'layerswp' ) ?>
-							</label>
-						</p>
-						
-						<!-- <input type="hidden" name="layers-stylekit-temp-directory" value="<?php echo $source; ?>"> -->
-						
-					</div>
-				
-				</div>
-				
-			</div>
-			
-		<?php } else { ?>
-		
-			<div class="layers-row layers-stylekit-import-main-graphic">
-			
-				<div class="layers-column layers-span-4 layers-content">
-					
-					<div class="stylekit-statement-holder">
-						<i class="layers-button-icon-dashboard layers-stylekit-icon"></i>
-					</div>
-					
-				</div>
-				<div class="layers-column layers-span-8 layers-content">
-					
-					<div class="stylekit-statement">
-						
-						<div class="layers-section-title layers-small">
-							<h3 class="layers-heading"><?php _e( 'This StyleKit is empty :(', 'layerswp' ) ?></h3>
-						</div>
-						
-					</div>
-				
-				</div>
-				
-			</div>
-		
-		<?php } ?>
-		
-		<?php
-		$ui2 = ob_get_clean();
 		
 		return array(
 			'ui'            => $ui,
-			'ui2'           => $ui2,
 			'stylekit_json' => $stylekit_json,
 		);
 	}
@@ -1591,91 +1274,14 @@ echo esc_attr( json_encode( $stylekit_json ) );
 		// Save the settings json to the post.
 		update_post_meta( $post_id, 'settings_json', $backup_stylekit_json );
 		
-		
 		ob_start();
-		?>
-		<div class="layers-row">
-			
-			<div class="layers-column layers-span-4 layers-content">
-					
-				<div class="stylekit-statement-holder">
-					<i class="layers-button-icon-dashboard layers-stylekit-icon"></i>
-				</div>
-				
-			</div>
-			<div class="layers-column layers-span-8 layers-content">
-				
-				<div class="stylekit-statement">
-					
-					<div class="layers-section-title layers-small">
-						<h3 class="layers-heading"><?php _e( 'StyleKit Imported Successfully', 'layerswp' ) ?></h3>
-					</div>
-					
-					<div class="layers-panel layers-push-bottom">
-						<ul class="layers-list">
-							
-							<?php
-							if ( isset( $stylekit_json['settings'] ) ) {
-								?>
-								<li class="tick ticked-all">
-									<?php _e( 'Settings', 'layerswp' ) ?>
-								</li>
-								<?php
-							}
-							
-							if ( isset( $stylekit_json['internal_data']['page_ids'] ) ) {
-								foreach ( $stylekit_json['internal_data']['page_ids'] as $page_id ) {
-									
-									$title = get_the_title( $page_id );
-									$permalink = get_permalink( $page_id );
-									?>
-									<li class="tick ticked-all layers-stylekit-link">
-										<em>"<?php echo $title ?>"</em> <?php _e( 'Page' , 'layerwp' ) ?>
-										
-										<a class="layers-complex-action preview-page" target="blank" href="<?php echo esc_url( $permalink ) ?>">
-											<span><?php _e( 'Preview' , 'layerwp' ) ?></span> <i class=" icon-display"></i>
-										</a>
-									</li>
-									<?php
-								}
-							}
-							
-							if ( isset( $stylekit_json['css'] ) ) {
-								?>
-								<li class="tick ticked-all">
-									<?php _e( 'Custom CSS', 'layerswp' ) ?>
-								</li>
-								<?php
-							}
-							?>
-							
-						</ul>
-					</div>
-					
-					<a class="layers-button btn-primary layers-pull-right-NOT" target="blank" href="<?php echo get_home_url(); ?>">
-						<?php _e( 'Visit your Site' , 'layerswp' ) ?>
-					</a>
-					
-					<a class="layers-button btn-primary layers-pull-right-NOT" target="blank" href="<?php echo wp_customize_url() ?>">
-						<?php _e( 'Customize your Site' , 'layerswp' ) ?>
-					</a>
-					
-					<a class="layers-back-a-step" href="#">
-						&#8592; <?php _e( 'Back' , 'layerswp' ) ?>
-					</a>
-					
-				</div>
-				
-			</div>
 		
-		</div>
-		<?php
+		// include interface.
+		include( get_template_directory() . '/core/stylekit-manager/partials/import-step-3.php' );
 		
 		$ui = ob_get_clean();
 		
-		
 		$post_id = $this->layers_stylekit_save_over_stylekit( $stylekit_json, 'processing' );
-		
 		
 		// Return the StyleKit JSON
 		echo json_encode( array(
@@ -1691,7 +1297,7 @@ echo esc_attr( json_encode( $stylekit_json ) );
 		
 		$post = array(
 			'post_content' => $this->prettyPrint( json_encode( $stylekit_json ) ),
-			'post_title'   => 'Processing...',
+			'post_title'   => ucwords( $stylekit_type ),
 			'post_status'  => 'publish',
 			'post_type'    => 'layers_stylekits',
 		);
