@@ -304,17 +304,18 @@ if( !function_exists( 'layers_get_page_title' ) ) {
 			$title_array['title'] = __( 'Search' , 'layerswp' );
 			$title_array['excerpt'] = get_search_query();
 		} elseif( is_tag() ) {
-			$tags = get_the_category();
-			$title_array['title'] = $tags[0]->name;
-			$title_array['excerpt'] = $tags[0]->description;
+			$title_array['title'] = single_tag_title( '' , false );
+			$title_array['excerpt'] = get_the_archive_description();
 		} elseif( !is_page() && is_category() ) {
-			$category = get_the_category();
-			$title_array['title'] = $category[0]->name;
-			$title_array['excerpt'] = $category[0]->description;
+			$title_array['title'] = single_cat_title( '', false );
+			$title_array['excerpt'] = get_the_archive_description();
 		} elseif (!is_page() && get_query_var('term' ) != '' ) {
 			$term = get_term_by( 'slug', get_query_var('term' ), get_query_var( 'taxonomy' ) );
 			$title_array['title'] = $term->name;
 			$title_array['excerpt'] = $term->description;
+		} elseif( is_author() ) {
+			$title_array['title'] = get_the_author();
+			$title_array['excerpt'] =  get_the_author_meta('user_description');
 		} elseif ( is_day() ) {
 			$title_array['title' ] = sprintf( __( 'Daily Archives: %s' , 'layerswp' ), get_the_date() );
 		} elseif ( is_month() ) {
@@ -359,10 +360,32 @@ if( !function_exists( 'layers_body_class' ) ) {
 			$classes[] = 'layers-header-overlay';
 		}
 
+		// Add class that spans across all post archives and single pages
+		if( layers_is_post_list_template() || is_archive() || is_singular( 'post' ) ) {
+			$classes[] = 'layers-post-page';
+		}
+
 		return apply_filters( 'layers_body_class', $classes );
 	}
 } // layers_body_class
 add_action( 'body_class', 'layers_body_class' );
+
+/**
+ * Check for a Layers Blog List Page
+ */
+if( !function_exists( 'layers_is_post_list' ) ) {
+	function layers_is_post_list_template() {
+		if(
+			is_page_template( 'template-blog.php' ) ||
+			is_page_template( 'template-both-sidebar.php' ) ||
+			is_page_template( 'template-left-sidebar.php' ) ||
+			is_page_template( 'template-right-sidebar.php' ) ){
+			return TRUE;
+		} else {
+			return FALSE;
+		}
+	}
+}
 
 /**
  * Apply Customizer settings to site housing

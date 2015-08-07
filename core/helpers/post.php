@@ -185,11 +185,12 @@ add_action( 'wp_ajax_layers_backup_builder_pages', 'layers_backup_builder_pages'
 if( !function_exists( 'layers_post_class' ) ) {
 	function layers_post_class( $classes ) {
 
-		$classes[] = 'container';
+		if( is_single() )
+			$classes[] = 'container';
 
-	if( is_post_type_archive( 'product' ) || is_tax( 'product_cat' ) || is_tax( 'product_tag' ) ) {
-		$classes[] = 'column';
-				$classes[] = 'span-4';
+		if( is_post_type_archive( 'product' ) || is_tax( 'product_cat' ) || is_tax( 'product_tag' ) ) {
+			$classes[] = 'column';
+			$classes[] = 'span-4';
 		}
 
 		return $classes;
@@ -408,7 +409,8 @@ if( !function_exists( 'layers_post_featured_media' ) ) {
 			'postid' => $post->ID,
 			'wrap' => 'div',
 			'wrap_class' => 'thumbnail',
-			'size' => 'medium'
+			'size' => 'medium',
+			'hide_href' => false
 		);
 
 		$args = wp_parse_args( $args, $defaults );
@@ -426,8 +428,12 @@ if( !function_exists( 'layers_post_featured_media' ) ) {
 			$output .= $featured_media;
 		}
 
-		if( !isset( $hide_href ) && !isset( $post_meta[ 'video-url' ] ) && ( !is_single() && !is_page_template( 'template-blog.php' ) ) ){
-			$output = '<a href="' .get_permalink( $postid ) . '">' . $output . '</a>';
+		if( TRUE != $hide_href ){
+			if( has_post_thumbnail() ) {
+				if( !is_single() ){
+					$output = '<a href="' .get_permalink( $postid ) . '">' . $output . '</a>';
+				}
+			}
 		}
 
 		if( '' != $wrap ) {

@@ -41,9 +41,8 @@ class Layers_Options_Panel {
 		$this->options_panel_dir = LAYERS_TEMPLATE_DIR . '/core/options-panel/';
 
 		$this->set_valid_page_slugs();
-		
-		// Remove homless Layers widgets
-		add_action( 'after_delete_post' , array( $this, 'remove_homeless_widgets' ), 11 );
+
+		add_action( 'wp_dashboard_setup', array( &$this, 'layers_add_dashboard_widgets' ) );
 	}
 
 	public function init() {
@@ -288,6 +287,83 @@ class Layers_Options_Panel {
 		return apply_filters( 'layers_setup_actions' , $site_setup_actions );
 	}
 
+	public function layers_add_dashboard_widgets(){
+		wp_add_dashboard_widget(
+			'layers-addons',
+			__( 'Layers Themes, Style Kits &amp; Extensions', 'layers' ),
+			array( &$this, 'layers_dashboard_widget' ),
+			NULL,
+			array(
+				'type' => 'addons'
+			)
+		);
+
+		if( !class_exists( 'Layers_WooCommerce' ) ) {
+			wp_add_dashboard_widget(
+				'layers-storekit',
+				__( 'Upgrade WooCommerce with StoreKit', 'layers' ),
+				array( &$this, 'layers_dashboard_widget' ),
+				NULL,
+				array(
+					'type' => 'upsell-storekit'
+				)
+			);
+
+		}
+	}
+
+	function layers_dashboard_widget( $var, $args ){ ?>
+		<div class="layers-wp-dashboard-panel">
+			<?php if( 'addons' == $args[ 'args' ][ 'type' ] ) { ?>
+				<div class="layers-section-title layers-tiny">
+					<p class="layers-excerpt">
+						<?php _e( 'Looking for a theme or plugin to achieve something unique with your website?
+							Browse the massive Layers Marketplace on Envato and take your site to the next level.' , 'layerswp' ); ?>
+					</p>
+				</div>
+				<div class="layers-button-well">
+					<a href="http://bit.ly/layers-themes" target="_blank" class="layers-button btn-primary">
+						<?php _e( 'Themes' , 'layerswp' ); ?>
+					</a>
+					<a href="http://bit.ly/layers-stylekits" target="_blank" class="layers-button btn-primary">
+						<?php _e( 'Style Kits' , 'layerswp' ); ?>
+					</a>
+					<a href="http://bit.ly/layers-extensions" target="_blank" class="layers-button btn-primary">
+						<?php _e( 'Extensions' , 'layerswp' ); ?>
+					</a>
+				</div>
+			<?php } ?>
+			<?php if( 'upsell-storekit' == $args[ 'args' ][ 'type' ] ) { ?>
+				<div class="layers-section-title layers-tiny layers-no-push-bottom">
+					<div class="layers-media layers-image-left">
+						<div class="layers-media-image layers-small">
+							<img src="<?php echo get_template_directory_uri(); ?>/core/assets/images/thumb-storekit.png" alt="StoreKit" />
+						</div>
+						<div class="layers-media-body">
+							<h3 class="layers-heading"><?php _e( 'Boost your sales with StoreKit!' , 'layerswp' ); ?></h3>
+							<div class="layers-excerpt">
+								<p><?php _e( 'Supercharge your WooCommerce store with the StoreKit plugin for Layers' , 'layerswp' ); ?></p>
+								<ul class="layers-ticks-wp">
+									<li><?php _e( 'Unique Product Slider' , 'layerswp' ); ?></li>
+									<li><?php _e( 'Product List Widget' , 'layerswp' ); ?></li>
+									<li><?php _e( 'Product Categories Widget' , 'layerswp' ); ?></li>
+									<li><?php _e( 'Product Page Customization' , 'layerswp' ); ?></li>
+									<li><?php _e( 'Shop Page Customization' , 'layerswp' ); ?></li>
+									<li><?php _e( 'Menu Cart Customization' , 'layerswp' ); ?></li>
+								</ul>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="layers-button-well">
+					<a href="http://bit.ly/layers-storekit" target="_blank" class="layers-button btn-primary">
+						<?php _e( 'Get StoreKit Now!' , 'layerswp' ); ?>
+					</a>
+				</div>
+			<?php } ?>
+		</div>
+	<?php }
+
 	public function enqueue_dashboard_scripts(){
 
 		wp_enqueue_script(
@@ -308,62 +384,6 @@ class Layers_Options_Panel {
 			)
 		); // Onboarding ajax parameters
 
-	}
-	
-	/**
-	 * Remove homeless Sidebars and their Widgets that no longer belong to a Layers page.
-	 */
-	public function remove_homeless_widgets() {
-		
-		global $wp_registered_sidebars, $wp_registered_widgets;
-		
-		// Get all Sidebars with their Widgets.
-		$all_sidebars = wp_get_sidebars_widgets();
-		
-		// Used to collect the newly cleaned sidebars.
-		$cleaned_sidebars = array();
-		
-		// Loop through the sidebars.
-		foreach ( $all_sidebars as $sidebar_id => $sidebar_widgets ) {
-			
-			// Only perform the clean-up on Layers sidebars.
-			if ( FALSE !== strpos( $sidebar_id, 'obox-layers-builder-' ) ) {
-				
-				// Check if the page that created this sidebar still exists.
-				$page_id = ltrim( $sidebar_id, "obox-layers-builder-" );
-				
-				if ( NULL === get_post( $page_id ) ) {
-						
-					// Loop over each widget_id so we can fetch the data out of the wp_options table.
-					foreach( $sidebar_widgets as $widget_id ) {
-						
-						// The name of the option in the database is the name of the widget class.
-						$option_name = $wp_registered_widgets[$widget_id]['callback'][0]->option_name;
-						
-						// Widget data is stored as an associative array. To get the right data we need the right key from $wp_registered_widgets.
-						$key = $wp_registered_widgets[$widget_id]['params'][0]['number'];
-						
-						// Get the widgets collection associative using the pre-got key.
-						$widget_data = get_option( $option_name );
-						
-						// Remove this widget from the collection.
-						unset( $widget_data[$key] );
-						
-						// Put the widget collection back in the DB.
-						update_option( $option_name, $widget_data );
-					}
-					
-					// Skip to the next so it's not added to the cleaned sidebar collection.
-					continue;
-				}
-			}
-			
-			// If we get to here then sidebar is still existent so add it to cleaned sidebars collection.
-			$cleaned_sidebars[$sidebar_id] = $sidebar_widgets;
-		}
-		
-		// Put the entire Sidebars with Widgets data back in the DB.
-		wp_set_sidebars_widgets( $cleaned_sidebars );
 	}
 
 }
