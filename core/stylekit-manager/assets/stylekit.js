@@ -8,6 +8,8 @@
 	// On document ready
 	$( function() {
 		
+		var debug = false;
+		
 		/**
 		 * ----------------------
 		 *        IMPORT
@@ -317,8 +319,9 @@
 			
 			// Debugging
 			//console.log( response );
-			if( response.stylekit_json_pretty ) {
-				$('[name="layers-stylekit-import-stylekit-prettyprint"]').val( response.stylekit_json_pretty );
+			if( debug && response.stylekit_json_pretty ) {
+				$('.json-code').show();
+				$('.json-code textarea').val( response.stylekit_json_pretty );
 			}
 			
 			// Ajax
@@ -368,8 +371,9 @@
 			
 			// Debugging
 			//console.log( response );
-			if( response.stylekit_json_pretty ) {
-				$('[name="layers-stylekit-import-stylekit-prettyprint"]').val( response.stylekit_json_pretty );
+			if( debug && response.stylekit_json_pretty ) {
+				$('.json-code').show();
+				$('.json-code textarea').val( response.stylekit_json_pretty );
 			}
 			
 			// Ajax
@@ -411,8 +415,9 @@
 			
 			// Debugging
 			//console.log( response );
-			if( response.stylekit_json_pretty ) {
-				$('[name="layers-stylekit-import-stylekit-prettyprint"]').val( response.stylekit_json_pretty );
+			if( debug && response.stylekit_json_pretty ) {
+				$('.json-code').show();
+				$('.json-code textarea').val( response.stylekit_json_pretty );
 			}
 			
 			// Ajax
@@ -440,8 +445,9 @@
 
 			// Debugging
 			//console.log( response );
-			if( response.stylekit_json_pretty ) {
-				$('[name="layers-stylekit-import-stylekit-prettyprint"]').val( response.stylekit_json_pretty );
+			if( debug && response.stylekit_json_pretty ) {
+				$('.json-code').show();
+				$('.json-code textarea').val( response.stylekit_json_pretty );
 			}
 			
 			// Ajax
@@ -474,8 +480,9 @@
 			
 			// Debugging
 			//console.log( response );
-			if( response.stylekit_json_pretty ) {
-				$('[name="layers-stylekit-import-stylekit-prettyprint"]').val( response.stylekit_json_pretty );
+			if( debug && response.stylekit_json_pretty ) {
+				$('.json-code').show();
+				$('.json-code textarea').val( response.stylekit_json_pretty );
 			}
 		}
 		
@@ -502,8 +509,9 @@
 			/*
 			// Debugging
 			//console.log( response );
-			if( response.stylekit_json_pretty ) {
-				$('[name="layers-stylekit-import-stylekit-prettyprint"]').val( response.stylekit_json_pretty );
+			if( debug && response.stylekit_json_pretty ) {
+				$('.json-code').show();
+				$('.json-code textarea').val( response.stylekit_json_pretty );
 			}
 			*/
 			

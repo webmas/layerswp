@@ -269,11 +269,9 @@
 			</div>
 			
 			<!-- Debugging Textarea -->
-			<div class="layers-row layers-push-top NOT-layers-hide">
+			<div class="layers-row layers-push-top NOT-layers-hide json-code">
 				<div class="layers-column layers-span-12">
-					<div class="json-code">
-						<textarea name="layers-stylekit-import-stylekit-prettyprint"></textarea>
-					</div>
+					<textarea name="layers-stylekit-import-stylekit-prettyprint"></textarea>
 				</div>
 			</div>
 			<!-- /Debugging Textarea -->

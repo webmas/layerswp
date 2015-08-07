@@ -178,15 +178,9 @@ p.layers-excerpt{
 	font-weight: bold;
 }
 
-.json-code {
 
-}
-.json-code .json-code-heading {
-	font-size: 10px;
-	display: inline-block;
-	text-transform: uppercase;
-	margin: 0px 0 3px;
-	color: #9D9D9D;
+.json-code {
+	display: none;
 }
 .json-code textarea {
 	width:100%;
