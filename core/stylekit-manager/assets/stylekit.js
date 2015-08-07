@@ -8,7 +8,7 @@
 	// On document ready
 	$( function() {
 		
-		var debug = false;
+		var debug = true;
 		
 		/**
 		 * ----------------------
@@ -176,7 +176,6 @@
 			else{
 				$( '.layers-stylekit-import-choices' ).animate({ height: $('.layers-stylekit-import-choices-holder').outerHeight(true) }, { easing: 'layersEaseInOut' });
 			}
-
 		});
 		
 		// Un-Check/Check All on Import & Export
@@ -210,6 +209,11 @@
 				var $inputs = $( '.layers-stylekit-import-choices' ).find( 'input[type="checkbox"]' );
 				$inputs.change();
 			}
+
+		});
+
+		$( document ).on( 'click', '.layers-stylekit-form-import .tick', function(){
+
 
 		});
 		

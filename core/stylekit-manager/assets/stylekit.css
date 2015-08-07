@@ -49,6 +49,10 @@ p.layers-excerpt{
 .tick {
 	transition: .1s;
 }
+/* li.tick:hover{
+	background-color: #FBFBFB;
+	cursor: pointer;
+} */
 .tick.ticked-some {
 	background-image: url( ../../assets/images/stylekit/ticked-some.png ) !important;
 }

@@ -568,7 +568,7 @@ class Layers_StyleKit_Exporter {
 			'download_uri'         => $download_uri,
 			'ui'                   => $ui,
 			'stylekit_json'        => $stylekit_json,
-			'stylekit_json_pretty' => $this->prettyPrint( json_encode( $stylekit_json ) ),
+			//'stylekit_json_pretty' => $this->prettyPrint( json_encode( $stylekit_json ) ),
 		) );
 		
 		die();
@@ -1057,7 +1057,7 @@ class Layers_StyleKit_Exporter {
 		// Return the StyleKit json
 		echo json_encode( array(
 			'stylekit_json' => $stylekit_json,
-			'stylekit_json_pretty' => $this->prettyPrint( json_encode( $stylekit_json ) ),
+			//'stylekit_json_pretty' => $this->prettyPrint( json_encode( $stylekit_json ) ),
 		) );
 		
 		die();
@@ -1089,7 +1089,7 @@ class Layers_StyleKit_Exporter {
 		// Return the StyleKit JSON
 		echo json_encode( array(
 			'stylekit_json' => $stylekit_json,
-			'stylekit_json_pretty' => $this->prettyPrint( json_encode( $stylekit_json ) ),
+			//'stylekit_json_pretty' => $this->prettyPrint( json_encode( $stylekit_json ) ),
 		) );
 		
 		die();
@@ -1186,7 +1186,7 @@ class Layers_StyleKit_Exporter {
 		// Return the StyleKit JSON
 		echo json_encode( array(
 			'stylekit_json' => $stylekit_json,
-			'stylekit_json_pretty' => $this->prettyPrint( json_encode( $stylekit_json ) ),
+			//'stylekit_json_pretty' => $this->prettyPrint( json_encode( $stylekit_json ) ),
 		) );
 		
 		die();
@@ -1248,7 +1248,7 @@ class Layers_StyleKit_Exporter {
 		// Return the StyleKit JSON
 		echo json_encode( array(
 			'stylekit_json'        => $stylekit_json,
-			'stylekit_json_pretty' => $this->prettyPrint( json_encode( $stylekit_json ) ),
+			//'stylekit_json_pretty' => $this->prettyPrint( json_encode( $stylekit_json ) ),
 		) );
 		
 		die();
@@ -1304,7 +1304,7 @@ class Layers_StyleKit_Exporter {
 		// Return the StyleKit JSON
 		echo json_encode( array(
 			'stylekit_json' => $stylekit_json,
-			'stylekit_json_pretty' => $this->prettyPrint( json_encode( $stylekit_json ) ),
+			//'stylekit_json_pretty' => $this->prettyPrint( json_encode( $stylekit_json ) ),
 			'ui' => $ui,
 		) );
 		
@@ -1488,7 +1488,7 @@ class Layers_StyleKit_Exporter {
 		// Return the StyleKit JSON
 		echo json_encode( array(
 			// 'stylekit_json' => $stylekit_json,
-			// 'stylekit_json_pretty' => $this->prettyPrint( json_encode( $stylekit_json ) ),
+			// //'stylekit_json_pretty' => $this->prettyPrint( json_encode( $stylekit_json ) ),
 			// 'ui' => $ui,
 		) );
 		
