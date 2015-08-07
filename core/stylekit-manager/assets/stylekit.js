@@ -80,7 +80,6 @@
 			});
 		}
 		
-		var $stylkeit_json = [];
 
 		// STEP-2 - Unpack the StyleKit Zip
 		if ( $('input[name="layers-stylekit-package"]').val() ) {
@@ -135,11 +134,6 @@
 						.queue( function(){
 							
 							$('.layers-stylekit-import-slide-2').append( response.ui );
-							
-							$stylkeit_json = response.stylekit_json;
-							
-							console.log( $stylkeit_json );
-							
 							go_to_slide( 2, $importer_slides );
 						});
 					})
@@ -299,19 +293,19 @@
 		function layers_stylekit_import_step_2_ajax( response ) {
 			
 			var $message = [];
-
-			console.log(response);
 			
 			// Construct the message taking into account if there are Settings or CSS.
 			if( 'settings' in response.stylekit_json || 'css' in response.stylekit_json ) {
 				if ( response.stylekit_json.hasOwnProperty('settings') ) $message.push( 'Settings' );
-				if ( response.stylekit_json.hasOwnProperty('settings') ) $message.push( 'CSS' );
+				if ( response.stylekit_json.hasOwnProperty('css') ) $message.push( 'CSS' );
 			}
 			else{
 				// If there is no Settings or CSS then skip to the next step.
-				layers_stylekit_import_step_3_ajax();
+				layers_stylekit_import_step_3_ajax( response );
 				return;
 			}
+
+			console.log( response );
 			
 			// User Feedback
 			$.layerswp
@@ -344,7 +338,6 @@
 		var current_page = 0;
 		var reported_page = 0;
 		
-
 		function layers_stylekit_import_step_3_ajax( response ) {
 			
 			current_page++;
@@ -353,9 +346,11 @@
 			
 			// If there are no pages skip to next function.
 			if( 0 === total_pages ) {
-				layers_stylekit_import_step_5_ajax();
+				layers_stylekit_import_step_5_ajax( response );
 				return;
 			}
+
+			console.log( response );
 			
 			// User Feedback
 			$.layerswp
@@ -393,7 +388,6 @@
 		var total_images = 0;
 		var current_image = 0;
 		var reported_image = 0;
-		var image_success_function;
 		
 		function layers_stylekit_import_step_4_ajax( response ) {
 
@@ -509,7 +503,7 @@
 			// Debugging
 			//console.log( response );
 			if( response.stylekit_json_pretty ) {
-							$('[name="layers-stylekit-import-stylekit-prettyprint"]').val( response.stylekit_json_pretty );
+				$('[name="layers-stylekit-import-stylekit-prettyprint"]').val( response.stylekit_json_pretty );
 			}
 			*/
 			

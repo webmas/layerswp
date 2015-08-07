@@ -64,9 +64,11 @@
 				<?php _e( 'Customize your Site' , 'layerswp' ) ?>
 			</a>
 			
+			<!--
 			<a class="layers-back-a-step" href="#">
 				&#8592; <?php _e( 'Back' , 'layerswp' ) ?>
 			</a>
+			-->
 			
 		</div>
 		
