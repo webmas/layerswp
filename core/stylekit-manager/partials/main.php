@@ -71,14 +71,14 @@ $current_step = ( isset( $_GET['step'] ) ) ? $_GET['step'] : FALSE ;
 		<?php endif; ?>
 		
 		
-		<?php if ( TRUE || 'layers-stylekit-remove' !== $current_tab ) : ?>
+		<?php if ( FALSE && 'layers-stylekit-remove' !== $current_tab ) : ?>
 		
 			<div class="layers-row layers-middled layers-stylekit-history">
 				<div class="layers-column layers-span-12">
 					<!-- <i class="layers-button-icon-dashboard layers-stylekit-icon"></i> -->
 					<span class="layers-stylekit-history-container">
 						<span class="layers-stylekit-current">
-							<small class="layers-label label-secondary">Current StyleKit</small>&nbsp; <span class="stylekit-history-label"><strong>Pinkerkit</strong> - Settings &bull;&bull;&bull;, 3 Pages &uarr;, Custom CSS.</span>
+							<small class="layers-label label-secondary">Current StyleKit</small>&nbsp; <span class="stylekit-history-label"><strong>Pinkerkit</strong></span>
 						</span>
 						<a href="<?php echo add_query_arg( array( 'page' => 'layers_stylekit_manager', 'tab' => 'layers-stylekit-remove', 'step' => 'layers-stylekit-remove-step-1' ), get_admin_url() . 'admin.php' ); ?>" class="layers-stylekit-rollback"><span class="layers-stylekit-rollback-times">&times;</span>Remove</a>
 						<div class="layers-stylekit-previous">

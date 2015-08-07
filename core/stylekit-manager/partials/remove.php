@@ -53,6 +53,7 @@
 												<?php
 											}
 											
+											/*
 											if ( isset( $stylekit_json['internal_data']['page_ids'] ) ) {
 												foreach ( $stylekit_json['internal_data']['page_ids'] as $page_id ) {
 													
@@ -69,6 +70,7 @@
 													<?php
 												}
 											}
+											*/
 											
 											if ( isset( $stylekit_json['css'] ) ) {
 												?>
