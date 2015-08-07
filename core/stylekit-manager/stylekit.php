@@ -56,11 +56,11 @@ class Layers_StyleKit_Exporter {
 		// Unpack the zip
 		add_action( 'wp_ajax_layers_stylekit_zip_unpack_ajax', array( $this, 'layers_stylekit_zip_unpack_ajax' ) );
 		// Ajax for each step of the import process
+		add_action( 'wp_ajax_layers_stylekit_import_step_1_ajax', array( $this, 'layers_stylekit_import_step_1_ajax' ) );
 		add_action( 'wp_ajax_layers_stylekit_import_step_2_ajax', array( $this, 'layers_stylekit_import_step_2_ajax' ) );
 		add_action( 'wp_ajax_layers_stylekit_import_step_3_ajax', array( $this, 'layers_stylekit_import_step_3_ajax' ) );
 		add_action( 'wp_ajax_layers_stylekit_import_step_4_ajax', array( $this, 'layers_stylekit_import_step_4_ajax' ) );
 		add_action( 'wp_ajax_layers_stylekit_import_step_5_ajax', array( $this, 'layers_stylekit_import_step_5_ajax' ) );
-		add_action( 'wp_ajax_layers_stylekit_import_step_6_ajax', array( $this, 'layers_stylekit_import_step_6_ajax' ) );
 		
 		// Restore:
 		add_action( 'wp_ajax_layers_stylekit_remove_ajax', array( $this, 'layers_stylekit_remove_ajax' ) );
@@ -346,32 +346,9 @@ class Layers_StyleKit_Exporter {
 	}
 	
 	/**
-	 * ------------------------------------------------------------------
-	 *
-	 *
-	 *
-	 *
-	 *
-	 *
-	 *                          MAIN INTERFACE
-	 *
-	 *
-	 *
-	 *
-	 *
-	 *
-	 * ------------------------------------------------------------------
+	 * Main interface
 	 */
-	
 	function layers_stylekit_manager_page() {
-		
-		$tabs = array(
-			'layers-stylekit-import' => __( 'Import' , 'layerswp' ),
-			'layers-stylekit-export' => __( 'Export' , 'layerswp' ),
-		);
-
-		$current_tab = ( isset( $_GET['tab'] ) ) ? $_GET['tab'] : FALSE ;
-		$current_step = ( isset( $_GET['step'] ) ) ? $_GET['step'] : FALSE ;
 		
 		include( get_template_directory() . '/core/stylekit-manager/partials/main.php' );
 	}
@@ -494,12 +471,29 @@ class Layers_StyleKit_Exporter {
 		$stylekit_json[ 'info' ][ 'php-version' ] = phpversion();
 		$stylekit_json[ 'info' ][ 'wp-version' ] = $wp_version;
 		
-		// Prep stylekit.json
-		$json_file_name = "stylekit.json";
-		$wp_filesystem->put_contents( "{$export_path}{$json_file_name}", json_encode( $stylekit_json ) ); // Finally, store the file :)
-		$files_to_zip[ "{$zip_name}/{$json_file_name}" ] = "{$export_path}{$json_file_name}";
 		
-		// Prep pages .json files
+		// Prep - style.css
+		if ( isset( $stylekit_json['css'] ) && '' !== trim( $stylekit_json['css'] ) ) {
+			
+			// Create the file and add it to the json.
+			$css_file_name = "style.css";
+			$wp_filesystem->put_contents( "{$export_path}{$css_file_name}", $stylekit_json['css'] ); // Finally, store the file :)
+			$files_to_zip[ "{$zip_name}/{$css_file_name}" ] = "{$export_path}{$css_file_name}";
+		}
+		
+		// Prep - stylekit.json
+		if ( isset( $stylekit_json['settings'] ) ){
+			
+			// Make a temp array that's just the 'settings' - that's all we want in the final stylkeit.json
+			$stylekit_json_temp = array( 'settings' => $stylekit_json['settings'] );
+			
+			// Create the file and add it to the json.
+			$stylekit_json_file_name = "stylekit.json";
+			$wp_filesystem->put_contents( "{$export_path}{$stylekit_json_file_name}", json_encode( $stylekit_json_temp ) ); // Finally, store the file :)
+			$files_to_zip[ "{$zip_name}/{$stylekit_json_file_name}" ] = "{$export_path}{$stylekit_json_file_name}";
+		}
+		
+		// Prep - pages .json files
 		if ( !empty( $stylekit_pages ) ) {
 			foreach ( $stylekit_pages as $page_preset_key => $page_preset_value ) {
 				
@@ -508,7 +502,7 @@ class Layers_StyleKit_Exporter {
 				$widget_data = json_encode( $page_preset_value['widget_data'] );
 				
 				//post_title, widget_data
-				$page_file_name = "{$page_preset_key}.json";
+				$page_file_name = "layout-{$page_preset_key}.json";
 				$wp_filesystem->put_contents( "{$export_path}{$page_file_name}", $widget_data );
 				$files_to_zip[ "{$zip_name}/{$page_file_name}" ] = "{$export_path}{$page_file_name}";
 			}
@@ -521,7 +515,7 @@ class Layers_StyleKit_Exporter {
 				
 				$image_pieces = explode( '/', $image_collected['url'] );
 				$image_file_name = $image_pieces[count($image_pieces)-1];
-				$files_to_zip["{$zip_name}/assets/images/{$image_file_name}"] = $image_collected['path'];
+				$files_to_zip["{$zip_name}/images/{$image_file_name}"] = $image_collected['path'];
 			}
 		}
 		
@@ -891,31 +885,32 @@ class Layers_StyleKit_Exporter {
 		if ( ! is_dir( $temp_directory_path ) ) {
 			return $temp_directory_path;
 		}
-
-		// A proper StyleKit should have at least a stylekit.json file in the single subdirectory.
-		if ( ! file_exists( $temp_directory_path . 'stylekit.json' ) ){
-			return new WP_Error( 'incompatible_stylekit_no_json', __('The package could not be installed.'), __( 'The StyleKit is missing the stylekit.json file.', 'layerswp' ) );
-		}
 		
-		// Get StyleKit Json
-		$stylekit_content = file_get_contents( $temp_directory_path . 'stylekit.json' );
-		$stylekit_json = json_decode( $stylekit_content, TRUE );
-		
-		// Get Page Json
+		// Parse the files to grab the necessaries
 		$files = scandir( $temp_directory_path );
 		$page_files = array();
-		
-		$reserved_files = array( 'stylekit.json' );
-		
+		$stylekit_json = array();
 		foreach ( $files as $file ) {
-			if ( is_file( $temp_directory_path . $file ) && !in_array( $file, $reserved_files ) && rtrim( $file, '.json' ) !== $file ) {
-				$page_files[ rtrim( $file, '.json' ) ] = array( 'page-data' => json_decode( file_get_contents( $temp_directory_path . $file ), TRUE ) );
+			if ( is_file( $temp_directory_path . $file ) ) {
+				if ( 'stylekit.json' === $file ) {
+					// Get StyleKit Json
+					$stylekit_content = file_get_contents( $temp_directory_path . $file );
+					$stylekit_content_json = json_decode( $stylekit_content, TRUE );
+					$stylekit_json = array_merge( $stylekit_content_json, $stylekit_json );
+				}
+				if ( 'css.txt' === $file || 'style.css' === $file ) {
+					// Get CSS
+					$css_content = file_get_contents( $temp_directory_path . $file );
+					$stylekit_json['css'] = $css_content;
+				}
+				elseif ( 0 === strpos( $file, 'layout-' ) ) {
+					// Get Pages
+					$slug = basename( preg_replace( '/layout-/', '', $file, 1 ), '.json' );
+					$page_files[$slug] = array( 'page-data' => json_decode( file_get_contents( $temp_directory_path . $file ), TRUE ) );
+				}
 			}
 		}
-		if ( !empty( $page_files ) ) {
-			$stylekit_json['pages'] = $page_files;
-		}
-		
+		if ( !empty( $page_files ) ) $stylekit_json['pages'] = $page_files;
 		
 		/**
 		 * Internal Data
@@ -927,14 +922,14 @@ class Layers_StyleKit_Exporter {
 		// Image locations - to search for images in
 		$stylekit_json['internal_data']['image_locations'] = array(
 			array(
-				'path' => $temp_directory_path . 'assets/images/',
-				'url'  => $temp_directory_url . 'assets/images/',
+				'path' => $temp_directory_path . 'images/',
+				'url'  => $temp_directory_url . 'images/',
 			)
 		);
 		
 		// Images - to use later to import images
-		$image_assets_path = $temp_directory_path . 'assets/images/';
-		$image_assets_url = $temp_directory_url . 'assets/images/';
+		$image_assets_path = $temp_directory_path . 'images/';
+		$image_assets_url = $temp_directory_url . 'images/';
 		$image_array = array();
 		if ( is_dir( $image_assets_path ) ) {
 			if ( $dh = opendir( $image_assets_path ) ) {
@@ -953,6 +948,7 @@ class Layers_StyleKit_Exporter {
 		// Put the file information in.
 		$stylekit_json['internal_data']['zip_folder_name'] = $args['name'];
 		
+		//s( $stylekit_json );
 		
 		$post_id = $this->layers_stylekit_save_over_stylekit( $stylekit_json, 'processing' );
 		
@@ -975,7 +971,7 @@ class Layers_StyleKit_Exporter {
 	 * Receives the the posted stylekit json and the chosen options from that
 	 * stylekit and filters it so that only the chosen options prevail.
 	 */
-	function layers_stylekit_import_step_2_ajax() {
+	function layers_stylekit_import_step_1_ajax() {
 		
 		// Get and decode json.
 		// $stylekit_json = ( isset( $_POST['layers-stylekit-import-stylekit'] ) ) ? stripslashes( $_POST['layers-stylekit-import-stylekit'] ) : '' ;
@@ -1017,7 +1013,7 @@ class Layers_StyleKit_Exporter {
 		}
 		
 		// Unset if none are chosen
-		if ( empty( $filtered_settings ) ) unset( $stylekit_json['settings'] );
+		if ( empty( $filtered_settings ) && isset( $stylekit_json['settings'] ) ) unset( $stylekit_json['settings'] );
 		
 		
 		/**
@@ -1040,7 +1036,7 @@ class Layers_StyleKit_Exporter {
 		}
 		
 		// Unset if none are chosen
-		if ( empty( $filtered_pages ) ) unset( $stylekit_json['pages'] );
+		if ( empty( $filtered_pages ) && isset( $stylekit_json['pages'] ) ) unset( $stylekit_json['pages'] );
 		
 		
 		/**
@@ -1048,12 +1044,12 @@ class Layers_StyleKit_Exporter {
 		 */
 		
 		// Unset if none are chosen
-		if ( isset( $stylekit_json['css'] ) && ( isset( $_POST['layers-stylekit-import-all'] ) || isset( $_POST['layers_css'] ) ) ) {
+		if ( ( isset( $_POST['layers-stylekit-import-all'] ) || isset( $_POST['layers_css'] ) ) && isset( $stylekit_json['css'] ) ) {
+			
 		}
-		else {
+		elseif ( isset( $stylekit_json['css'] ) ) {
 			unset( $stylekit_json['css'] );
 		}
-		
 		
 		$post_id = $this->layers_stylekit_save_over_stylekit( $stylekit_json, 'processing' );
 		
@@ -1072,7 +1068,7 @@ class Layers_StyleKit_Exporter {
 	 *
 	 * Receives the the posted stylekit json and saves the settings and custom css.
 	 */
-	public function layers_stylekit_import_step_3_ajax() {
+	public function layers_stylekit_import_step_2_ajax() {
 		
 		// Get and decode json.
 		//$stylekit_json = isset( $_POST['stylekit_json'] ) ? $_POST['stylekit_json'] : array() ;
@@ -1099,7 +1095,7 @@ class Layers_StyleKit_Exporter {
 		die();
 	}
 	
-	public function layers_stylekit_import_step_4_ajax() {
+	public function layers_stylekit_import_step_3_ajax() {
 		
 		//$stylekit_json = ( isset( $_POST['stylekit_json'] ) ) ? $_POST['stylekit_json'] : array() ;
 		$stylekit_json = $this->layers_stylekit_get_processing_stylekit();
@@ -1196,7 +1192,7 @@ class Layers_StyleKit_Exporter {
 		die();
 	}
 	
-	public function layers_stylekit_import_step_5_ajax() {
+	public function layers_stylekit_import_step_4_ajax() {
 		
 		//$stylekit_json = ( isset( $_POST['stylekit_json'] ) ) ? $_POST['stylekit_json'] : array() ;
 		$stylekit_json = $this->layers_stylekit_get_processing_stylekit();
@@ -1258,7 +1254,7 @@ class Layers_StyleKit_Exporter {
 		die();
 	}
 	
-	public function layers_stylekit_import_step_6_ajax() {
+	public function layers_stylekit_import_step_5_ajax() {
 		
 		//$stylekit_json = ( isset( $_POST['stylekit_json'] ) ) ? $_POST['stylekit_json'] : array() ;
 		$stylekit_json = $this->layers_stylekit_get_processing_stylekit();

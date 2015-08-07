@@ -1,4 +1,14 @@
+<?php
 
+$tabs = array(
+	'layers-stylekit-import' => __( 'Import' , 'layerswp' ),
+	'layers-stylekit-export' => __( 'Export' , 'layerswp' ),
+);
+
+$current_tab = ( isset( $_GET['tab'] ) ) ? $_GET['tab'] : FALSE ;
+$current_step = ( isset( $_GET['step'] ) ) ? $_GET['step'] : FALSE ;
+
+?>
 <div class="layers-area-wrapper">
 	<div class="layers-onboard-wrapper layers-stylekit-onboard-wrapper">
 		

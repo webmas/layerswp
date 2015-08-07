@@ -244,6 +244,9 @@
 			go_to_slide( 2, $importer_slides );
 			return false;
 		});
+
+		
+		var success_function = function(){};
 		
 		// Handle final click of confirm import
 		$( document ).on( 'click', '.layers-stylekit-import-step-2-submit', function(){
@@ -257,12 +260,12 @@
 			reported_image = 0;
 			
 			// Invoke the first step in the Ajax chain.
-			layers_stylekit_import_step_2_ajax();
+			layers_stylekit_import_step_1_ajax();
 			
 			return false;
 		});
 		
-		function layers_stylekit_import_step_2_ajax() {
+		function layers_stylekit_import_step_1_ajax() {
 			
 			// Get the user to Confirm this operation.
 			// if ( !window.confirm("This StyleKit Import will:\n\n- Change your settings.\n\n- Add 3 pages.\n\n- Add Custom CSS.") ) {
@@ -281,7 +284,7 @@
 			})
 			.queue( 800 );
 			
-			var form_data = $( 'form.layers-stylekit-form-import' ).serialize() + '&action=layers_stylekit_import_step_2_ajax';
+			var form_data = $( 'form.layers-stylekit-form-import' ).serialize() + '&action=layers_stylekit_import_step_1_ajax';
 			
 			// Ajax
 			$.ajax({
@@ -289,20 +292,84 @@
 				dataType: 'json',
 				url: ajaxurl,
 				data: form_data,
+				success: layers_stylekit_import_step_2_ajax,
+			});
+		}
+		
+		function layers_stylekit_import_step_2_ajax( response ) {
+			
+			var $message = [];
+
+			console.log(response);
+			
+			// Construct the message taking into account if there are Settings or CSS.
+			if( 'settings' in response.stylekit_json || 'css' in response.stylekit_json ) {
+				if ( response.stylekit_json.hasOwnProperty('settings') ) $message.push( 'Settings' );
+				if ( response.stylekit_json.hasOwnProperty('settings') ) $message.push( 'CSS' );
+			}
+			else{
+				// If there is no Settings or CSS then skip to the next step.
+				layers_stylekit_import_step_3_ajax();
+				return;
+			}
+			
+			// User Feedback
+			$.layerswp
+			.queue( function(){
+				show_loader();
+				add_loader_text( 'Importing ' + $message.join(' & ') + '<br />Please wait...' );
+			})
+			.queue( 800 );
+			
+			// Debugging
+			//console.log( response );
+			if( response.stylekit_json_pretty ) {
+				$('[name="layers-stylekit-import-stylekit-prettyprint"]').val( response.stylekit_json_pretty );
+			}
+			
+			// Ajax
+			$.ajax({
+				type: 'POST',
+				dataType: 'json',
+				url: ajaxurl,
+				data: {
+					action: 'layers_stylekit_import_step_2_ajax',
+					//stylekit_json: response.stylekit_json,
+				},
 				success: layers_stylekit_import_step_3_ajax,
 			});
 		}
 		
+		var total_pages = 0;
+		var current_page = 0;
+		var reported_page = 0;
+		
+
 		function layers_stylekit_import_step_3_ajax( response ) {
 			
-			// User Feedback
+			current_page++;
+			total_pages = 0;
+			for ( var property in response.stylekit_json.pages ) if ( response.stylekit_json.pages.hasOwnProperty( property ) ) total_pages++;
 			
+			// If there are no pages skip to next function.
+			if( 0 === total_pages ) {
+				layers_stylekit_import_step_5_ajax();
+				return;
+			}
+			
+			// User Feedback
 			$.layerswp
 			.queue( function(){
+				
+				reported_page++;
 				show_loader();
-				add_loader_text( 'Importing Settings & CSS<br />Please wait...' );
+				add_loader_text( 'Importing Page ' + reported_page + ' of ' + total_pages + '<br />Please wait...' );
 			})
 			.queue( 800 );
+			
+			// This puts the page import into a loop.
+			if ( current_page >= total_pages ) success_function = layers_stylekit_import_step_4_ajax;
+			else success_function = layers_stylekit_import_step_3_ajax;
 			
 			// Debugging
 			//console.log( response );
@@ -319,51 +386,7 @@
 					action: 'layers_stylekit_import_step_3_ajax',
 					//stylekit_json: response.stylekit_json,
 				},
-				success: layers_stylekit_import_step_4_ajax,
-			});
-		}
-		
-		var total_pages = 0;
-		var current_page = 0;
-		var reported_page = 0;
-		var page_success_function;
-
-		function layers_stylekit_import_step_4_ajax( response ) {
-			
-			current_page++;
-			total_pages = 0;
-			for ( var property in response.stylekit_json.pages ) if ( response.stylekit_json.pages.hasOwnProperty( property ) ) total_pages++;
-			
-			// User Feedback
-			$.layerswp
-			.queue( function(){
-				
-				reported_page++;
-				show_loader();
-				add_loader_text( 'Importing Page ' + reported_page + ' of ' + total_pages + '<br />Please wait...' );
-			})
-			.queue( 800 );
-			
-			// This puts the page import into a loop.
-			if ( current_page >= total_pages ) page_success_function = layers_stylekit_import_step_5_ajax;
-			else page_success_function = layers_stylekit_import_step_4_ajax;
-			
-			// Debugging
-			//console.log( response );
-			if( response.stylekit_json_pretty ) {
-				$('[name="layers-stylekit-import-stylekit-prettyprint"]').val( response.stylekit_json_pretty );
-			}
-			
-			// Ajax
-			$.ajax({
-				type: 'POST',
-				dataType: 'json',
-				url: ajaxurl,
-				data: {
-					action: 'layers_stylekit_import_step_4_ajax',
-					//stylekit_json: response.stylekit_json,
-				},
-				success: page_success_function,
+				success: success_function,
 			});
 		};
 		
@@ -372,7 +395,7 @@
 		var reported_image = 0;
 		var image_success_function;
 		
-		function layers_stylekit_import_step_5_ajax( response ) {
+		function layers_stylekit_import_step_4_ajax( response ) {
 
 			current_image++;
 			total_images = 0;
@@ -389,8 +412,8 @@
 			.queue( 800 );
 			
 			// This puts the page import into a loop.
-			if ( current_image >= total_images ) image_success_function = layers_stylekit_import_step_6_ajax;
-			else image_success_function = layers_stylekit_import_step_5_ajax;
+			if ( current_image >= total_images ) success_function = layers_stylekit_import_step_5_ajax;
+			else success_function = layers_stylekit_import_step_4_ajax;
 			
 			// Debugging
 			//console.log( response );
@@ -404,14 +427,14 @@
 				dataType: 'json',
 				url: ajaxurl,
 				data: {
-					action: 'layers_stylekit_import_step_5_ajax',
+					action: 'layers_stylekit_import_step_4_ajax',
 					//stylekit_json: response.stylekit_json,
 				},
-				success: image_success_function,
+				success: success_function,
 			});
 		};
 		
-		function layers_stylekit_import_step_6_ajax( response ) {
+		function layers_stylekit_import_step_5_ajax( response ) {
 			
 			// User Feedback
 			$.layerswp
@@ -433,15 +456,15 @@
 				dataType: 'json',
 				url: ajaxurl,
 				data: {
-					action: 'layers_stylekit_import_step_6_ajax',
+					action: 'layers_stylekit_import_step_5_ajax',
 					//stylekit_json: response.stylekit_json,
 				},
-				success: layers_stylekit_import_ajax_step_7,
+				success: layers_stylekit_import_step_6,
 			});
 		};
 		
 		
-		function layers_stylekit_import_ajax_step_7( response ) {
+		function layers_stylekit_import_step_6( response ) {
 			
 			// Sequence in the chnage of slides and showing of the loader.
 			$.layerswp

@@ -34,7 +34,7 @@ if ( isset( $stylekit_json['settings'] ) || isset( $stylekit_json['pages'] ) || 
 							<?php } ?>
 							
 							<?php if ( isset( $stylekit_json['pages'] ) ) { ?>
-								<li class="tick ticked-all" id="tick-pages"><?php echo count( $stylekit_json['pages'] ); ?> Pages</li>
+								<li class="tick ticked-all" id="tick-pages">Pages</li>
 							<?php } ?>
 							
 							<?php if ( isset( $stylekit_json['css'] ) ) { ?>
