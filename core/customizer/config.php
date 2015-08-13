@@ -299,7 +299,7 @@ class Layers_Customizer_Config {
 								),
 								'header-position-heading' => array(
 									'type'  => 'layers-heading',
-									'label'    => __( 'Header Position' , 'layerswp' ),
+									'label'    => __( 'Header Style' , 'layerswp' ),
 								),
 								'header-sticky' => array(
 									'type'		=> 'layers-checkbox',
@@ -309,7 +309,7 @@ class Layers_Customizer_Config {
 								),
 								'header-overlay' => array(
 									'type'     => 'layers-checkbox',
-									'label'    => __( 'Overlay' , 'layerswp' ),
+									'label'    => __( 'Transparent' , 'layerswp' ),
 									'default'	=> FALSE,
 								)
 							); // header-layout
