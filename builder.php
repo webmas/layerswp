@@ -8,8 +8,14 @@
  * @since Layers 1.0.0
  */
 
-get_header();
 global $post;
+
+// Collect main sidebar here so all inline_styles are collected before/in time for the header css.
+ob_start();
+dynamic_sidebar( 'obox-layers-builder-' . $post->ID );
+$layers_dynamic_sidebar = ob_get_clean();
+
+get_header();
 
 do_action('before_layers_builder_widgets');
 
@@ -26,7 +32,7 @@ if ( post_password_required() ) { ?>
 		<?php do_action('layers_after_post_loop'); ?>
 	</section>
 <?php } else {
-	dynamic_sidebar( 'obox-layers-builder-' . $post->ID );
+	echo $layers_dynamic_sidebar;
 }
 
 do_action('after_layers_builder_widgets');

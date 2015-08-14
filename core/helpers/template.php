@@ -1209,7 +1209,7 @@ if( !function_exists( 'layers_apply_inline_styles' ) ) {
 		);
 	}
 } // layers_apply_inline_styles
-add_action( 'get_footer' , 'layers_apply_inline_styles', 100 );
+add_action( 'wp_enqueue_scripts' , 'layers_apply_inline_styles', 100 );
 
 /**
 * Apply Custom CSS
@@ -1228,7 +1228,7 @@ if( !function_exists( 'layers_apply_custom_styles' ) ) {
 
 	}
 } // layers_apply_custom_styles
-add_action( 'get_footer' , 'layers_apply_custom_styles', 100 );
+add_action( 'wp_enqueue_scripts' , 'layers_apply_custom_styles', 100 );
 
 /**
 * Feature Image / Video Generator
