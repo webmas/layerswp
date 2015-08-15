@@ -81,11 +81,6 @@ class Layers_Customizer_Config {
 							'description' => __( 'Control your header\'s logo, layout, colors and font.' , 'layerswp' ), // @TODO Put a helper here
 							'priority' => 60
 						),
-			'body' => array(
-							'title' => __( 'Body Colors' , 'layerswp' ),
-							'description' => __( 'Control your body\'s custom text, widget areas and layout.' , 'layerswp' ), // @TODO Put a helper here
-							'priority' => 70
-						),
 			'footer' => array(
 							'title' => __( 'Footer' , 'layerswp' ),
 							'description' => __( 'Control your footer\'s custom text, widget areas and layout.' , 'layerswp' ), // @TODO Put a helper here
@@ -173,8 +168,9 @@ class Layers_Customizer_Config {
 							'priority' => 45
 						),
 						'content-layout' => array(
-							'title' =>__( 'Layout' , 'layerswp' ),
-							'panel' => 'site-settings'
+							'title' =>__( 'Content Layout' , 'layerswp' ),
+							'panel' => 'site-settings',
+
 						),
 						'content-sidebars' => array(
 							'title' =>__( 'Sidebars' , 'layerswp' ),
@@ -212,10 +208,6 @@ class Layers_Customizer_Config {
 							'title' =>__( 'Sidebars' , 'layerswp' ),
 							'panel' => 'woocommerce'
 						),
-						'body-customization' => array(
-							'title' =>__( 'Customization' , 'layerswp' ),
-							'panel' => 'body'
-						)
 					);
 
 
@@ -356,6 +348,87 @@ class Layers_Customizer_Config {
 									'default' => ''
 								) // scripts
 							);
+
+		$controls['content-layout'] = array(
+						'text-style' => array(
+							'type' => 'select',
+							'name' => 'text-style'  ,
+							'id' => 'text-style' ,
+							'label' => __( 'Title &amp; Excerpt Position' , 'layerswp' ),
+							'options' => array(
+									'regular' => __( 'Regular' , 'layerswp' ),
+									'overlay' => __( 'Overlay' , 'layerswp' )
+							)
+						),
+						'show-media' => array(
+							'type' => 'checkbox',
+							'name' => 'show-media',
+							'id' => 'show-media',
+							'label' => __( 'Show Featured Images' , 'layerswp' )
+						),
+						'show-titles' => array(
+							'type' => 'checkbox',
+							'name' => 'show-titles'  ,
+							'id' => 'show-titles',
+							'label' => __( 'Show  Post Titles' , 'layerswp' )
+						),
+						'show-excerpts' => array(
+							'type' => 'checkbox',
+							'name' => 'show-excerpts'  ,
+							'id' => 'show-excerpts',
+							'label' => __( 'Show Post Excerpts' , 'layerswp' )
+						),
+						'excerpt-length' => array(
+							'type' => 'number',
+							'name' => 'excerpt-length'  ,
+							'id' => 'excerpt-length',
+							'min' => 0,
+							'max' => 10000,
+							'label' => __( 'Excerpts Length' , 'layerswp' )
+						),
+						'show-dates' => array(
+							'type' => 'checkbox',
+							'name' => 'show-dates'  ,
+							'id' => 'show-dates',
+							'label' => __( 'Show Post Dates' , 'layerswp' )
+						),
+						'show-author' => array(
+							'type' => 'checkbox',
+							'name' => 'show-author'  ,
+							'id' => 'show-author' ,
+							'label' => __( 'Show Post Author' , 'layerswp' )
+						),
+						'show-tags' => array(
+							'type' => 'checkbox',
+							'name' => 'show-tags'  ,
+							'id' => 'show-tags',
+							'label' => __( 'Show Tags' , 'layerswp' )
+						),
+						'show-categories' => array(
+							'type' => 'checkbox',
+							'name' => 'show-categories'  ,
+							'id' => 'show-categories' ,
+							'label' => __( 'Show Categories' , 'layerswp' )
+						),
+						'show-call-to-action' => array(
+							'type' => 'checkbox',
+							'name' => 'show-call-to-action'  ,
+							'id' => 'show-call-to-action',
+							'label' => __( 'Show "Read More" Buttons' , 'layerswp' )
+						),
+						'call-to-action' => array(
+							'type' => 'text',
+							'name' => 'call-to-action'  ,
+							'id' => 'call-to-action' ,
+							'label' => __( '"Read More" Text' , 'layerswp' )
+						),
+						'show-pagination' => array(
+							'type' => 'checkbox',
+							'name' => 'show-pagination'  ,
+							'id' => 'show-pagination',
+							'label' => __( 'Show Pagination' , 'layerswp' )
+						)
+					);
 
 		$controls['content-sidebars'] = array(
 								'single-sidebar-heading' => array(
