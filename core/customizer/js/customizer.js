@@ -221,9 +221,9 @@ wp.media.view.MediaFrame.Select = oldSelect.extend({
 
     initialize: function() {
     	
-    	console.log('CHINGAAA!');
-    	
         oldSelect.prototype.initialize.apply( this, arguments );
+        
+        this.on( 'content:render:ching', this.chingContent, this );
     },
     
     /**
@@ -243,12 +243,49 @@ wp.media.view.MediaFrame.Select = oldSelect.extend({
 				priority: 40
 			},
 			ching: {
-				text:     'Chang',
+				text:     'Get Images',
 				priority: 60
 			}
 		});
 		
 		//oldSelect.prototype.browseRouter.apply( this, arguments );
 	},
+	
+	/**
+	 * Render callback for the content region in the `upload` mode.
+	 */
+	chingContent: function() {
+		
+		this.$el.removeClass( 'hide-toolbar' );
+		
+		this.content.set( new LayersPhotoUpsell({
+			controller: this
+		}) );
+	},
+
+});
+
+var View = wp.media.View,
+	LayersPhotoUpsell;
+
+LayersPhotoUpsell = View.extend({
+	
+	template:  wp.template('layers-uploader-upsell'),
+
+	events: {
+		'click .close': 'hide'
+	},
+
+	initialize: function() {
+		
+	},
+	
+	show: function() {
+		this.$el.removeClass( 'hidden' );
+	},
+	
+	hide: function() {
+		this.$el.addClass( 'hidden' );
+	}
 
 });

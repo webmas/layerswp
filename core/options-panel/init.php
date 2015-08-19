@@ -43,6 +43,8 @@ class Layers_Options_Panel {
 		$this->set_valid_page_slugs();
 
 		add_action( 'wp_dashboard_setup', array( &$this, 'layers_add_dashboard_widgets' ) );
+		
+		add_action( 'print_media_templates', array( &$this, 'upload_upsell_media_template' ) );
 	}
 
 	public function init() {
@@ -385,7 +387,18 @@ class Layers_Options_Panel {
 		); // Onboarding ajax parameters
 
 	}
+	
+	public function upload_upsell_media_template(){
 
+		?>
+		<script type="text/html" id="tmpl-layers-uploader-upsell">
+			<div class="layers-uploader-upsell" style="padding: 200px; text-align: center;">
+				Coming soon...
+			</div>
+		</script>
+		<?php
+	}
+	
 }
 
 /**
