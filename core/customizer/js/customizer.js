@@ -210,5 +210,45 @@
 		// Initialize Layers Previewer
 		api.LayersCustomizerPreviewer.init();
 	} );
-
 } )( wp, jQuery );
+
+
+
+var oldSelect = wp.media.view.MediaFrame.Select,
+	l10n = wp.media.view.l10n;
+
+wp.media.view.MediaFrame.Select = oldSelect.extend({
+
+    initialize: function() {
+    	
+    	console.log('CHINGAAA!');
+    	
+        oldSelect.prototype.initialize.apply( this, arguments );
+    },
+    
+    /**
+	 * Render callback for the router region in the `browse` mode.
+	 *
+	 * @param {wp.media.view.Router} routerView
+	 */
+	browseRouter: function( routerView ) {
+		
+		routerView.set({
+			upload: {
+				text:     l10n.uploadFilesTitle,
+				priority: 20
+			},
+			browse: {
+				text:     l10n.mediaLibraryTitle,
+				priority: 40
+			},
+			ching: {
+				text:     'Chang',
+				priority: 60
+			}
+		});
+		
+		//oldSelect.prototype.browseRouter.apply( this, arguments );
+	},
+
+});
