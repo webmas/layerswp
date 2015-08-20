@@ -464,6 +464,15 @@ if( ! function_exists( 'layers_admin_scripts' ) ) {
 			LAYERS_VERSION,
 			true
 		); // Admin JS
+		
+		wp_enqueue_script(
+			LAYERS_THEME_SLUG . '-media-views' ,
+			get_template_directory_uri() . '/core/assets/media-views.js',
+			array(
+				'media-views'
+			),
+			LAYERS_VERSION
+		); // Admin JS
 
 		wp_localize_script(
 			LAYERS_THEME_SLUG . '-admin' ,
