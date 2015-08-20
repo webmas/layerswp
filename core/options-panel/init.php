@@ -389,14 +389,8 @@ class Layers_Options_Panel {
 	}
 	
 	public function upload_upsell_media_template(){
-
-		?>
-		<script type="text/html" id="tmpl-layers-uploader-upsell">
-			<div class="layers-uploader-upsell" style="padding: 200px; text-align: center;">
-				Coming soon...
-			</div>
-		</script>
-		<?php
+		
+		include get_template_directory() . '/core/options-panel/partials/discover-more-photos.php';
 	}
 	
 }

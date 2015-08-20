@@ -18,7 +18,7 @@
 	    	
 	        BackupWpMediaFrameSelect.prototype.initialize.apply( this, arguments );
 	        
-	        this.on( 'content:render:layers_get', this.layers_getContent, this );
+	        this.on( 'content:render:layers_discover', this.layers_discoverContent, this );
 	        
 	        //console.log( this.options.state );
 	    },
@@ -30,7 +30,7 @@
 		 */
 		browseRouter: function( routerView ) {
 			
-			routerView.set( 'layers_get', {
+			routerView.set( 'layers_discover', {
 				text:     'Discover More Photos',
 				priority: 60
 			} );
@@ -39,13 +39,13 @@
 		},
 		
 		/**
-		 * Render callback for the content region in the `layers_get` mode.
+		 * Render callback for the content region in the `layers_discover` mode.
 		 */
-		layers_getContent: function() {
+		layers_discoverContent: function() {
 			
 			this.$el.removeClass( 'hide-toolbar' );
 			
-			this.content.set( new LayersGetMorePhotos({
+			this.content.set( new LayersDiscoverMorePhotos({
 				controller: this
 			}) );
 		},
@@ -54,10 +54,10 @@
 
 	// Create a simple default view. based on wp.media.view.UploaderInline.
 
-	var LayersGetMorePhotos;
-	LayersGetMorePhotos = wp.media.View.extend({
+	var LayersDiscoverMorePhotos;
+	LayersDiscoverMorePhotos = wp.media.View.extend({
 		
-		template:  wp.template('layers-uploader-upsell')
+		template:  wp.template('layers-discover-more-photos')
 		
 	});
 
