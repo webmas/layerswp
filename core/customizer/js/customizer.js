@@ -223,7 +223,7 @@ wp.media.view.MediaFrame.Select = oldSelect.extend({
     	
         oldSelect.prototype.initialize.apply( this, arguments );
         
-        this.on( 'content:render:ching', this.chingContent, this );
+        this.on( 'content:render:layers_get', this.layers_getContent, this );
     },
     
     /**
@@ -242,7 +242,7 @@ wp.media.view.MediaFrame.Select = oldSelect.extend({
 				text:     l10n.mediaLibraryTitle,
 				priority: 40
 			},
-			ching: {
+			layers_get: {
 				text:     'Get Images',
 				priority: 60
 			}
@@ -254,7 +254,7 @@ wp.media.view.MediaFrame.Select = oldSelect.extend({
 	/**
 	 * Render callback for the content region in the `upload` mode.
 	 */
-	chingContent: function() {
+	layers_getContent: function() {
 		
 		this.$el.removeClass( 'hide-toolbar' );
 		
