@@ -8,7 +8,7 @@
                 Can’t find the perfect image?
             </div>
             <div class="layers-excerpt">
-                Visit <a href="http://bit.ly/layers-photodune" target="_blank">Photodune</a> and find just the right photos for your site for incredibly affordable prices
+                Visit <a href="http://bit.ly/layers-photodune" target="_blank">Photodune</a> and find just the right photos for your site at incredibly affordable prices
             </div>
         </div>
 
